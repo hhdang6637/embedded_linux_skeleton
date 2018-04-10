@@ -1,29 +1,47 @@
+
+TFTP_DIR := tftp_boot
+BUILD_DIR := /home/hhdang/Desktop/code/embedded_linux_skeleton/build
+BUILDROOT_BUILD_DIR := $(BUILD_DIR)/buildroot
+LINUX_BUILD_DIR := $(BUILD_DIR)/linux
+UBOOT_BUILD_DIR := $(BUILD_DIR)/uboot
+
+NUM_OF_CPU := $(nproc)
+
 all: tftp_boot compile_buildroot compile_linux_kernel compile_uboot
-clean: clean_buildroot clean compile_linux_kernel clean uboot
+
+clean: clean_buildroot clean_linux_kernel clean_uboot
+	rm -rf $(BUILD_DIR)
+	rm -rf $(TFTP_DIR)
+
+$(BUILD_DIR):
+	mkdir $(BUILD_DIR)
+	mkdir $(BUILDROOT_BUILD_DIR)
+	mkdir $(LINUX_BUILD_DIR)
+	mkdir $(UBOOT_BUILD_DIR)
 
 tftp_boot: compile_buildroot compile_linux_kernel compile_uboot
-	rm -rf tftp_boot
-	mkdir tftp_boot
-	cp linux-4.14.22/arch/x86/boot/bzImage tftp_boot
-	cp buildroot-2017.02.10/output/images/rootfs.cpio tftp_boot
+	rm -rf $(TFTP_DIR)
+	mkdir $(TFTP_DIR)
+	cp linux-4.14.22/arch/x86/boot/bzImage $(TFTP_DIR)
+	cp buildroot-2017.02.10/output/images/rootfs.cpio $(TFTP_DIR)
 
-compile_buildroot:
-	cp configs/buildroot/config buildroot-2017.02.10/.config
-	$(MAKE) -C buildroot-2017.02.10
+compile_buildroot: $(BUILD_DIR)
+	cp configs/buildroot/config $(BUILDROOT_BUILD_DIR)/.config
+	$(MAKE) -C buildroot-2017.02.10 O=$(BUILDROOT_BUILD_DIR)
 
 clean_buildroot:
-	$(MAKE) -C buildroot-2017.02.10 clean
+	rm -rf $(BUILDROOT_BUILD_DIR)
 
-compile_linux_kernel:
-	cp configs/linux/config linux-4.14.22/.config
-	$(MAKE) -j4 -C linux-4.14.22
+compile_linux_kernel: $(BUILD_DIR)
+	cp configs/linux/config $(LINUX_BUILD_DIR)/.config
+	$(MAKE) -j$(NUM_OF_CPU) -C linux-4.14.22 O=$(LINUX_BUILD_DIR)
 
 clean_linux_kernel:
-	$(MAKE) -C linux-4.14.22 clean
+	rm -rf $(LINUX_BUILD_DIR)
 
-compile_uboot:
-	cp configs/uboot/config u-boot_v2018.05-rc1/.config
-	$(MAKE) -j4 -C u-boot_v2018.05-rc1
+compile_uboot: $(BUILD_DIR)
+	cp configs/uboot/config $(UBOOT_BUILD_DIR)/.config
+	$(MAKE) -j$(NUM_OF_CPU) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR)
 
 clean_uboot:
-	$(MAKE) -C u-boot_v2018.05-rc1 clean
+	rm -rf $(UBOOT_BUILD_DIR)
