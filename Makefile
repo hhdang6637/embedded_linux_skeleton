@@ -1,6 +1,6 @@
 
 TFTP_DIR := tftp_boot
-BUILD_DIR := /home/hhdang/Desktop/code/embedded_linux_skeleton/build
+BUILD_DIR := $(PWD)/build
 BUILDROOT_BUILD_DIR := $(BUILD_DIR)/buildroot
 LINUX_BUILD_DIR := $(BUILD_DIR)/linux
 UBOOT_BUILD_DIR := $(BUILD_DIR)/uboot
@@ -22,8 +22,8 @@ $(BUILD_DIR):
 tftp_boot: compile_buildroot compile_linux_kernel compile_uboot
 	rm -rf $(TFTP_DIR)
 	mkdir $(TFTP_DIR)
-	cp linux-4.14.22/arch/x86/boot/bzImage $(TFTP_DIR)
-	cp buildroot-2017.02.10/output/images/rootfs.cpio $(TFTP_DIR)
+	cp $(LINUX_BUILD_DIR)/arch/x86/boot/bzImage $(TFTP_DIR)
+	cp $(BUILDROOT_BUILD_DIR)/images/rootfs.cpio $(TFTP_DIR)
 
 compile_buildroot: $(BUILD_DIR)
 	cp configs/buildroot/config $(BUILDROOT_BUILD_DIR)/.config
