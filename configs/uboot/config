@@ -165,7 +165,8 @@ CONFIG_BOOTSTAGE_STASH_SIZE=0x1000
 CONFIG_BOOTDELAY=2
 CONFIG_USE_BOOTARGS=y
 CONFIG_BOOTARGS="console=ttyS0"
-# CONFIG_USE_BOOTCOMMAND is not set
+CONFIG_USE_BOOTCOMMAND=y
+CONFIG_BOOTCOMMAND="bootp; tftp 4000000 rootfs.cpio; zboot $loadaddr - $ramdiskaddr $filesize"
 
 #
 # Console
