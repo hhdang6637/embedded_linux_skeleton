@@ -54,10 +54,8 @@ class Server:
                 else:
                     remoteDict[remoteSocket] = packetProcess(remoteSocket)
                     remoteDict[remoteSocket].runProc(data)
-
-            except:
-                pass
-
+            except KeyboardInterrupt:
+                exit(0)
 
 class watchdog(threading.Thread):
     def __init__(self, owner):
