@@ -1,7 +1,7 @@
 all: tftp_boot compile_buildroot compile_linux_kernel compile_uboot
 clean: clean_buildroot clean compile_linux_kernel clean uboot
 
-fftp_boot: compile_buildroot compile_linux_kernel compile_uboot
+tftp_boot: compile_buildroot compile_linux_kernel compile_uboot
 	rm -rf tftp_boot
 	mkdir tftp_boot
 	cp linux-4.14.22/arch/x86/boot/bzImage tftp_boot
