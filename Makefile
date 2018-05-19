@@ -6,6 +6,10 @@ LINUX_BUILD_DIR := $(BUILD_DIR)/linux
 UBOOT_BUILD_DIR := $(BUILD_DIR)/uboot
 BIN_BUILD_DIR := $(BUILD_DIR)/bin
 
+# follow https://elinux.org/RPi_U-Boot
+export CROSS_COMPILE=arm-linux-gnueabi-
+export USE_PRIVATE_LIBGCC=yes
+
 NUM_OF_CPU := $(nproc)
 
 all: tftp_boot compile_buildroot compile_linux_kernel compile_uboot
@@ -46,7 +50,8 @@ clean_linux_kernel:
 compile_uboot: $(BUILD_DIR)
 	cp configs/uboot/config $(UBOOT_BUILD_DIR)/.config
 	$(MAKE) -j$(NUM_OF_CPU) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR)
-	cp $(UBOOT_BUILD_DIR)/u-boot $(UBOOT_BUILD_DIR)/u-boot.rom $(BIN_BUILD_DIR)
+	#cp $(UBOOT_BUILD_DIR)/u-boot $(UBOOT_BUILD_DIR)/u-boot.rom $(BIN_BUILD_DIR)
+	cp $(UBOOT_BUILD_DIR)/u-boot $(UBOOT_BUILD_DIR)/u-boot.bin $(BIN_BUILD_DIR)
 
 clean_uboot:
 	rm -rf $(UBOOT_BUILD_DIR)
