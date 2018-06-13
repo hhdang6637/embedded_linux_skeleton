@@ -7,7 +7,9 @@ UBOOT_BUILD_DIR := $(BUILD_DIR)/uboot
 BIN_BUILD_DIR := $(BUILD_DIR)/bin
 
 # follow https://elinux.org/RPi_U-Boot
+# sudo apt-get install binutils-arm-linux-gnueabi gcc-arm-linux-gnueabi
 export CROSS_COMPILE=arm-linux-gnueabi-
+export ARCH=arm
 export USE_PRIVATE_LIBGCC=yes
 
 NUM_OF_CPU := $(nproc)
@@ -41,7 +43,7 @@ clean_buildroot:
 
 compile_linux_kernel: $(BUILD_DIR)
 	cp configs/linux/config $(LINUX_BUILD_DIR)/.config
-	$(MAKE) -j$(NUM_OF_CPU) -C linux-4.14.22 O=$(LINUX_BUILD_DIR)
+	$(MAKE) -j2 -C linux-4.14.22 O=$(LINUX_BUILD_DIR)
 	cp $(LINUX_BUILD_DIR)/arch/x86/boot/bzImage $(BIN_BUILD_DIR)
 
 clean_linux_kernel:
