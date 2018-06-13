@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Buildroot 2017.02.10-g589ba5066-dirty Configuration
+# Buildroot 2017.02.10-gd648bc72e-dirty Configuration
 #
 BR2_HAVE_DOT_CONFIG=y
 BR2_HOST_GCC_AT_LEAST_4_5=y
@@ -84,42 +84,10 @@ BR2_ARM_EABI=y
 # BR2_ARM_SOFT_FLOAT is not set
 BR2_ARM_FPU_VFPV2=y
 BR2_ARM_INSTRUCTIONS_ARM=y
-# BR2_ARM_INSTRUCTIONS_THUMB is not set
 
 #
 # Thumb1 is not compatible with VFP
 #
-# BR2_x86_i486 is not set
-# BR2_x86_i586 is not set
-# BR2_x86_x1000 is not set
-# BR2_x86_i686 is not set
-# BR2_x86_pentiumpro is not set
-# BR2_x86_pentium_mmx is not set
-# BR2_x86_pentium_m is not set
-# BR2_x86_pentium2 is not set
-# BR2_x86_pentium3 is not set
-# BR2_x86_pentium4 is not set
-# BR2_x86_prescott is not set
-# BR2_x86_nocona is not set
-# BR2_x86_core2 is not set
-# BR2_x86_corei7 is not set
-# BR2_x86_corei7_avx is not set
-# BR2_x86_core_avx2 is not set
-# BR2_x86_atom is not set
-# BR2_x86_k6 is not set
-# BR2_x86_k6_2 is not set
-# BR2_x86_athlon is not set
-# BR2_x86_athlon_4 is not set
-# BR2_x86_opteron is not set
-# BR2_x86_opteron_sse3 is not set
-# BR2_x86_barcelona is not set
-# BR2_x86_jaguar is not set
-# BR2_x86_steamroller is not set
-# BR2_x86_geode is not set
-# BR2_x86_c3 is not set
-# BR2_x86_c32 is not set
-# BR2_x86_winchip_c6 is not set
-# BR2_x86_winchip2 is not set
 
 #
 # Build options
@@ -251,11 +219,11 @@ BR2_BINUTILS_EXTRA_CONFIG_OPTIONS=""
 #
 # BR2_GCC_VERSION_4_8_X is not set
 # BR2_GCC_VERSION_4_9_X is not set
-BR2_GCC_VERSION_5_X=y
-# BR2_GCC_VERSION_6_X is not set
+# BR2_GCC_VERSION_5_X is not set
+BR2_GCC_VERSION_6_X=y
 BR2_GCC_ARCH_HAS_CONFIGURABLE_DEFAULTS=y
 BR2_GCC_SUPPORTS_FINEGRAINEDMTUNE=y
-BR2_GCC_VERSION="5.4.0"
+BR2_GCC_VERSION="6.3.0"
 BR2_EXTRA_GCC_CONFIG_OPTIONS=""
 # BR2_TOOLCHAIN_BUILDROOT_CXX is not set
 # BR2_TOOLCHAIN_BUILDROOT_FORTRAN is not set
@@ -319,7 +287,8 @@ BR2_TOOLCHAIN_GCC_AT_LEAST_4_7=y
 BR2_TOOLCHAIN_GCC_AT_LEAST_4_8=y
 BR2_TOOLCHAIN_GCC_AT_LEAST_4_9=y
 BR2_TOOLCHAIN_GCC_AT_LEAST_5=y
-BR2_TOOLCHAIN_GCC_AT_LEAST="5"
+BR2_TOOLCHAIN_GCC_AT_LEAST_6=y
+BR2_TOOLCHAIN_GCC_AT_LEAST="6"
 BR2_TOOLCHAIN_HAS_SYNC_1=y
 BR2_TOOLCHAIN_HAS_SYNC_2=y
 BR2_TOOLCHAIN_HAS_SYNC_4=y
