@@ -1,10 +1,11 @@
 
-TFTP_DIR := tftp_boot
-BUILD_DIR := $(PWD)/build
-BUILDROOT_BUILD_DIR := $(BUILD_DIR)/buildroot
-LINUX_BUILD_DIR := $(BUILD_DIR)/linux
-UBOOT_BUILD_DIR := $(BUILD_DIR)/uboot
-BIN_BUILD_DIR := $(BUILD_DIR)/bin
+export TFTP_DIR             := tftp_boot
+export BUILD_DIR            := $(PWD)/build
+export BUILDROOT_BUILD_DIR  := $(BUILD_DIR)/buildroot
+export LINUX_BUILD_DIR      := $(BUILD_DIR)/linux
+export LINUX_MOD_BUILD_DIR  := $(BUILD_DIR)/linux_mod
+export UBOOT_BUILD_DIR      := $(BUILD_DIR)/uboot
+export BIN_BUILD_DIR        := $(BUILD_DIR)/bin
 
 # follow https://elinux.org/RPi_U-Boot
 # sudo apt-get install binutils-arm-linux-gnueabi gcc-arm-linux-gnueabi
@@ -44,7 +45,8 @@ clean_buildroot:
 
 compile_linux_kernel: $(BIN_BUILD_DIR)
 	cp configs/linux/config $(LINUX_BUILD_DIR)/.config
-	$(MAKE) -j3 -C linux-4.14.22 O=$(LINUX_BUILD_DIR) zImage dtbs
+	$(MAKE) -j3 -C linux-4.14.22 O=$(LINUX_BUILD_DIR)
+	$(MAKE) -j3 -C linux-4.14.22 O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install
 	cp $(LINUX_BUILD_DIR)/arch/arm/boot/zImage                      $(BIN_BUILD_DIR)
 	cp $(LINUX_BUILD_DIR)/arch/arm/boot/dts/bcm2835-rpi-b-plus.dtb  $(BIN_BUILD_DIR)
 
@@ -72,5 +74,6 @@ make_disk:
 	cp $(UBOOT_BUILD_DIR)/u-boot.bin    $(BUILD_DIR)/sdcard_boot/kernel.img
 	cp $(BIN_BUILD_DIR)/zImage          $(BUILD_DIR)/sdcard_boot
 
-	mkimage -A arm -T ramdisk -C none -n uInitrd -d $(BIN_BUILD_DIR)/rootfs.cpio $(BUILD_DIR)/sdcard_boot/uInitrd
+	fakeroot ./fakeroot.sh
+	mkimage -A arm -T ramdisk -C none -n uInitrd -d $(BUILD_DIR)/sdcard_boot/rootfs.cpio $(BUILD_DIR)/sdcard_boot/uInitrd
 	mkimage -C none -A arm -T script -d configs/boot.cmd  $(BUILD_DIR)/sdcard_boot/boot.scr
