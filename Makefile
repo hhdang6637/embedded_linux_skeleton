@@ -73,7 +73,8 @@ make_disk:
 
 	cp $(UBOOT_BUILD_DIR)/u-boot.bin    $(BUILD_DIR)/sdcard_boot/kernel.img
 	cp $(BIN_BUILD_DIR)/zImage          $(BUILD_DIR)/sdcard_boot
+	mkimage -A arm -T ramdisk -C none -n uInitrd -d $(BIN_BUILD_DIR)/rootfs.cpio $(BUILD_DIR)/sdcard_boot/uInitrd
 
 	fakeroot ./fakeroot.sh
-	mkimage -A arm -T ramdisk -C none -n uInitrd -d $(BUILD_DIR)/sdcard_boot/rootfs.cpio $(BUILD_DIR)/sdcard_boot/uInitrd
+	mkimage -A arm -T ramdisk -C none -n uInitrd -d $(BUILD_DIR)/sdcard_boot/rootfs.cpio $(BUILD_DIR)/sdcard_boot/uInitrd_full
 	mkimage -C none -A arm -T script -d configs/boot.cmd  $(BUILD_DIR)/sdcard_boot/boot.scr
