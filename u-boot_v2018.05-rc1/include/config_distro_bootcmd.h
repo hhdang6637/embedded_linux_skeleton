@@ -397,7 +397,14 @@
 	"distro_bootcmd=" BOOTENV_SET_SCSI_NEED_INIT                      \
 		"for target in ${boot_targets}; do "                      \
 			"run bootcmd_${target}; "                         \
-		"done\0"
+		"done\0"                                              \
+	"loadbasic="                                              \
+		"fatload mmc 0 ${kernel_addr_r} zImage;"              \
+		"fatload mmc 0 ${fdt_addr_r} bcm2835-rpi-b-plus.dtb;" \
+		"fatload mmc 0 ${ramdisk_addr_r} uInitrd\0"           \
+	"bootbasic="                                              \
+		"setenv bootargs console=ttyAMA0,115200 earlyprintk root=/dev/root rootwait panic=10 loglevel=8;" \
+		"bootz ${kernel_addr_r} ${ramdisk_addr_r} ${fdt_addr_r}\0"
 
 #ifndef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND "run distro_bootcmd"
