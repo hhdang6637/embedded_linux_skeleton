@@ -187,7 +187,11 @@ CONFIG_SYS_MALLOC_CLEAR_ON_INIT=y
 # Boot images
 #
 # CONFIG_ANDROID_BOOT_IMAGE is not set
-# CONFIG_FIT is not set
+CONFIG_FIT=y
+CONFIG_FIT_ENABLE_SHA256_SUPPORT=y
+# CONFIG_FIT_SIGNATURE is not set
+CONFIG_FIT_VERBOSE=y
+# CONFIG_FIT_BEST_MATCH is not set
 CONFIG_OF_BOARD_SETUP=y
 # CONFIG_OF_SYSTEM_SETUP is not set
 # CONFIG_OF_STDOUT_VIA_ALIAS is not set
@@ -264,6 +268,7 @@ CONFIG_HASH=y
 #
 # Update support
 #
+# CONFIG_UPDATE_TFTP is not set
 
 #
 # SPL / TPL
@@ -1048,9 +1053,10 @@ CONFIG_REGEX=y
 #
 # Hashing Support
 #
-# CONFIG_SHA1 is not set
-# CONFIG_SHA256 is not set
+CONFIG_SHA1=y
+CONFIG_SHA256=y
 # CONFIG_SHA_HW_ACCEL is not set
+CONFIG_MD5=y
 
 #
 # Compression Support
