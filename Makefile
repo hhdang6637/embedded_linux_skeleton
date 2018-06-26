@@ -71,10 +71,12 @@ make_disk:
 	cp pi-boot/fixup.dat                         $(BUILD_DIR)/sdcard_boot
 	cp pi-boot/bootcode.bin                      $(BUILD_DIR)/sdcard_boot
 
+	mkimage -C none -A arm -T script -d configs/boot.cmd  $(BUILD_DIR)/sdcard_boot/boot.scr
 	cp $(UBOOT_BUILD_DIR)/u-boot.bin    $(BUILD_DIR)/sdcard_boot/kernel.img
 	cp $(BIN_BUILD_DIR)/zImage          $(BUILD_DIR)/sdcard_boot
 	mkimage -A arm -T ramdisk -C none -n uInitrd -d $(BIN_BUILD_DIR)/rootfs.cpio $(BUILD_DIR)/sdcard_boot/uInitrd
 
 	fakeroot ./fakeroot.sh
-	mkimage -A arm -T ramdisk -C none -n uInitrd -d $(BUILD_DIR)/sdcard_boot/rootfs.cpio $(BUILD_DIR)/sdcard_boot/uInitrd_full
-	mkimage -C none -A arm -T script -d configs/boot.cmd  $(BUILD_DIR)/sdcard_boot/boot.scr
+
+	mkimage -f image.its $(BUILD_DIR)/sdcard_boot/fw
+
