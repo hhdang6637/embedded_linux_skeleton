@@ -6,6 +6,8 @@ export LINUX_MOD_BUILD_DIR  := $(BUILD_DIR)/linux_mod
 export UBOOT_BUILD_DIR      := $(BUILD_DIR)/uboot
 export BIN_BUILD_DIR        := $(BUILD_DIR)/bin
 export SCRIPT_BUILD_DIR     := $(PWD)/build_scripts
+export SKELETON_ROOTFS_DIR  := $(SCRIPT_BUILD_DIR)/skeleton_rootfs
+export ROOTFS_DIR           := $(BUILD_DIR)/rootfs
 
 # follow https://elinux.org/RPi_U-Boot
 # sudo apt-get install binutils-arm-linux-gnueabi gcc-arm-linux-gnueabi
@@ -64,10 +66,16 @@ compile_uboot: $(BIN_BUILD_DIR)
 	@cp $(UBOOT_BUILD_DIR)/u-boot $(UBOOT_BUILD_DIR)/u-boot.bin $(BIN_BUILD_DIR)
 	@echo "**********done**********"
 
+compile_apps: $(BIN_BUILD_DIR)
+	@echo "**********compile_apps**********"
+	@$(MAKE) -C applications all
+	@echo "**********done**********"
+
+
 clean_uboot:
 	@rm -rf $(UBOOT_BUILD_DIR)
 
-make_disk:
+make_disk: compile_apps
 	@echo "**********make_disk**********"
 	@rm -rf $(BUILD_DIR)/sdcard_boot
 	@mkdir $(BUILD_DIR)/sdcard_boot
