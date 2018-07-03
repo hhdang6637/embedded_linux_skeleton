@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# Setup build directory
+#
+cd `dirname $0`/..
+if [ -d build_source_package ]; then
+	rm -rf build_source_package
+fi
+mkdir build_source_package
+cd build_source_package
+
+# Check for CMake
+#
+cmake --version 2> /dev/null
+if [ $? != 0 ]; then
+	echo "CMake is not installed but required for building Hiawatha."
+	exit
+fi
+
+# Make source package
+#
+cmake ..
+make package_source
+version=`grep VERSION config.h | cut -f2 -d'"'`
+mv hiawatha-${version}.tar.gz ..
+
+# Done
+#
+cd ..
+rm -rf build_source_package

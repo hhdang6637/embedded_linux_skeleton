@@ -1,0 +1,66 @@
+#!/bin/sh
+
+if [ ! -d /Applications ]; then
+	echo "MacOS required."
+	exit
+fi
+
+# Check for CMake
+#
+cmake --version 2> /dev/null
+if [ $? != 0 ]; then
+	echo "CMake is not installed but required for building Hiawatha."
+	exit
+fi
+
+# Checking for tools required for building a MacOS X package
+#
+echo "-- Checking for required tools"
+tools="/usr/bin/gcc /usr/bin/pkgbuild /usr/bin/productbuild /usr/bin/hdiutil"
+missing=""
+for tool in ${tools}; do
+	if [ ! -f ${tool} ]; then
+		missing="${missing} ${tool}"
+	fi
+done
+if [ "${missing}" != "" ]; then
+	echo "The following tools are missing:${missing}"
+	exit
+fi
+
+# Setup build directory
+#
+cd `dirname $0`/..
+if [ -d build ]; then
+	rm -rf build
+fi
+mkdir build
+cd build
+
+# Compile Hiawatha
+#
+cmake .. -DWEBROOT_DIR=/Library/Webserver/hiawatha
+make
+
+# Make MacOS X package
+#
+strip cgi-wrapper hiawatha ssi-cgi wigwam
+make install DESTDIR=`pwd`/root
+sed "s/#ServerId = www-data/ServerId = _www/" config/hiawatha.conf > root/usr/local/etc/hiawatha/hiawatha.conf
+mkdir -p root/Library/LaunchDaemons
+cp ../extra/macos/org.hiawatha-webserver.httpd.plist root/Library/LaunchDaemons
+
+echo "-- Building package"
+cp -r ../extra/macos/diskimage .
+version=`grep VERSION config.h | cut -f2 -d'"'`
+pkgbuild --root root --scripts ../extra/macos/scripts --version ${version} --identifier org.hiawatha-webserver.httpd hiawatha.pkg
+productbuild --distribution ../extra/macos/Distribution.xml --resources ../extra/macos diskimage/hiawatha-${version}.pkg
+echo "-- Buiding disk image"
+hdiutil create ../"Hiawatha v${version}.dmg" -srcfolder diskimage -volname "Hiawatha ${version}" -ov
+
+# Done
+#
+cd ..
+if [ "$1" != "-b" ]; then
+	rm -rf build
+fi

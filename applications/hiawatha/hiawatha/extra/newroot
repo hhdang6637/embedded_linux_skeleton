@@ -1,0 +1,117 @@
+#!/usr/bin/perl
+
+use strict;
+
+my $method = 'cp';              # Change to 'ln' to hard-link the files.
+chomp(my $cwd = `/bin/pwd`);
+
+sub newroot() {
+	my $file = @_[0];
+
+	if ($file eq "") {
+		return;
+	}
+	my @field = split("/", $file);
+	my $filename = pop(@field);
+	my $path = join("/", @field);
+
+	system("/bin/mkdir -p .".$path);
+	if (-l $file) {
+		my $linkto = readlink($file);
+		if (substr($linkto, 0, 1) eq "/") {
+			$file = $linkto;
+		} else {
+			$file = $path."/".$linkto;
+		}
+		if (! -e ".".$file) {
+			print $file." -> .".$file."\n";
+			system("/bin/".$method." ".$file." .".$file);
+		}
+		if (! -e ".".$path."/".$filename) {
+			print ".".$path."/".$filename." -> .".$path."/".$linkto."\n";
+			chdir(".".$path);
+			system("/bin/ln -s ".$linkto." ".$filename);
+			chdir($cwd);
+		}
+	} else {
+		if (! -e ".".$file) {
+			print $file." -> .".$file."\n";
+			system("/bin/".$method." ".$file." .".$file);
+		}
+	}
+}
+
+sub need_libs() {
+	my $file = @_[0];
+
+	my @ldd = `/usr/bin/ldd $file`;
+	for (my $i = 0; $i <= $#ldd; $i++) {
+		$ldd[$i] =~ s/^.*=>//;
+		$ldd[$i] =~ s/\(.*\n$//;
+		$ldd[$i] =~ s/\s*//g;
+	}
+
+	return @ldd;
+}
+
+sub process() {
+	my $file = @_[0];
+
+	&newroot($file);
+	my @libs = &need_libs($file);
+	for my $lib (@libs) {
+		&newroot($lib);
+	}
+}
+
+sub file_exists() {
+	my $file = @_[0];
+
+	if (open(FILE, $file)) {
+		close(FILE);
+
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
+sub help() {
+	my $bin = $_[0];
+
+	printf("Usage: %s <executable>\n\n", $bin);
+	print("This script can be used to copy executables to a chroot directory.\n");
+	print("Go to a chroot directory and run this script from there. It needs\n");
+	print("a full path to an exectable as a parameter.\n\n");
+
+	print("Example: 'newroot /bin/bash' will copy bash and the libraries that\n");
+	print("bash needs, including their paths, to the current directory.\n\n");
+
+	print("This script is part of the Hiawatha webserver. See hiawatha(1) for\n");
+	print("more information about Hiawatha.\n");
+}
+
+sub main() {
+	my @argv = @_;
+
+	if ($#argv == 0) {
+		printf("%s: missing file argument.\n", $argv[0]);
+		print("Try 'newroot -h' for more information.\n");
+	} elsif ($argv[1] eq '-h') {
+		&help($argv[0]);
+	} elsif (substr($argv[1], 0, 1) ne '/') {
+		print("Invalid argument.\n");
+	} else {
+		if (substr($argv[1], 0, 1) eq '/') {
+			if (&file_exists($argv[1]) == 0) {
+				&process($argv[1]);
+			} else {
+				print("File not found.\n");
+			}
+		} else {
+			print("Enter the complete path an executable.\n");
+		}
+	}
+}
+
+&main($0, @ARGV);

@@ -1,0 +1,43 @@
+Installation
+============
+If the CMake version installed on your system is lower than 3.0, remove it, download the latest version from https://cmake.org/download/#latest and install it.
+
+	tar -xzf cmake-<version>.tar.gz
+	cd cmake-<version>
+	./configure
+	sudo make install
+
+Use the following commands to compile and install Hiawatha. This will install Hiawatha in /usr/local.
+
+	mkdir build
+	cd build
+	cmake .. [options]
+	sudo make install/strip
+
+The following options for cmake are available. Default value is in uppercase.
+
+	-DENABLE_CACHE=ON|off              Enable internal cache support.
+	-DENABLE_IPV6=ON|off               Enable IPv6 support.
+	-DENABLE_MONITOR=on|OFF            Enable support for the Hiawatha Monitor.
+	-DENABLE_RPROXY=ON|off             Enable reverse proxy support.
+	-DENABLE_TLS=ON|off                Enable TLS (mbed TLS) support.
+	-DENABLE_TOMAHAWK=on|OFF           Enable Tomahawk, the Hiawatha command shell.
+	-DENABLE_TOOLKIT=ON|off            Enable the URL Toolkit.
+	-DENABLE_XSLT=ON|off               Enable XSLT support.
+	-DUSE_SYSTEM_MBEDTLS=on|OFF        Compile Hiawatha against the system's mbed TLS library (>=2.0.0).
+
+The following path settings are available for cmake.
+
+	-DCMAKE_INSTALL_PREFIX=<path>      The prefix for all other CMAKE_INSTALL directories.
+	-DCMAKE_INSTALL_BINDIR=<path>      Location of the ssi-cgi binary.
+	-DCMAKE_INSTALL_SBINDIR=<path>     Location of the other Hiawatha binaries.
+	-DCMAKE_INSTALL_SYSCONFDIR=<path>  The configuration files will be installed in <path>/hiawatha.
+	-DCMAKE_INSTALL_LIBDIR=<p9ath>      The mbed TLS shared library will be installed in <path>/hiawatha.
+	-DCMAKE_INSTALL_MANDIR=<path>      Manual pages will be installed in <path>/man1.
+	-DCONFIG_DIR=<path>                Location of the Hiawatha configuration files.
+	-DLOG_DIR=<path>                   Log directory used in the default hiawatha.conf.
+	-DPID_DIR=<path>                   Location of the Hiawatha PID file.
+	-DWEBROOT_DIR=<path>               Webroot directory used in the default hiawatha.conf.
+	-DWORK_DIR=<path>                  Path of directory where Hiawatha can write temporary files.
+
+Look inside the directory 'extra' for scripts to build packages for Debian, Red Hat, MacOS X and Windows (via Cygwin).

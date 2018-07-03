@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+
+echo ">>> Generating RSA key / certificate file\n"
+openssl genrsa -out rsa.pem 2048
+openssl req -new -x509 -days 3650 -key rsa.pem -out cert.pem
+echo "" >> rsa.pem
+cat cert.pem >> rsa.pem
+echo "" >> rsa.pem
+rm -f cert.pem

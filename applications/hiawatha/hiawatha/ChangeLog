@@ -1,0 +1,1484 @@
+hiawatha (10.8.1) stable; urgency=low
+
+  * mbed TLS updated to 2.8.0.
+  * Removed support for secp192r1 and secp192k1 curves, to make it PCI DSS
+    compliant out of the box.
+  * Small improvements to Let's Encrypt ACMEv2 script.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue, 10 Apr 2018 21:58:41 +0100
+
+hiawatha (10.8) stable; urgency=low
+
+  * New Let's Encrypt script that supports ACME v2.
+  * Added Syslog option.
+  * Added GZipExtensions option.
+  * AllowDotFiles now used to show hidden files in directory listings.
+  * mbed TLS updated to 2.7.0.
+  * Removed support for static RSA ciphers.
+  * Hiawatha log format changed.
+  * Small improvements.
+  * Bugfix: certain characters in filenames disrupted directory index output.
+  * Bugfix: requesting non-regular files now results in a 403 instead of
+    blocking that thread.
+ 
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 21 Mar 2018 19:57:44 +0200
+
+hiawatha (10.7) stable; urgency=low
+
+  * Connect to a reverse proxy via a Unix socket.
+  * Added BlockExtensions setting.
+  * mbed TLS updated to 2.6.0.
+  * Small improvements.
+  * Bugfix: error in handling renewal scripts in Let's Encrypt script.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 16 Oct 2017 19:31:54 +0200
+
+hiawatha (10.6) stable; urgency=low
+
+  * Added PublicKeyPins option.
+  * Added renewal-scripts to Let's Encrypt script.
+  * mbed TLS updated to 2.4.2.
+  * Small changes to CMake build system.
+  * Small improvements.
+  * Bugfix: SCSV bug in mbed TLS.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 16 Apr 2017 22:04:37 +0200
+
+hiawatha (10.5) stable; urgency=low
+
+  * mbed TLS updated to 2.4.0, using GPL version.
+  * Added CustomHeaderBackend option.
+  * Renamed CustomHeader option to CustomHeaderClient. Old name still works.
+  * Hiawatha ignores FileHashes and ReverseProxy for Let's Encrypt
+    authentication requests.
+  * Small bugfixes.
+
+ -- Hugo Leisink <hugo@leisink.net>  Fri, 27 Jan 2017 12:06:10 +0100
+
+hiawatha (10.4) stable; urgency=low
+
+  * mbed TLS updated to 2.3.0.
+  * SkipCacheCookie option added.
+  * Added Systemd init script to Debian package.
+  * Small improvements and bugfixes.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed,  5 Oct 2016 19:56:21 +0200
+
+hiawatha (10.3) stable; urgency=low
+
+  * PreventCSRF, PreventSQLi and PreventXSS improved.
+  * Prevention of MySQL data mining via SQL injection. Thanks to
+    Esmaeil Rahimian <rahimian@securehost.co>.
+  * Added revoke option to Let's Encrypt script.
+  * Hiawatha ignores RequireTLS for Let's Encrypt authentication requests.
+  * Small bugfixes and improvements.
+  * Bugfix: possible HTTP request pipelining error after CSRF prevented.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun,  5 Jun 2016 08:21:38 +0200
+
+hiawatha (10.2) stable; urgency=low
+
+  * Added Let's Encrypt script (see extra/letsencrypt).
+  * Added support for requesting Let's Encrypt certificates (see AccessList
+    and PasswordFile settings in manual page).
+  * Small improvements.
+  * Bugfix: HideProxy not working for Forwarded header.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun,  1 May 2016 20:21:41 +0200
+
+hiawatha (10.1) stable; urgency=low
+
+  * Added Extensions setting.
+  * Added support for X-Sendfile header.
+  * mbed TLS updated to 2.2.1.
+  * Improved SQL injection detection.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 11 Feb 2016 08:39:12 +0100
+
+hiawatha (10.0) stable; urgency=low
+
+  * Usage of Directory sections changed.
+  * Added support for RFC 5785.
+  * Added support for GZip compression. Removed the UseGZfile option.
+  * Added ECDSA support for TLS 1.0 and TLS 1.1.
+  * Replaced UrlToolkit Expire option with ExpirePeriod in Directory section.
+  * Replaced IgnoreDotHiawatha option with UseLocalConfig.
+  * Removed the VolatileObject option.
+  * Improved SQL injection detection.
+  * mbed TLS updated to 2.2.0.
+  * Small improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 25 Nov 2015 19:13:39 +0100
+
+hiawatha (9.15) stable; urgency=low
+
+  * Support for WebSockets via reverse proxy.
+  * UNIX socket support for connections to WebSockets.
+  * Responsive design for directory index and error message.
+  * mbed TLS updated to 2.1.2.
+  * Fixed mbed TLS linking in CMake configuration.
+  * ListenBacklog option added.
+  * Small bugfixes.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 14 Oct 2015 20:46:07 +0200
+
+hiawatha (9.14) stable; urgency=low
+
+  * mbed TLS updated to 2.0.0.
+  * Small bugfixes.
+  * Bugfix: crash when sending very large request to FastCGI server.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 26 Jul 2015 11:23:50 +0200
+
+hiawatha (9.13) stable; urgency=low
+
+  * Renamed SSLcertFile to TLScertFile.
+  * Renamed RequireSSL to RequireTLS.
+  * Renamed SSL_* CGI environment variables to TLS_*.
+  * Renamed UrlToolkit option UseSSL to UseTLS.
+  * Replaced MinSSLversion by MinTLSversion.
+  * LogTimeouts option added.
+  * Added 'skip directories' parameter to reverse proxy.
+  * Failed logins sent to Hiawatha Monitor.
+  * Small bugfix and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 10 May 2015 09:47:41 +0200
+
+hiawatha (9.12) stable; urgency=medium
+
+  * PolarSSL 1.3.9 upgraded to mbed TLS 1.3.10.
+  * MacOS X PreferencePane removed from MacOS X package.
+  * Bugfix: memory leak in SSL library.
+  * Small bugfix.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 12 Feb 2015 22:39:50 +0100
+
+hiawatha (9.11) stable; urgency=low
+
+  * ChallengeClient option added.
+  * UrlToolkit options TotalConnections and OmitRequestLog added.
+  * Improvements to UrlToolkit and reverse proxy swap.
+  * UrlToolkit rules are also applied to PUT and DELETE.
+  * Small improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 18 Jan 2015 10:36:27 +0100
+
+hiawatha (9.10) stable; urgency=low
+
+  * Support for banning bad clients who connect via a proxy.
+  * UrlToolkit option Do added. Changed how Call and Skip should be called.
+  * General UrlToolkit improvements. See config/toolkit.conf for syntax.
+  * Hiawatha now prefers reverse proxies with a scheme matching the one of
+    the client connection. See config/toolkit.conf for syntax.
+  * Hiawatha will now first process UrlToolkit rules before using ReverseProxy.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat,  3 Jan 2015 19:09:11 +0100
+
+hiawatha (9.9) stable; urgency=low
+
+  * HTTPAuthToCGI option added.
+  * BanByCGI option added.
+  * PolarSSL updated to version 1.3.9.
+  * Improved SSL ciphersuite selections.
+  * CAcertificates options added.
+  * Dropped support for SSL3.0.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun,  7 Dec 2014 12:15:57 +0100
+
+hiawatha (9.8) stable; urgency=low
+
+  * Added support for websockets. WebSocket option added.
+  * Added Red Hat package building script (extra/make_redhat_package).
+    Thanks to Paul F. Bernal B.
+  * SSL key and certificate checks added to wigwam.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 27 Sep 2014 14:13:21 +0200
+
+hiawatha (9.7) stable; urgency=low
+
+  * UseToolkit now possible in .hiawatha file at root of website.
+  * Method option added to URL Toolkit.
+  * SetResourceLimit option added.
+  * ThreadKillRate option added.
+  * Improved SQL injection detection.
+  * Default value for DHsize set to 2048.
+  * PolarSSL updated to version 1.3.8.
+  * Memory allocation debugger module added.
+  * Small bugfixes and improvements.
+  * Bugfix: incorrect file hash printing by wigwam with directory as symlink.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 21 Aug 2014 22:20:49 +0200
+
+hiawatha (9.6) stable; urgency=medium
+
+  * Logfile rotation for access logfiles.
+  * HTTP Strict Transport Security header made optional for RequireSSL.
+  * Support for chunked transfer encoded requests (not for PUT).
+  * Support for improved server statistics in Hiawatha Monitor.
+  * The Hiawatha Monitor is now supported without the need for XSLT.
+  * PolarSSL updated to version 1.3.7.
+  * A few bugfixes as reported by Coverity.
+  * Small bugfixes.
+  * Bugfix: SQL injection detection was broken since 8.6.
+  * Bugfix: XSS detection didn't work for reverse proxy.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 31 May 2014 20:07:55 +0200
+
+hiawatha (9.5) stable; urgency=low
+
+  * Added support for CGI statistics in Hiawatha Monitor.
+  * MonitorRequests and MonitorStatsInterval option removed.
+  * Added support for Origin HTTP header to prevent CSRF.
+  * EnforceFirstHostname option added.
+  * ScriptAlias option added.
+  * PolarSSL updated to version 1.3.6.
+  * Dropped support for PolarSSL 1.2.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 23 Apr 2014 20:55:29 +0200
+
+hiawatha (9.4) stable; urgency=low
+
+  * Keep-Alive connections for reverse proxy made optional.
+  * ErrorXSLTfile option added.
+  * IgnoreDotHiawatha option added.
+  * RandomHeader option added.
+  * Dropped support for RC4.
+  * PolarSSL updated to version 1.3.4.
+  * Added support for Hyper Text Coffee Pot Control Protocol (RFC 2324).
+  * Added SSL_CIPHER to CGI environment.
+  * Added Public/Private to URL Toolkit expire option.
+  * Small improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 22 Mar 2014 10:53:03 +0100
+
+hiawatha (9.3.1) stable; urgency=low
+
+  * Several bugfixes in reverse proxy.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat,  7 Dec 2013 19:54:49 +0100
+
+hiawatha (9.3) stable; urgency=low
+
+  * PolarSSL updated to version 1.3.2.
+  * Added support for Elliptic Curve Cryptography.
+  * TunnelSSH option added.
+  * AnonymizeIP option added. Thanks to Klemens Scholhorn.
+  * Keep-alive connections for reverse proxy.
+  * Small improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue,  5 Nov 2013 20:21:13 +0100
+
+hiawatha (9.2) stable; urgency=low
+
+  * Added support for compiling Hiawatha against the system's default
+    version (>=1.2.0) of the PolarSSL library.
+  * PolarSSL updated to version 1.2.8.
+  * Small bugfixes (memory leaks in error situations).
+  * Bugfix: virtual hostname selection for IPv6 with non-standard port.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 23 Jun 2013 12:25:52 +0200
+
+hiawatha (9.1) stable; urgency=low
+
+  * FileHashes option added.
+  * PolarSSL updated to version 1.2.7. Enabled ciphersuite selection based
+    on protocol version.
+  * Enabled accf_http support for FreeBSD. Thanks to Martin Tournoij.
+  * Better handling of previous installed configuration files under MacOS X.
+    Thanks to Sander Niemeijer.
+  * ImageReferer option removed.
+  * Added SSL_VERSION to CGI environment.
+  * Bugfix: incorrect BanOnFlooding behavior.
+  * Small improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 15 Apr 2013 17:56:48 +0200
+
+hiawatha (9.0) stable; urgency=low
+
+  * Clients handled via thread pool instead of creating threads on the fly.
+  * ThreadPoolSize option added.
+  * Header option added to URL Toolkit.
+  * Improved client SSL certificate handling. Environment variables renamed.
+  * PolarSSL updated to version 1.2.6.
+  * Improved Reverse Proxy caching support for requests with URL parameters.
+  * CacheMinFilesize option removed.
+  * DenyBot option removed. Use URL Toolkit's Header option instead.
+  * OldBrowser option removed from URL Toolkit. Use Header option instead.
+  * Improved URL Toolkit rule testing in wigwam.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 28 Mar 2013 11:46:52 +0100
+
+hiawatha (8.8.1) stable; urgency=medium
+
+  * Bugfix: Incorrect size of buffer for poll() can lead to a crash
+    when using Tomahawk.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue,  5 Mar 2013 15:27:01 +0100
+
+hiawatha (8.8) stable; urgency=low
+
+  * Caching for Reverse Proxy. CacheRProxyExtensions option added.
+  * Basic HTTP authentication now supports the glibc2 version of crypt().
+  * Hostname in ImageReferer can now contain a wildcard.
+  * DenyBody matching is now case insensitive.
+  * PolarSSL updated to version 1.2.5.
+  * Small improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 18 Feb 2013 22:05:46 +0100
+
+hiawatha (8.7) stable; urgency=low
+
+  * Added support for HTTP Strict Transport Security (RFC 6797). Integrated
+    in RequireSSL option.
+  * DHsize option added.
+  * PolarSSL updated to version 1.2.3.
+  * CloudFlare headers placed in environment variables.
+  * Removed php-fcgi.
+  * Small improvements.
+  * Bugfix: slow page loading via Reverse Proxy.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed,  9 Jan 2013 20:18:23 +0100
+
+hiawatha (8.6) stable; urgency=low
+
+  * PolarSSL updated to version 1.2. Added support for TLS 1.2 and
+    secure renegotiation.
+  * Added support for Server Name Indication.
+  * MinSSLversion option added.
+  * ServerRoot option removed.
+  * Improved MacOS X package building script.
+  * Marked php-fcgi as deprecated. Use php-fpm instead.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 31 Oct 2012 19:10:32 +0100
+
+hiawatha (8.5) stable; urgency=low
+
+  * Improved Reverse Proxy.
+  * Changed error message style.
+  * Renamed Command Channel to Tomahawk.
+  * Return 403 instead of 401 upon correct password for HTTP
+    authentication but user not in right group.
+  * Small improvements.
+  * Bugfix: replaced select() with poll() to prevent crashes in case of
+    large amount of simultaneous connections. Thanks to Peter Bex.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun,  9 Sep 2012 11:39:12 +0200
+
+hiawatha (8.4) stable; urgency=low
+
+  * MaxServerLoad option added.
+  * PolarSSL updated to version 1.1.4.
+  * Small bugfixes and improvements.
+  * Bugfix: invalid reverse proxy request when URL parameters are present.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu,  7 Jun 2012 20:07:46 +0200
+
+hiawatha (8.3.2) stable; urgency=high
+
+  * Bugfix: memory leak in SSL library.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue, 29 May 2012 18:02:59 +0200
+
+hiawatha (8.3.1) stable; urgency=low
+
+  * Improved security for reverse proxy (works with PreventSQLi, etc).
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 28 May 2012 21:50:31 +0200
+
+hiawatha (8.3) stable; urgency=low
+
+  * ReverseProxy option added.
+  * PolarSSL updated to version 1.1.3.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 23 May 2012 18:11:56 +0200
+
+hiawatha (8.2) stable; urgency=low
+
+  * WebDAVapp option added. Enables support for WebDAV applications
+    like ownCloud (http://owncloud.org/).
+  * Removed support for the OPTIONS method.
+  * AllowDotFiles option added.
+  * Global forks setting in php-fcgi.conf moved to Server setting.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue,  1 May 2012 17:48:27 +0200
+
+hiawatha (8.1) stable; urgency=low
+
+  * BanOnInvalidURL option added.
+  * PolarSSL updated to version 1.1.1.
+  * Small improvements in Windows packaging script.
+  * Bugfix: paths missing in default values and examples in manual pages.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 25 Feb 2012 19:02:41 +0100
+
+hiawatha (8.0) stable; urgency=low
+
+  * Replaced Autoconf with CMake. Many thanks to Sander Niemeijer.
+  * Replaced OpenSSL with PolarSSL. Many thanks to Paul Bakker.
+  * AllowedCiphers and DHparameters options removed.
+  * Added IE7 to URL Toolkit's OldBrowser list, removed IE5.
+  * MaxUrlLength option added, can return 414 Request-URI Too Long.
+  * Changed default value of TriggerOnCGIstatus to 'no'.
+  * Equalized format of logfiles.
+  * Extra checks added to php-fcgi.
+  * Small improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Fri, 27 Jan 2012 12:06:10 +0100
+
+hiawatha (7.8.2) stable; urgency=high
+
+  * Improved SQL injection detection.
+  * Bugfix: memory leak in PreventSQLi routine.
+  * Bugfix: potential server freeze with 100% CPU in CGI output caching.
+
+ -- Hugo Leisink <hugo@leisink.net>  Fri, 18 Nov 2011 06:51:07 +0100
+
+hiawatha (7.8.1) stable; urgency=low
+
+  * Small bugfixes and improvements.
+  * Bugfix: null byte in HTTP header of cached CGI content.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed,  9 Nov 2011 17:21:52 +0100
+
+hiawatha (7.8) stable; urgency=low
+
+  * Control CGI output cache via X-Hiawatha-Cache and X-Hiawatha-Cache-Remove
+    CGI headers. See the CGI OUTPUT CACHE section in the manual page.
+  * BanOnWrongPassword now also triggers on wrong username.
+  * Small improvements.
+  * Bugfix: timeout issue with large POST requests on SSL connections.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 31 Oct 2011 21:27:18 +0100
+
+hiawatha (7.7) stable; urgency=low
+
+  * First parameter of Alias can now contain subdirectories.
+  * Improved stability for connections with SSL client authentication.
+  * Bugfix: BanOnFlooding was broken.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue,  4 Oct 2011 19:48:30 +0200
+
+hiawatha (7.6) stable; urgency=low
+
+  * PreventSQLi option rewritten.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 21 Aug 2011 08:06:21 +0200
+
+hiawatha (7.5) stable; urgency=low
+
+  * OldBrowser option added to URL Toolkit.
+  * Improved mimetype configuration.
+  * Do-not-track HTTP header support.
+  * Password file entries can now be created with Wigwam.
+  * Small bugfixes and improvements.
+  * Bugfix: sent one byte too few for Range -XX.
+  * Bugfix: possible crash when using PreventSQLi.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 28 May 2011 15:39:13 +0200
+
+hiawatha (7.4.1) stable; urgency=high
+
+  * Bugfix: integer overflow in fetch_request() which could
+    lead to a server crash.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 26 Feb 2011 10:32:24 +0100
+
+hiawatha (7.4) stable; urgency=medium
+
+  * Connections per IP added to RequestLimitMask.
+  * NoExtensionAs made a per-host setting.
+  * Small bugfixes and improvements.
+  * Bugfix: usage of HideProxy caused Hiawatha to refuse new connections
+    after ConnectionsTotal connections.
+  * Bugfix: memory leak in XSLT module.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon,  8 Nov 2010 20:58:54 +0100
+
+hiawatha (7.3) stable; urgency=low
+
+  * RequestLimitMask option added.
+  * URL parameters for ErrorHandler.
+  * Support for Haiku OS.
+  * Small security bugfixes.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun,  6 Jun 2010 23:18:37 +0200
+
+hiawatha (7.2) stable; urgency=low
+
+  * URL Toolkit code restructured.
+  * UseSSL option added to URL Toolkit.
+  * Digest HTTP authentication works with htdigest(1) created password files.
+  * Small improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 21 Apr 2010 18:12:37 +0200
+
+hiawatha (7.1) stable; urgency=low
+
+  * Small bugfixes.
+  * Bugfix: deny access and redirect result via URL Toolkit subroutine.
+  * Bugfix: broken flooding protection.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 28 Mar 2010 10:39:12 +0200
+
+hiawatha (7.0) stable; urgency=low
+
+  * Remote Monitoring support. MonitorServer, MonitorRequests and
+    MonitorStatsInterval options added.
+  * IPv6 support for Windows version, due to IPv6 support in Cygwin 1.7.
+  * XSLT support turned on by default.
+  * All directory listings are done via XSLT. The internal index layout has
+    been removed. IndexStyle option removed.
+  * ServerRoot option has been made available via configure parameter.
+  * Small improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Fri, 12 Feb 2010 14:13:09 +0100
+
+hiawatha (6.19) stable; urgency=low
+
+  * Expire option added to URL Toolkit.
+  * HideProxy option added.
+  * UNIX socket support for connections to FastCGI daemons.
+  * ExploitLogfile option added.
+  * Small bugfixes.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun,  6 Dec 2009 21:25:41 +0100
+
+hiawatha (6.18) stable; urgency=low
+
+  * DenyBody and BanOnDeniedBody options added.
+  * PreventCMDi and BanOnCMDi options removed. DenyBody and URL Toolkit offer
+    better functionality.
+  * Ban option added to URL Toolkit.
+  * UseGZfile now first looks for .gz file instead of after requested file
+    does not exist.
+  * Changed duplicate hostnames in configuration from blocking error to
+    warning in Wigwam.
+  * Small bugfixes.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 15 Nov 2009 20:19:57 +0100
+
+hiawatha (6.17.1) stable; urgency=high
+
+  * Bugfix: possible crash due to bug in log.c.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat,  5 Sep 2009 08:45:18 +0200
+
+hiawatha (6.17) stable; urgency=low
+
+  * Directory index via XSLT.
+  * Small bugfixes and improvements.
+  * Bugfix: incorrect SCRIPT_NAME value with PathInfo.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 30 Aug 2009 20:04:22 +0200
+
+hiawatha (6.16) stable; urgency=medium
+
+  * Main configuration file httpd.conf renamed to hiawatha.conf.
+  * Improved error detecting and logging in php-fcgi.
+  * RunOnDownload option added.
+  * Small bugfixes and improvements.
+  * Bugfix: repeated PIDs in php-fcgi.pid with multiple servers.
+  * Bugfix: incorrect extended log format.
+  * Bugfix: crash on too long StartFile in .hiawatha file.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 26 Jul 2009 18:13:37 +0200
+
+hiawatha (6.15) stable; urgency=low
+
+  * Basic SSI support.
+  * TimeForCGI option per directory.
+  * SocketSendTimeout option added.
+  * Small improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun,  5 Jul 2009 17:20:53 +0200
+
+hiawatha (6.14.1) stable; urgency=low
+
+  * Bugfix: Wigwam updated with UseFastCGI change.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun,  7 Jun 2009 23:41:07 +0200
+
+hiawatha (6.14) stable; urgency=medium
+
+  * Platform independent read-timeout handlers.
+  * RequiredCA option added.
+  * UseSSL option removed, ServerKey option renamed to SSLcertFile and made
+    available only in Binding section.
+  * FastCGI option renamed to UseFastCGI.
+  * Small bugfixes and improvements.
+  * Bugfix: fork-mutex issue when executing CGI.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed,  3 Jun 2009 19:50:37 +0200
+
+hiawatha (6.13) stable; urgency=low
+
+  * LSB style header added to init script.
+  * SSL initialization improved for cross compiling.
+  * Change in signal handling (HUP and USR2 signal).
+  * Small bugfixes and improvements.
+  * Bugfix: incorrect MD5 hashing on 64bit machines.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed,  6 May 2009 21:33:49 +0200
+
+hiawatha (6.12) stable; urgency=low
+
+  * Compile errors under the latest Ubuntu release fixed.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 29 Mar 2009 13:27:05 +0200
+
+hiawatha (6.11) stable; urgency=low
+
+  * Duplicate hostname check included in Wigwam.
+  * All HTTP headers starting with X- are added to CGI environment and
+    set as XSLT parameter.
+  * Non-present HTTP/CGI variable set as empty XSLT parameter.
+  * Small bugfixes and improvements.
+  * Bugfix: URL Toolkit's FastCGI setting issues.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 29 Dec 2008 08:57:42 +0100
+
+hiawatha (6.10) stable; urgency=low
+
+  * Prevention of cross-site request forgery. PreventCSRF option added.
+  * A start and stop preference pane has been added to the MacOS X package.
+  * A new dedicated website for Hiawatha has been launched. Please, visit
+  	http://www.hiawatha-webserver.org/. The welcome webpage inside the package
+    has been updated to match the new design.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 29 Oct 2008 21:48:21 +0100
+
+hiawatha (6.9) stable; urgency=low
+
+  * NoExtensionAs option added.
+  * Tool added to the Windows package to start Hiawatha as a service under
+    Windows (see Installation.txt in Windows package for more information).
+  * Small bugfixes and improvements.
+  * Bugfix: URL encoding of links in directory listing.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 24 Sep 2008 19:12:45 +0200
+
+hiawatha (6.8) stable; urgency=low
+
+  * XSLT parameter support.
+  * 'URL rewriting' has been renamed to 'URL Toolkit' (because rewriting
+    is just one of the four options of this feature).
+  * FastCGI option added to URL Toolkit.
+  * WaitForCGI option added.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue, 22 Jul 2008 09:30:12 +0200
+
+hiawatha (6.7) stable; urgency=low
+
+  * BanOnWrongPassword option added.
+  * Workaround to handle non-compliant CGI headers.
+  * Updated Debian package building files.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 28 May 2008 22:06:36 +0200
+
+hiawatha (6.6) stable; urgency=medium
+
+  * XSLT support (compile with --enable-xslt).
+  * Bugfix: possible crash when using HTTPS (due to bug in OpenSSL).
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 28 Apr 2008 19:30:44 +0200
+
+hiawatha (6.5) stable; urgency=medium
+
+  * Small bugfixes and improvements.
+  * Bugfix: integer overflow in str2int().
+  * Bugfix: compile error with --disable-ssl.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat,  8 Mar 2008 08:12:41 +0100
+
+hiawatha (6.4) stable; urgency=medium
+
+  * SSL memory leak fixed.
+  * Skip, Redirect and RequestURI options added to URL rewriting.
+  * Old format of ConnectTo is no longer valid.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 10 Feb 2008 08:54:01 +0100
+
+hiawatha (6.3) stable; urgency=low
+
+  * Release of stdin, stdout and stderr on startup.
+  * Small improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 21 Jan 2008 20:51:18 +0100
+
+hiawatha (6.2) stable; urgency=medium
+
+  * Moved TimeForCGI from 'server settings' to virtual host section.
+  * RunOnAlter option added.
+  * Improved error logging.
+  * URL rewriting disabled for PUT and DELETE requests.
+  * Path corrections in manpages via autoconf.
+  * Workaround: dot at end of filename in Windows version.
+  * Bugfix: digest HTTP authentication was broken when using GET data.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 13 Dec 2007 08:21:10 +0100
+
+hiawatha (6.1) stable; urgency=low
+
+  * Format of ConnectTo changed. Old format will be valid for a few
+    more releases.
+  * Changed some CGI environment variables after URL rewriting.
+  * Some URL rewrite checks included in Wigwam.
+  * TriggerOnCGIstatus option added.
+  * RequireResolveIP option removed.
+  * Bugfix: POST data larger then 64kB via FastCGI.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 11 Nov 2007 09:45:08 +0100
+
+hiawatha (6.0) stable; urgency=low
+
+  * IPv6 support.
+  * Delimiters in php-fcgi.conf en cgi-wrapper.conf changed to ';'.
+  * Format of AccessList, AlterList, BanlistMask, ConnectTo and
+    LogfileMask changed (colon changed to space because of IPv6).
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Fri, 26 Oct 2007 18:13:05 +0200
+
+hiawatha (5.14) stable; urgency=low
+
+  * Improved logfile handling.
+  * More checks included in Wigwam.
+  * Small improvements.
+  * Bugfix: memory issue in Wigwam.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 13 Oct 2007 12:11:37 +0200
+
+hiawatha (5.13) stable; urgency=low
+
+  * DenyAccess option added to URL rewriting.
+  * Path 'aliases' (set C: = /cygdrive/c) and usage of forward slashes
+    no longer necessary in configuration file of the Windows version.
+  * SCRIPT_URL logged as URL in case of URL rewrite.
+  * Cookies no longer present in logfiles.
+  * Optimizations for compiling under Solaris. See the INSTALL file for
+    more information (Thanks to Richard Barrington).
+  * Some dependency fixes.
+  * CGI zombies under OpenBSD fixed.
+  * Pthread issue under OpenBSD fixed (Thanks to Kurt Miller).
+  * Small bugfixes and improvements.
+  * Bugfix: POST data larger then 64kB via FastCGI.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 27 Sep 2007 17:34:14 +0200
+
+hiawatha (5.12) stable; urgency=medium
+
+  * URL rewriting.
+  * Small bugfixes.
+  * Bugfix: possible crash (non-exploitable) on too large request.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 26 Aug 2007 15:35:44 +0200
+
+hiawatha (5.11) stable; urgency=low
+
+  * Made some changes to the ErrorHandler behaviour.
+  * Uploading (PUT) goes directly to disk, instead of buffering in memory.
+  * Option MaxUploadSize added.
+  * 201 Created.
+  * 411 Length Required.
+  * Small improvements.
+  * Bugfix: two bugs in the parsing of CGI HTTP headers.
+  * Bugfix: Hiawatha for Windows returned 403 for CGI because of Cygwin
+    file access rights.
+  * Bugfix: setenv in php-fcgi was not working.
+  * Bugfix: 404 for non-existing local file and remote FastCGI server
+    and non-gzip content-encoding.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue,  7 Aug 2007 17:26:21 +0200
+
+hiawatha (5.10) stable; urgency=low
+
+  * Improved CGI support for Windows version (Cygwin).
+  * Throttle configuration merged into httpd.conf.
+  * EnablePathInfo option added.
+  * Workaround for syntax-bug in php-fcgi.conf (comma in GIDs conflicts
+    with comma before PHP configuration file).
+  * Improved ErrorHandler.
+  * Small improvements.
+  * Bugfix: possible crash when using load-balanced FastCGI.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu,  5 Jul 2007 22:08:20 +0200
+
+hiawatha (5.9) stable; urgency=medium
+
+  * PUT and DELETE method implemented.
+  * 204 No Content.
+  * Options EnableAlter, AlterGroup, AlterList and AlterMode added.
+  * Options PasswordFile and RequiredGroup have been changed.
+  * Better handling of URL encoded characters.
+  * Improved SQL/command injection and XSS prevention.
+  * Autoconf improvements (Thanks to Sander Niemeijer, again).
+  * Small bugfixes and improvements.
+  * Bugfix: alias in directory index also appeared in subdirectories.
+  * Bugfix: ranges were ignored while reading from cache.
+  * Bugfix: digest HTTP authentication failed when a comma was present
+    in the URL.
+  * Bugfix: small memory leak when reading a .hiawatha file.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 16 Jun 2007 16:03:14 +0200
+
+hiawatha (5.8) stable; urgency=low
+
+  * Source-plugin has been removed. It's obsolete because of FastCGI.
+  * Entropy fix during SSL initialization if needed.
+  * UserDirectory option added.
+  * More error logging for Hiawatha and the CGI-wrapper.
+  * Added OpenSSL exception to the license file and libssl.c.
+  * Bugfixes and small improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 25 Apr 2007 15:19:40 +0200
+
+hiawatha (5.7) stable; urgency=medium
+
+  * RequireResolveIP option added.
+  * KillTimedoutCGI option added.
+  * Aliases added to directory index.
+  * Extended Command Channel status output.
+  * Configurationfiles read in alfabetic order when including a directory.
+  * More error logging.
+  * (Fast)CGI code improvement.
+  * Small bugfixes and improvements.
+  * Bugfix: minor memory issue fixed in show_index().
+  * Bugfix: possible webserver crash due to bug in log_error().
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun,  4 Mar 2007 08:43:28 +0100
+
+hiawatha (5.6) stable; urgency=low
+
+  * Chrooted FastCGI server support.
+  * Configuration reading routine rewritten. Angle bracket sections
+    are no longer available. Only curly bracket sections can be used.
+  * An error in a .hiawatha file results in a 500. An errormessage
+    will be written to the ErrorLogfile.
+  * Command Channel improved.
+  * AllowedCiphers option added.
+  * DHparameters option added.
+  * CGIwrapId option renamed to WrapCGI.
+  * FCGIserverId option renamed to FastCGIid.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 12 Feb 2007 21:16:19 +0100
+
+hiawatha (5.5) stable; urgency=low
+
+  * Segmentation fault handler (just in case). Logs an alert to syslog.
+  * An 'include' configuration option can now handle a directory.
+  * CGI-wrapper logs errors to ErrorLogfile.
+  * Commandline options -k and -v added.
+  * LogFormat option added.
+  * UseGZfile option added.
+  * Alternative strcasecmp() en strncasecmp().
+  * 'cgi_wrapper' renamed to 'cgi-wrapper'.
+  * 'fcgi-server' replaced by 'php-fcgi'.
+  * 'newroot' installed via autotools.
+  * Complete code review and rewrites of 'old code'.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 21 Jan 2007 12:56:12 +0100
+
+hiawatha (5.4) stable; urgency=low
+
+  * Alternative setenv() en unsetenv() (for HP-UX and Solaris).
+  * Commandline options -c, -d and -h added.
+  * Faster flooding-check.
+  * Proper exit-codes when an error occurs.
+  * Bugfix in default_config() which made it fail to run on OpenBSD.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Fri, 29 Dec 2006 01:42:38 +0100
+
+hiawatha (5.3) stable; urgency=low
+
+  * Handling of not-available FastCGI servers.
+  * Large file support.
+  * Cache speed improvement.
+  * Total-connections-counter adjusted in case of ReconnectDelay.
+  * StartFile option now available inside a Directory section.
+  * 'newroot' and 'fcgi-server' scripts added to the Debian package
+    and the FreeBSD Makefile.
+  * CacheMinFilesize option added.
+  * Alternative clearenv() en strcasestr().
+  * Small bugfixes in the cache module.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 17 Dec 2006 11:52:26 +0100
+
+hiawatha (5.2) stable; urgency=low
+
+  * Multiple, load-balanced FastCGI server support.
+  * Digest HTTP authentication.
+  * Improved error checking by Wigwam.
+  * Included FreeBSD port files.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 25 Nov 2006 09:37:44 +0100
+
+hiawatha (5.1) stable; urgency=low
+
+  * BindingId added to CGI environment (SERVER_BINDING).
+  * Improved error checking by Wigwam.
+  * Small improvements (source dependencies)
+  * Bugfix: BindingId instead of Binding_Id
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed,  8 Nov 2006 22:07:41 +0100
+
+hiawatha (5.0) stable; urgency=low
+
+  * FastCGI support (Responder role only).
+  * Configurationfile checker (Wigwam).
+  * Internal file caching. CacheSize and CacheMaxFilesize options added
+    (Compile with --disable-cache to disable this feature).
+  * Start/stop and install script for FreeBSD (see freebsd/ in source package).
+  * PIDfile option added.
+  * Name in a binding section renamed to BindingId.
+  * Small bugfixes.
+  * Bugfix: directory index with no keep-alive for HTTP/1.0 proxies.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 26 Oct 2006 18:31:57 +0100
+
+hiawatha (4.3.2) stable; urgency=medium
+
+  * Bugfix: client/time information missing in unbanned-logmessage.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue,  6 Jun 2006 21:10:55 +0200
+
+hiawatha (4.3.1) stable; urgency=high
+
+  * Bugfix: HTTP authentication was broken.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 15 May 2006 10:12:55 +0200
+
+hiawatha (4.3) stable; urgency=low
+
+  * Speed improvement (real improvement for static content).
+  * Reason for 403 HTTP error added to access logfile (not for wrapped CGIs).
+  * X-Forwarded-For header field also used for AccessList.
+  * Code cleanup: Uniform variablename format.
+  * Small bugfixes.
+  * Bugfix: removed double Content-Type for HTTP error messages.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 23 Feb 2006 19:57:14 +0100
+
+hiawatha (4.2) stable; urgency=low
+
+  * Seperate keyfile for every SSL binding.
+  * ErrorLogfile option added.
+  * LogFile option renamed to AccessLogfile.
+  * Prevention of command injection. PreventCMDi and BanOnCMDi options added.
+  * Separate manualpage for the CGI-wrapper: cgi_wrapper(1).
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 23 Feb 2006 19:57:14 +0100
+
+hiawatha (4.1) stable; urgency=low
+
+  * Chroot functionality for wrapped CGIs.
+  * New section boundaries (section{...}).
+  * Small bugfixes.
+  * Bugfix: fixed ImageReferer for HTTPS connections.
+  * Bugfix: directories with the beginning of its name equal to an Alias now
+    accessible again.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 22 Jan 2006 16:31:24 +0100
+
+hiawatha (4.0) stable; urgency=low
+
+  * BindHTTP and BindHTTPS options replaced by Binding sections.
+  * CGI-wrapper replaced the HostId options. See the CGI-WRAPPER section in
+    the manualpage for more information.
+  * TimeForRequest option improved.
+  * ServerId option improved.
+  * BanOnTimeout option added.
+  * ReconnectDelay option added.
+  * Improved FollowSymlink check: symlinks are always followed if they stay
+    inside the webroot.
+  * Number of bytes sent per request added to the requestlog.
+  * Configuration-reload removed. Gave to much trouble.
+  * Customizable stylesheet for directory listings. IndexStyle option added.
+  * New layout for the errormessages.
+  * Small bugfixes.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue, 18 Dec 2005 21:04:37 +0100
+
+hiawatha (3.7) stable; urgency=low
+
+  * SSLv2 has been removed from HTTPS. Only SSLv3 en TLSv1 are available.
+  * HomedirSource option added.
+  * Multiple presence of BindHTTP, BindHTTPS, AccessList, BanlistMask
+    and LogfileMask in configurationfile now allowed.
+  * get_hostrecord() rewritten: the wildcard in the Hostname now also matches
+    the domainname. Example: 'Hostname = www.domainname.com, *.domainname.com'
+    now also matches 'http://domainname.com/'.
+  * RequireBinding option renamed to RequiredBinding. RequireBinding has become
+    a temporary alias.
+  * TRACE method implemented. EnableTRACE option added.
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue, 12 Nov 2005 22:36:06 +0100
+
+hiawatha (3.6.1) stable; urgency=medium
+
+  * HTTP_GENERATED_ERROR environment variable added for ErrorHandler.
+  * ErrorHandler from a Virtual Host ignored when handling a userwebsite.
+  * Bugfix: gzip Content-Encoding was broken.
+  * Bugfix: logfile got flooded with warnings in case of a configuration reload
+    and an error in the configurationfile.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue, 23 Aug 2005 08:45:43 +0200
+
+hiawatha (3.6) stable; urgency=medium
+
+  * Prevention of SQL injection. PreventSQLi and BanOnSQLi options added.
+  * Prevention of cross-site scripting. PreventXSS option added.
+  * Alias option added.
+  * FollowSymlinks option added.
+  * Use of variables in configurationfile via 'set'.
+  * Path option changed, PathMatch option removed.
+  * Removal of dangerous characters (ASCII-values 0..31) from the URL.
+  * Manualpage updated.
+  * Improved Debian package.
+  * Small bugfixes and improvements.
+  * Bugfix: filethrottling and UploadSpeed were broken.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 14 Aug 2005 18:43:57 +0200
+
+hiawatha (3.5) stable; urgency=low
+
+  * HTTP_CLIENT_IP and HTTP_VIA variable passed thru to CGI programs.
+  * Case-insensitive HTTP-header matching.
+  * Small bugfixes.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 16 Apr 2005 22:31:14 +0100
+
+hiawatha (3.4) stable; urgency=low
+
+  * Specify the returncode of an ErrorHandler.
+  * DenyBot option added.
+  * BindHTTP and BindHTTPS options added (BindAddress option has been removed).
+  * ServerPort and SSLPort have become an alias for BindHTTP and BindHTTPS.
+  * RequireBinding option added.
+  * CGIextension and CGIhandler options updated.
+  * Source dependencies re-organized.
+  * BSD autoconf errors fixed (Thanks to Sander Niemeijer).
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 23 Jan 2005 22:36:13 +0100
+
+hiawatha (3.3) stable; urgency=low
+
+  * CGIhandler option added (PHPextension, PHPprogram and ExecutePHP options
+    have been removed).
+  * Support for HTTP/1.0 proxies (No chunked Transfer-Encoding, so no
+    keep-alive connections for CGI).
+  * Username of HTTP authentication logged.
+  * Escape characters removed from logfile.
+  * BanlistMask option added.
+  * LogAccess option renamed to LogfileMask.
+  * HTTP pipelining support.
+  * Bugfix: GarbageLogfile was not created on startup.
+  * Bugfix: removed double Content-Type for CGI ErrorHandler.
+
+ -- Hugo Leisink <hugo@leisink.net>  Fri, 26 Nov 2004 00:16:40 +0100
+
+hiawatha (3.2) stable; urgency=medium
+
+  * Gentoo ebuild script (see gentoo/ in sourcepackage).
+  * Bugfix: incorrect Chunked Transfer-Encoding.
+  * Bugfix: wrong hostname on 301.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed,  3 Nov 2004 18:51:52 +0100
+
+hiawatha (3.1) stable; urgency=low
+
+  * Small bugfixes and improvements.
+  * Start and stop script (extra/hiawatha).
+  * Command Channel made optional.
+  * ServerString moved from host to main section in the configuration file.
+  * Compile errors fixed (under Cygwin for example).
+  * Bugfix: SERVER_PORT was set to ServerPort instead of SSLPort on HTTPS
+    connections.
+  * Bugfix: 301 via HTTPS used ServerPort instead of SSLPort.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 20 Sep 2004 00:12:30 +0200
+
+hiawatha (3.0) stable; urgency=low
+
+  * SSL support: SSLPort, ServerKey and RequireSSL option added.
+    (Many thanks to Denis de Leeuw Duarte. Compile with --disable-ssl
+    to disable this feature).
+  * SetEnvir option added.
+  * RequiredGroup option added.
+  * Case-insensitive configuration options.
+  * Directory independent installation support.
+    (Many thanks to Sander Niemeijer).
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed,  1 Sep 2004 23:54:46 +0200
+
+hiawatha (2.8) stable; urgency=low
+
+  * gzip Content-Encoding support (see manpage for more information).
+  * BanOnMaxReqSize option added.
+  * Some 400 and 413 returncode fixes.
+  * Garbage log for 400.
+  * Faster restart.
+  * Configuration reload stable (USR1 signal).
+  * Small bugfixes and improvements.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 26 Aug 2004 18:28:17 +0200
+
+hiawatha (2.7) stable; urgency=low
+
+  * RequestBuffer option added.
+  * Binary upload support.
+  * AccessList option improved with 'pwd'.
+  * Bugfix: incorrect Content-Length for HTTP code screens.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 18 Aug 2004 12:32:40 +0200
+
+hiawatha (2.6) stable; urgency=low
+
+  * log.c rewritten.
+  * Connect attempts during ban counted (to prefent long logfiles).
+  * Bugfix: netmask 0 for AccessList didn't work.
+  * Bugfix: Directory record ended configfile.
+
+ -- Hugo Leisink <hugo@leisink.net>  Fri,  6 Aug 2004 15:37:46 +0200
+
+hiawatha (2.5) stable; urgency=high
+
+  * Range header field (single range support).
+  * 206 Partial Content.
+  * 416 Requested Range Not Satisfiable.
+  * Date header field.
+  * Modified-Since header field.
+  * Bugfix: memory-leak fixed (free(error_line) in target.c).
+  * Bugfix: thread-record problem fixed.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 26 Jul 2004 09:09:18 +0200
+
+hiawatha (2.4.1) stable; urgency=medium
+
+  * Bugfix: use of <Directory> without UploadSpeed always resulted in a 503.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 24 May 2004 13:38:06 +0200
+
+hiawatha (2.4) stable; urgency=high
+
+  * 503 Service Unavailable.
+  * Access option removed.
+  * AccessList option added.
+  * AccessLog option added.
+  * BindAddresses option added.
+  * GarbageLogfile option added.
+  * ImageReferer option added.
+  * PathMatch option added.
+  * UploadSpeed option extended.
+  * Global change: extention -> extension.
+  * exePHP/CGI option renamed to ExecutePHP/CGI.
+  * Bugfix: only the first Directory record could be used.
+  * Bugfix: If-Modified-Since time converted to GMT.
+  * Bugfix: filedescriptor to .hiawatha left open.
+
+ -- Hugo Leisink <hugo@leisink.net>  Fri, 16 Apr 2004 23:29:09 +0100
+
+hiawatha (2.3.2) stable; urgency=low
+
+  * Include option added.
+  * Log requestresult code.
+  * Code improvement.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 28 Mar 2004 23:03:09 +0100
+
+hiawatha (2.3.1) stable; urgency=low
+
+  * Extra CGI environment variables.
+  * Bugfix: incorrect Content-Type for multipart/form-data CGI data.
+  * Bugfix: pidfile problem.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 28 Mar 2004 12:33:06 +0100
+
+hiawatha (2.3) stable; urgency=low
+
+  * OPTIONS method improved.
+  * A .hiawatha configurationfile will also be active in all the
+    subdirectories.
+  * CGI errors are logged to the SystemLogfile.
+  * PHPextension option added.
+  * ServerName option renamed to Hostname.
+  * ReconnectDelay option renamed to BanOnMaxPerIP.
+  * BanOnGarbage option added.
+  * BanOnFlooding option added.
+  * KickOnBan option added.
+  * Manualpage updated.
+  * Small bugfixes.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 24 Mar 2004 20:10:17 +0100
+
+hiawatha (2.2) stable; urgency=low
+
+  * Improved directory listing (ShowIndex) and errorcode layout.
+  * 405 response for PUT, DELETE, TRACE and CONNECT methods changed to 501
+    Method Not Implemented.
+  * POST request for a non CGI script results in a 405.
+  * If-Modified-Since and If-Unmodigied-Since header fields.
+  * 304 Not Modified.
+  * 408 Request Timeout.
+  * 412 Precondition Failed.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 17 Mar 2004 20:25:50 +0100
+
+hiawatha (2.1.1) stable; urgency=high
+
+  * Bugfix: Basic HTTP authentication fixed. Also full path for
+    PasswordFile allowed in chroot environment.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 14 Mar 2004 11:58:56 +0100
+
+hiawatha (2.1) stable; urgency=high
+
+  * Command Channel (compile with --enable-command).
+  * UserWebsite option added. (UserDirectory option removed, userwebsites.conf
+    added to /etc/hiawatha).
+  * UploadSpeed option for Directory sections added.
+  * Improved error checking.
+  * Traffic throttling for CGI scripts.
+  * SystemLogfile option added.
+  * Small bugfixes.
+  * Bugfix: CONTENT_LENGTH was set incorrectly for POST requests.
+  * Bugfix: reloading throttleconfiguration.
+  * Bugfix: zombie CGI scripts. A kill (9) signal is send to all CGI processes
+    after finishing. Just to be sure. :)
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 11 Mar 2004 18:11:26 +0100
+
+hiawatha (2.0) stable; urgency=low
+
+  * Multi-threading instead of forking
+    (Many thanks to Sander Niemeijer).
+  * Configuration reloading (USR1 signal).
+  * Disconnect all clients (USR2 signal).
+  * Mimetype and throttletype checking case unsensitive.
+  * Improved URI checking.
+  * run_script() rewritten: faster and bugfix (also using select()).
+  * ServerId option added.
+  * UserId and GroupId option combined to HostId.
+  * Access option for Directory sections added.
+  * Some code improvements.
+  * Small bugfixes.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun,  7 Mar 2004 14:51:27 +0100
+
+hiawatha (1.7) stable; urgency=low
+
+  * nanny_thread() removed. select() timeout used to check childs.
+  * fetch_request() rewritten: it's much faster now (using select()).
+  * RootDirectory option renamed to WebsiteRoot.
+  * ServerRoot option added (Hiawatha will chroot() to that directory).
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 24 Feb 2004 14:06:53 +0100
+
+hiawatha (1.6.1) stable; urgency=medium
+
+  * Source-plugin support (compile with --enable-plugin).
+  * Bugfix: problem with reading directory configurationfile (.hiawatha).
+  * Bugfix: several realloc() fixes.
+  * Bugfix: config->directory set to NULL on init.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue, 26 Jan 2004 10:13:26 +0100
+
+hiawatha (1.6) stable; urgency=low
+
+  * URL checked for special characters (%20 = ' ', etc).
+  * Remarks on every line in configuration file allowed.
+  * Added some MIME-types.
+
+ -- Hugo Leisink <hugo@leisink.net>  Fri, 19 Dec 2003 13:23:08 +0100
+
+hiawatha (1.5.1) stable; urgency=high
+
+  * ServerString option added.
+  * Bugfix: CGI server hang-up bug fixed.
+
+ -- Hugo Leisink <hugo@leisink.net>  Mon, 15 Sep 2003 11:13:12 +0100
+
+hiawatha (1.5) stable; urgency=low
+
+  * Improved 301: first ServerName may now contain a wildcard.
+  * 302 Found (when a CGI script prints Location).
+  * 413 Request Entity Too Large.
+  * CGI scripts can now output binary data.
+  * Automake script (Many thanks to Sander Niemeijer and Denis de Leeuw
+    Duarte). Compilation tested on FreeBSD and MacOS X.
+  * Small bugfixes.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 17 Aug 2003 14:13:17 +0100
+
+hiawatha (1.4) stable; urgency=low
+
+  * Multiple ServerName options.
+  * Wildcard allowed in ServerName.
+  * Ownership logfiles set to UserId:GroupId from configurationfile.
+  * Small bugfixes.
+
+ -- Hugo Leisink <hugo@leisink.net>  Tue, 22 Jul 2003 09:44:12 +0100
+
+hiawatha (1.3) stable; urgency=low
+
+  * Directory settings support.
+  * Flooding protection.
+  * Volatile object support.
+  * Bugfixes: some potential segmentation faults.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 17 Oct 2002 20:40:00 +0100
+
+hiawatha (1.2) stable; urgency=low
+
+  * <VirtualHost> settings.
+  * Check for errors in configurationfile.
+  * Manpage updated.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 28 Sep 2002 18:13:21 +0100
+
+hiawatha (1.1.1) stable; urgency=high
+
+  * Bugfix: server lock-up for POST request with Content-Length = 0.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 26 Sep 2002 10:46:55 +0100
+
+hiawatha (1.1) stable; urgency=low
+
+  * Traffic throttling.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 21 Sep 2002 23:04:19 +0100
+
+hiawatha (1.0) stable; urgency=low
+
+  * 405 Method not allowed.
+  * 505 HTTP version not supported.
+  * Logrotate script added to the package.
+  * Bugfix: no Content-Type for directorylisting.
+  * Bugfix: chunks didn't end with CRLF.
+  * Bugfix: a PHP script couldn't be used as an ErrorHandler.
+  * Bugfix: logfile problem.
+  * Bugfix: StartFile from .hiawatha didn't work.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 17 Sep 2002 18:12:35 +0100
+
+hiawatha (1.0b) stable; urgency=low
+
+  * Basic HTTP authentication.
+  * 401 Unauthorized.
+  * Support for PHP.
+  * Chunked Transfer-encoding.
+  * Directorylisting in HTML for directories without a startfile.
+  * Main request-handling routine splitted in seperate functions.
+  * parse_request() rewritten.
+  * Some minor bugfixes.
+  * Bugfix: setuid() security issue fixed.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 16 Sep 2002 23:21:26 +0100
+
+hiawatha (0.9) stable; urgency=low
+
+  * Keep-alive connections.
+  * Some minor bugfixes.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu,  5 Sep 2002 19:36:04 +0100
+
+hiawatha (0.8) stable; urgency=low
+
+  * Size HTTP request limited to 64 kilobytes.
+  * Better Content-Length handling for incoming HTTP requests.
+  * Number of connections per IP address can be limited.
+  * Filelock on logfile.
+  * More actions are being logged.
+  * Manpage added to the package.
+  * Finally got rid of the root group. :)
+  * User configurationfile.
+  * Some minor bugfixes.
+  * Bugfix: When the ErrorHandler was set a 301 error was not returned
+    correctly.
+
+ -- Hugo Leisink <hugo@leisink.net>  Fri, 28 Jun 2002 11:55:26 +0100
+
+hiawatha (0.7.1) stable; urgency=low
+
+  * Bugfix: the local IP address was logged instead of the remote IP address.
+  * Bugfix: when CGI was disabled and the ErrorHandler was needed, the server
+    crashed.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 19 Jun 2002 11:55:26 +0100
+
+hiawatha (0.7) stable; urgency=low
+
+  * StartFile added to the configurationfile.
+  * ErrorHandler added to the configurationfile.
+  * The number of total connections can be limited.
+  * The runtime for a CGI process can be limited.
+  * Cookie support.
+  * HTTP_USER_AGENT, HTTP_X_FORWARDED_FOR and HTTP_REFERER variables are passed
+    thru to a CGI script.
+  * Bugfix: the zombie problem has been fixed.
+  * Bugfix: child quits when client disconnects.
+
+ -- Hugo Leisink <hugo@leisink.net>  Wed, 19 Jun 2002 10:33:41 +0100
+
+hiawatha (0.6) stable; urgency=low
+
+  * 400 Bad request.
+  * HEAD method implemented.
+  * POST method implemented.
+  * OPTIONS method implemented.
+  * User directories.
+  * Improved security.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 18 May 2002 13:57:50 +0100
+
+hiawatha (0.5) stable; urgency=low
+
+  * Content-Type header field (Mimetypes).
+  * Logfile.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 16 May 2002 12:41:28 +0100
+
+hiawatha (0.4) stable; urgency=low
+
+  * Server can execute scripts.
+  * Server information in header.
+  * 403 Forbidden.
+  * 500 Internal server error.
+
+ -- Hugo Leisink <hugo@leisink.net>  Thu, 18 May 2002 13:57:50 +0100
+
+hiawatha (0.3) stable; urgency=low
+
+  * 200 OK.
+  * 301 Redirect.
+  * 404 File not found.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 27 Apr 2002 17:21:42 +0100
+
+hiawatha (0.2) stable; urgency=low
+
+  * Configurationfile (/etc/hiawatha.conf).
+
+ -- Hugo Leisink <hugo@leisink.net>  Sat, 20 Apr 2002 18:48:09 +0100
+
+hiawatha (0.1) stable; urgency=low
+
+  * Initial release.
+  * GET method implemented.
+
+ -- Hugo Leisink <hugo@leisink.net>  Sun, 27 Jan 2002 12:06:10 +0100

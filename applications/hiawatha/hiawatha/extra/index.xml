@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<index>
+	<hostname>www.example.com</hostname>
+	<request_uri>/</request_uri>
+	<files>
+		<file type="dir" timestamp="01 Jan 2014, 12:00:00" url_encoded="directory/">directory/</file>
+		<file type="file" timestamp="02 Jan 2014, 14:00:00" size="100.0 kB" extension="txt" url_encoded="file.txt">file.txt</file>
+	</files>
+	<total_size>100.0 kB</total_size>
+	<software>Hiawatha</software>
+</index>

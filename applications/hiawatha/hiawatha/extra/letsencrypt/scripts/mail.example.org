@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# You can use the certificate, which you obtain for your webmail application,
+# for your mail server and POP3S / IMAPS server as well. This script copies
+# the certificate and restarts the mail daemons.
+
+# Postfix
+#
+cp /etc/hiawatha/tls/mail.example.org.pem /etc/postfix/tls/mail.example.org.pem
+/etc/init.d/postfix restart
+
+# Dovecot
+#
+openssl rsa -in /etc/hiawatha/tls/mail.example.org.pem -out /etc/dovecot/private/dovecot.pem
+openssl x509 -in /etc/hiawatha/tls/mail.example.org.pem -out /etc/dovecot/dovecot.pem
+/etc/init.d/dovecot restart

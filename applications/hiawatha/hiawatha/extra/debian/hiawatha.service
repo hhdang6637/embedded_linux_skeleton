@@ -1,0 +1,15 @@
+[Unit]
+Description=Hiawatha webserver
+After=network.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/hiawatha.pid
+ExecStartPre=/usr/sbin/wigwam -q
+ExecStart=/usr/sbin/hiawatha
+ExecStop=/bin/kill $MAINPID
+KillMode=process
+TimeoutStopSec=5
+
+[Install]
+WantedBy=multi-user.target

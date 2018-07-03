@@ -1,0 +1,3 @@
+This will install the Hiawatha webserver on your computer in the directory /usr/local.
+
+You will be guided through the steps necessary to install this software.

@@ -1,0 +1,66 @@
+#!/bin/sh
+
+if [ ! -f /etc/debian_version ]; then
+	echo "Debian (clone) required."
+	exit
+fi
+
+# Make Debian package
+#
+cd `dirname $0`/..
+if [ ! -d build_debian_package ]; then
+	extra/make_debian_package -b
+fi
+version=`grep VERSION build_debian_package/config.h | cut -f2 -d'"'`
+arch="${arch-amd64}"
+if ! test -n "$arch" ; then
+	arch="$(dpkg-architecture -q'DEB_HOST_ARCH')"
+fi
+if [ ! -f hiawatha_${version}_${arch}.deb ]; then
+	echo "Error: Debian package hiawatha_${version}_${arch}.deb not found."
+	if [ "$1" != "-b" ]; then
+		rm -rf build_debian_package
+	fi
+	exit
+fi
+
+# Generate .dsc file
+#
+if [ -f hiawatha-${version}.tar.gz ]; then
+	cp hiawatha-${version}.tar.gz hiawatha_${version}.tar.gz
+fi
+if [ ! -f hiawatha_${version}.tar.gz ]; then
+	mv hiawatha_*.deb build_debian_package
+	extra/make_source_package
+	mv hiawatha-${version}.tar.gz hiawatha_${version}.tar.gz
+	mv build_debian_package/hiawatha_*.deb .
+fi
+
+size=`stat hiawatha_${version}.tar.gz -c%s`
+md5=`md5sum hiawatha_${version}.tar.gz | cut -f1 -d' '`
+sha1=`sha1sum hiawatha_${version}.tar.gz | cut -f1 -d' '`
+sha256=`sha256sum hiawatha_${version}.tar.gz | cut -f1 -d' '`
+depends=`cat extra/debian/control | grep Build-Depends | cut -f2 -d:`
+
+sed "s/<VERSION>/${version}/" extra/debian/hiawatha.dsc | sed "s/<SIZE>/${size}/" | sed "s/<DEPENDS>/${depends}/" | \
+	sed "s/<MD5>/${md5}/" | sed "s/<SHA1>/${sha1}/" | sed "s/<SHA256>/${sha256}/" > hiawatha_${version}.dsc
+if [ -x /usr/bin/gpg ]; then
+	gpg --clearsign hiawatha_${version}.dsc
+	mv hiawatha_${version}.dsc.asc hiawatha_${version}.dsc
+fi
+
+# Generate .changes file
+#
+cd build_debian_package
+dpkg-genchanges > ../hiawatha_${version}.changes
+cd ..
+if [ -x /usr/bin/gpg ]; then
+	gpg --clearsign hiawatha_${version}.changes
+	mv hiawatha_${version}.changes.asc hiawatha_${version}.changes
+fi
+
+# Done
+#
+if [ "$1" != "-b" ]; then
+	rm -rf build_debian_package
+fi

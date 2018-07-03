@@ -1,0 +1,42 @@
+INSTALLATION OF THE HIAWATHA WEBSERVER
+=======================================
+Copy the directory 'Hiawatha' to a suitable location on your harddisk. The full
+path to this directory will be refered to as <HIAWATHA_INSTALL_DIR> in the rest
+of this documentation. Run the batch file <HIAWATHA_INSTALL_DIR>\Hiawatha.bat
+to start the Hiawatha webserver.
+
+
+INSTALLATION OF PHP
+====================
+To use PHP, download the PHP zip package from http://php.net/downloads.php and
+unzip it to C:\Program Files\PHP7\.
+
+Optionally, run <HIAWATHA_INSTALL_DIR>\PHP7-FastCGI.bat to start PHP as a
+FastCGI daemon. If you installed PHP7 in another directory, edit the batch file
+to change the path to the PHP7 binary.
+
+
+MANUAL PAGES
+=============
+The Hiawatha manual pages can be found in <HIAWATHA_INSTALL_DIR>/documentation.
+
+
+RUNNING HIAWATHA AS A WINDOWS SERVICE
+======================================
+If you want to run Hiawatha as a Windows service, run the batch file
+<HIAWATHA_INSTALL_DIR>/Service.bat as Administrator. Hiawatha can now be
+started and stopped via Computer Management: in the Windows Explorer,
+right-click on 'My Computer', select 'Manage', select 'Services and
+Applications', select 'Services' and select 'Hiawatha webserver'.
+
+Please note that Hiawatha will run as the user SYSTEM. All logfiles created by
+Hiawatha will therefore be owned by this user. To change this, open the
+Hiawatha service in the Computer Management window, go to the tab 'Log On' and
+change the account.
+
+
+TROUBLESHOOTING
+================
+If you experience some trouble with Hiawatha under Windows, try installing
+Cygwin with the packages libxml2 and libxslt. If that doesn't solve your
+problem, use the forum at https://www.hiawatha-webserver.org/.
