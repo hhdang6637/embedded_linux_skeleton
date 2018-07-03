@@ -1727,13 +1727,13 @@ BR2_PACKAGE_LIBAIO_ARCH_SUPPORTS=y
 #
 # BR2_PACKAGE_LIBROXML is not set
 # BR2_PACKAGE_LIBUCL is not set
-# BR2_PACKAGE_LIBXML2 is not set
+BR2_PACKAGE_LIBXML2=y
 
 #
 # libxml++ needs a toolchain w/ C++, wchar, threads, gcc >= 4.8
 #
 # BR2_PACKAGE_LIBXMLRPC is not set
-# BR2_PACKAGE_LIBXSLT is not set
+BR2_PACKAGE_LIBXSLT=y
 # BR2_PACKAGE_LIBYAML is not set
 # BR2_PACKAGE_MXML is not set
 
