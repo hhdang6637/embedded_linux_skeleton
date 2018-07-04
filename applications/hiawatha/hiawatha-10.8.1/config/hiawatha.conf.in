@@ -37,8 +37,8 @@ Binding {
 #
 Hostname = 127.0.0.1
 WebsiteRoot = WEBROOT_DIR
-StartFile = index.xml
+StartFile = index.html
 PIDfile = WOKRING_DIR/hiawatha.pid
 WorkDirectory = WOKRING_DIR
-ShowIndex = WEBROOT_DIR/index.xslt
+ShowIndex = WEBROOT_DIR/index.html
 UseXSLT = yes
