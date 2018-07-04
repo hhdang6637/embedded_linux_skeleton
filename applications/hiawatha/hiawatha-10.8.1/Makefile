@@ -20,3 +20,6 @@ install:
 	@cp     $(INDEX_FILE)            $(ROOTFS_DIR)/var/www/hiawatha/ # example page
 
 all: $(BIN) install
+
+clean:
+	@rm -rf build

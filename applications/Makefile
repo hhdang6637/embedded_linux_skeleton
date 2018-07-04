@@ -16,4 +16,7 @@ $(ROOTFS_DIR):
 
 all: $(ROOTFS_DIR)
 	@$(MAKE) -C hello_world_app all
-	@$(MAKE) -C hiawatha/hiawatha all
+	@$(MAKE) -C hiawatha/hiawatha-10.8.1 all
+
+clean:
+	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean
