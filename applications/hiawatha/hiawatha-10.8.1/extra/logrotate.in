@@ -1,0 +1,12 @@
+@LOG_DIR@/access.log {
+	weekly
+	compress
+	delaycompress
+	rotate 52
+	missingok
+	create 640 www-data www-data
+	sharedscripts
+	postrotate
+		/usr/bin/killall -HUP hiawatha
+	endscript
+}

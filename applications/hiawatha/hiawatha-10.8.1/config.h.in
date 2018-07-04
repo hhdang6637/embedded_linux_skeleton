@@ -1,0 +1,59 @@
+/* Directory settings
+ */
+#define CONFIG_DIR  "${CONFIG_DIR}"
+#define LOG_DIR     "${LOG_DIR}"
+#define PID_DIR     "${PID_DIR}"
+#define SBIN_DIR    "${CMAKE_INSTALL_FULL_SBINDIR}"
+#define VERSION     "${PROJECT_VERSION}"
+#define WEBROOT_DIR "${WEBROOT_DIR}"
+#define WORK_DIR    "${WORK_DIR}"
+
+/* Settings
+ */
+#define _GNU_SOURCE 1
+#define _FILE_OFFSET_BITS 64
+#cmakedefine CYGWIN ${CYGWIN}
+#cmakedefine CIFS ${CIFS}
+
+/* Hiawatha modules
+ */
+#cmakedefine ENABLE_CACHE ${ENABLE_CACHE}
+#cmakedefine ENABLE_IPV6 ${ENABLE_IPV6}
+#cmakedefine ENABLE_LOADCHECK ${ENABLE_LOADCHECK}
+#cmakedefine ENABLE_MONITOR ${ENABLE_MONITOR}
+#cmakedefine ENABLE_RPROXY ${ENABLE_RPROXY}
+#cmakedefine ENABLE_TLS ${ENABLE_TLS}
+#cmakedefine ENABLE_TOMAHAWK ${ENABLE_TOMAHAWK}
+#cmakedefine ENABLE_TOOLKIT ${ENABLE_TOOLKIT}
+#cmakedefine ENABLE_XSLT ${ENABLE_XSLT}
+
+/* Other Hiawatha features
+ */
+#define ENABLE_CHALLENGE ON
+/* #define ENABLE_DEBUG ON */
+#define ENABLE_FILEHASHES ON
+/* #define ENABLE_MEMDBG ON */
+#define ENABLE_THREAD_POOL ON
+
+/* Includes
+ */
+#cmakedefine HAVE_CRYPT_H ${HAVE_CRYPT_H}
+#cmakedefine HAVE_ARPA_INET_H ${HAVE_ARPA_INET_H}
+#cmakedefine HAVE_NETINET_IN_H ${HAVE_NETINET_IN_H}
+#cmakedefine HAVE_NETINET_TCP_H ${HAVE_NETINET_TCP_H}
+#cmakedefine HAVE_RPCSVC_CRYPT_H ${HAVE_RPCSVC_CRYPT_H}
+
+/* Functions
+ */
+#cmakedefine HAVE_CRYPT_R ${HAVE_CRYPT_R}
+#cmakedefine HAVE_SETENV ${HAVE_SETENV}
+#cmakedefine HAVE_UNSETENV ${HAVE_UNSETENV}
+#cmakedefine HAVE_CLEARENV ${HAVE_CLEARENV}
+#cmakedefine HAVE_STRCASECMP ${HAVE_STRCASECMP}
+#cmakedefine HAVE_STRNCASECMP ${HAVE_STRNCASECMP}
+#cmakedefine HAVE_STRNSTR ${HAVE_STRNSTR}
+#cmakedefine HAVE_STRCASESTR ${HAVE_STRCASESTR}
+
+/* Features
+ */
+#cmakedefine HAVE_ACCF ${HAVE_ACCF}

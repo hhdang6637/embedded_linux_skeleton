@@ -1,0 +1,44 @@
+# Hiawatha main configuration file
+#
+
+# VARIABLES
+# With 'set', you can declare a variable. Make sure the name of the
+# variable doesn't conflict with any of the configuration options.
+# The variables are case-sensitive and cannot be redeclared.
+#
+set LOG_DIR     = /var/log/hiawatha
+set WEBROOT_DIR = /var/www/hiawatha
+set WOKRING_DIR = /tmp/hiawatha
+
+# GENERAL SETTINGS
+#
+#ServerId = www-data
+ConnectionsTotal = 1000
+ConnectionsPerIP = 25
+SystemLogfile = LOG_DIR/system.log
+GarbageLogfile = LOG_DIR/garbage.log
+ExploitLogfile = LOG_DIR/exploit.log
+AccessLogfile = LOG_DIR/access.log
+ErrorLogfile = LOG_DIR/error.log
+
+
+# BINDING SETTINGS
+# A binding is where a client can connect to.
+#
+Binding {
+	Port = 80
+}
+
+
+# DEFAULT WEBSITE
+# It is wise to use your IP address as the hostname of the default website
+# and give it a blank webpage. By doing so, automated webscanners won't find
+# your possible vulnerable website.
+#
+Hostname = 127.0.0.1
+WebsiteRoot = WEBROOT_DIR
+StartFile = index.xml
+PIDfile = WOKRING_DIR/hiawatha.pid
+WorkDirectory = WOKRING_DIR
+ShowIndex = WEBROOT_DIR/index.xslt
+UseXSLT = yes

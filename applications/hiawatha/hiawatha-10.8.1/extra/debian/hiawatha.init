@@ -1,0 +1,93 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:          hiawatha httpd httpd-cgi
+# Required-Start:    $syslog $network $remote_fs
+# Required-Stop:     $syslog $network $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Hiawatha webserver
+# Description:       Hiawatha, a secure and advanced webserver.
+### END INIT INFO
+
+NAME=hiawatha
+DAEMON=/usr/sbin/hiawatha
+PIDFILE=/var/run/hiawatha.pid
+
+set -e
+
+# /etc/init.d/hiawatha: start and stop the Hiawatha webserver daemon
+
+test -x $DAEMON || exit 0
+( $DAEMON -\v 2>&1 | grep -q Hiawatha ) 2>/dev/null || exit 0
+
+. /lib/lsb/init-functions
+
+check_config() {
+	/usr/sbin/wigwam -q || exit 1
+}
+
+case "$1" in
+	start)
+		if [ -e $PIDFILE ]; then
+			status_of_proc -p $PIDFILE $DAEMON $NAME && status="0" || status="$?"
+			if [ $status = "0" ]; then
+				exit 1
+			fi
+		fi
+
+		check_config
+		log_daemon_msg "Starting Hiawatha webserver" $NAME || true
+		if start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE --exec $DAEMON; then
+			log_end_msg 0 || true
+		else
+			log_end_msg 1 || true
+		fi
+		;;
+
+	stop)
+		pidofproc -p $PIDFILE $DAEMON > /dev/null && status="0" || status="$?"
+		if [ $status != "0" ]; then
+			log_failure_msg "$NAME is not running"
+			rm -f $PIDFILE
+			exit 1
+		fi
+
+		log_daemon_msg "Stopping Hiawatha webserver" $NAME || true
+		if start-stop-daemon --stop --quiet --oknodo --retry 30 --pidfile $PIDFILE; then
+			log_end_msg 0 || true
+			rm -f $PIDFILE
+		else
+			log_end_msg 1 || true
+		fi
+		;;
+
+	restart)
+		check_config
+		log_daemon_msg "Restarting Hiawatha webserver" $NAME || true
+		start-stop-daemon --stop --quiet --oknodo --retry 30 --pidfile $PIDFILE
+		if start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE --exec $DAEMON; then
+			log_end_msg 0 || true
+		else
+			log_end_msg 1 || true
+		fi
+		;;
+
+	check)
+		echo "==[ Check by Wigwam"
+		/usr/sbin/wigwam
+		echo
+		echo "==[ Check by Hiawatha"
+		/usr/sbin/hiawatha -k
+		;;
+
+	status)
+		status_of_proc -p $PIDFILE $DAEMON $NAME && exit 0 || exit $?
+		;;
+
+	*)
+		log_action_msg "Usage: /etc/init.d/hiawatha {start|stop|restart|check|status}" || true
+		exit 1
+esac
+
+exit 0

@@ -1,0 +1,66 @@
+#!/bin/sh
+
+mbedtls_enable() {
+	if [ "$1" = "" ]; then
+		return
+	fi
+	perl -pi -e "s/^\/\/#define ${1}$/#define ${1}/" include/mbedtls/config.h
+}
+
+mbedtls_disable() {
+	if [ "$1" = "" ]; then
+		return
+	fi
+	perl -pi -e "s/^#define ${1}$/\/\/#define ${1}/" include/mbedtls/config.h
+}
+
+cd `dirname $0`
+
+version=`curl -s https://tls.mbed.org/download/latest-stable-version`
+current=`grep "^=" ChangeLog | head -1 | cut -f4 -d' '`
+
+if [ "${version}" = "${current}" ]; then
+	echo "mbed TLS is already the latest version."
+	exit
+fi
+
+echo "Downloading mbed TLS version ${version}."
+wget --no-check-certificate -qO mbedtls.tgz "https://tls.mbed.org/download/mbedtls-${version}-gpl.tgz"
+
+if [ ! -s mbedtls.tgz ]; then 
+	rm -f mbedtls.tgz
+	echo "Download error."
+	exit
+fi
+
+echo "Removing current mbed TLS library."
+rm -rf include
+rm -rf library
+
+echo "Installing new mbed TLS library."
+tar -xzf mbedtls.tgz
+dir=`tar -tzf mbedtls.tgz | head -n1 | sed 's/\/$//'`
+mv ${dir}/ChangeLog .
+mv ${dir}/include .
+mv ${dir}/library .
+
+mbedtls_enable MBEDTLS_THREADING_PTHREAD
+mbedtls_enable MBEDTLS_THREADING_C
+
+echo "Disabling RC4, secp192r1 and secp192k1."
+mbedtls_disable MBEDTLS_ARC4_C
+mbedtls_disable MBEDTLS_ECP_DP_SECP192R1_ENABLED
+mbedtls_disable MBEDTLS_ECP_DP_SECP192K1_ENABLED
+
+if [ -f ${version}.patch ]; then
+	echo "Applying patch."
+	patch -p1 < ${version}.patch
+fi
+
+echo "Cleaning up."
+rm -f include/.gitignore
+rm -f library/.gitignore
+rm -rf ${dir}
+rm mbedtls.tgz
+
+echo "mbed TLS upgraded to version ${version}."

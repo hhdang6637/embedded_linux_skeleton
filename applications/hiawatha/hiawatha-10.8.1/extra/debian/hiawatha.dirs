@@ -1,0 +1,8 @@
+usr/bin
+usr/sbin
+etc/init.d
+etc/hiawatha
+etc/logrotate.d
+var/lib/hiawatha
+var/log/hiawatha
+var/www/hiawatha

@@ -1,0 +1,17 @@
+Uninstalling the Hiawatha webserver
+====================================
+Remove the following files or directories to uninstall the Hiawatha webserver:
+
+	/usr/local/bin/ssi-cgi
+	/usr/local/etc/hiawatha/
+	/usr/local/lib/hiawatha/
+	/usr/local/sbin/cgi-wrapper
+	/usr/local/sbin/hiawatha
+	/usr/local/sbin/wigwam
+	/usr/local/share/man/man1/cgi-wrapper.1
+	/usr/local/share/man/man1/hiawatha.1
+	/usr/local/share/man/man1/ssi-cgi.1
+	/usr/local/share/man/man1/wigwam.1
+	/usr/local/var/lib/hiawatha
+	/Library/LaunchDaemons/org.hiawatha-webserver.httpd.plist
+	/Library/Webserver/hiawatha/

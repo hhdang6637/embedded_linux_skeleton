@@ -1,0 +1,86 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:          hiawatha httpd httpd-cgi
+# Required-Start:    $syslog $network $remote_fs
+# Required-Stop:     $syslog $network $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Hiawatha webserver
+# Description:       Hiawatha, a secure and advanced webserver.
+### END INIT INFO
+
+# Source function library.
+. /etc/init.d/functions
+
+# /etc/init.d/hiawatha: start and stop the Hiawatha webserver daemon
+NAME=Hiawatha
+DAEMON=/usr/sbin/hiawatha
+WIGWAM=/usr/sbin/wigwam
+PIDFILE=/var/run/hiawatha.pid
+
+RETVAL=0
+
+start() {
+	[ -x $DAEMON ] || exit 5
+
+	umask 077
+
+	if [ -f $PIDFILE ]; then
+		echo $NAME is already running.
+		return 1
+	fi
+
+	echo -n $"Starting Hiawatha webserver: "
+	$WIGWAM -q || failure
+	daemon $DAEMON
+	RETVAL=$?
+	echo
+	return $RETVAL
+}
+stop() {
+	if [ ! -f $PIDFILE ]; then
+		echo $NAME is not running.
+		return 1
+	fi
+
+	echo -n $"Shutting down Hiawatha webserver: "
+	killproc -p "$PIDFILE" $DAEMON
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && success
+	echo
+	return $RETVAL
+}
+rhstatus() {
+	status -p "$PIDFILE" -l $NAME $DAEMON
+}
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart)
+		restart
+		;;
+	reload)
+		exit 3
+		;;
+	force-reload)
+		restart
+		;;
+	status)
+		rhstatus
+		;;
+	*)
+		echo $"Usage: $0 {start|stop|restart|status}"
+		exit 3
+esac
+
+exit $?

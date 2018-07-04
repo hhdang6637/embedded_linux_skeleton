@@ -1,0 +1,16 @@
+Source: hiawatha
+Section: web
+Priority: optional
+Maintainer: Hugo Leisink <hugo@leisink.net>
+Homepage: http://www.hiawatha-webserver.org/
+Standards-Version: 3.6.2
+Build-Depends: libc6-dev, dpkg-dev, debhelper, fakeroot, libxml2-dev, libxslt1-dev
+
+Package: hiawatha
+Architecture: any
+Depends: ${shlibs:Depends}, logrotate
+Suggests: php-fpm
+Conflicts:
+Provides: httpd, httpd-cgi
+Description: Advanced and secure webserver for Unix
+ Hiawatha is a webserver with the three key attributes: secure, easy-to-use, and lightweight.

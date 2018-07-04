@@ -1,0 +1,1 @@
+shlibs:Depends=libxslt1.1 (>= 1.1.20), libxml2 (>= 2.6.27), libc6 (>= 2.4)

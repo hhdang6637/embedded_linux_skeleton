@@ -20,7 +20,7 @@ NUM_OF_CPU := $(nproc)
 
 all: compile_buildroot compile_uboot compile_linux_kernel make_disk
 
-clean: clean_buildroot clean_linux_kernel clean_uboot
+clean: clean_buildroot clean_linux_kernel clean_uboot clean_apps
 	rm -rf $(BUILD_DIR)
 	rm -rf $(TFTP_DIR)
 
@@ -68,9 +68,11 @@ compile_uboot: $(BIN_BUILD_DIR)
 
 compile_apps: $(BIN_BUILD_DIR)
 	@echo "**********compile_apps**********"
-	@$(MAKE) -C applications all
+	@$(MAKE) -C applications all > $(BUILD_DIR)/apps.log 2>&1
 	@echo "**********done**********"
 
+clean_apps:
+	@$(MAKE) -C applications clean
 
 clean_uboot:
 	@rm -rf $(UBOOT_BUILD_DIR)

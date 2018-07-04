@@ -1,0 +1,11 @@
+#!/bin/sh
+
+cd /usr/local/etc/hiawatha
+
+files="cgi-wrapper.conf hiawatha.conf index.xslt error.xslt mimetype.conf"
+
+for file in $files ; do
+	if [ -f $file.installer.backup ]; then
+		mv -f $file.installer.backup $file
+	fi
+done
