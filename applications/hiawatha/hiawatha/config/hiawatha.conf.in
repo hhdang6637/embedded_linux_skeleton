@@ -6,10 +6,9 @@
 # variable doesn't conflict with any of the configuration options.
 # The variables are case-sensitive and cannot be redeclared.
 #
-#set LOCALHOST = 127.0.0.0/8
-
-set LOG_DIR     = /tmp/log/hiawatha
+set LOG_DIR     = /var/log/hiawatha
 set WEBROOT_DIR = /var/www/hiawatha
+set WOKRING_DIR = /tmp/hiawatha
 
 # GENERAL SETTINGS
 #
@@ -18,6 +17,9 @@ ConnectionsTotal = 1000
 ConnectionsPerIP = 25
 SystemLogfile = LOG_DIR/system.log
 GarbageLogfile = LOG_DIR/garbage.log
+ExploitLogfile = LOG_DIR/exploit.log
+AccessLogfile = LOG_DIR/access.log
+ErrorLogfile = LOG_DIR/error.log
 
 
 # BINDING SETTINGS
@@ -26,72 +28,6 @@ GarbageLogfile = LOG_DIR/garbage.log
 Binding {
 	Port = 80
 }
-#
-#Binding {
-#	Port = 443
-#	TLScertFile = tls/hiawatha.pem
-#	Interface = 127.0.0.1
-#	MaxRequestSize = 2048
-#	TimeForRequest = 30
-#}
-
-
-# BANNING SETTINGS
-# Deny service to clients who misbehave.
-#
-#BanOnGarbage = 300
-#BanOnMaxPerIP = 60
-#BanOnMaxReqSize = 300
-#KickOnBan = yes
-#RebanDuringBan = yes
-
-
-# COMMON GATEWAY INTERFACE (CGI) SETTINGS
-# These settings can be used to run CGI applications.
-#
-#CGIhandler = /usr/bin/perl:pl
-#CGIhandler = /usr/bin/php-cgi:php
-#CGIhandler = /usr/bin/python:py
-#CGIhandler = /usr/bin/ruby:rb
-#CGIhandler = /usr/bin/ssi-cgi:shtml
-#CGIextension = cgi
-#
-#FastCGIserver {
-#	FastCGIid = PHP7
-#	ConnectTo = /run/php/php7.0-fpm.sock
-#	Extension = php
-#}
-
-
-# URL TOOLKIT
-# This URL toolkit rule was made for the Banshee PHP framework,
-# which can be downloaded from http://www.banshee-php.org/
-#
-#UrlToolkit {
-#	ToolkitID = banshee
-#	RequestURI isfile Return
-#	Match ^/(css|files|fonts|images|js)($|/) Return
-#	Match ^/(favicon.ico|robots.txt)$ Return
-#	Match [^?]*(\?.*)? Rewrite /index.php$1
-#}
-
-
-# DIRECTORY SETTINGS
-# You can specify some settings per directory.
-#
-#Directory {
-#	DirectoryID = static
-#	Path = /css, /fonts, /images, /js
-#	ExpirePeriod = 2 weeks
-#}
-#
-#Directory {
-#	DirectoryID = files
-#	Path = /files
-#	ShowIndex = yes
-#	StartFile = index.html
-#	ExecuteCGI = no
-#}
 
 
 # DEFAULT WEBSITE
@@ -101,21 +37,8 @@ Binding {
 #
 Hostname = 127.0.0.1
 WebsiteRoot = WEBROOT_DIR
-StartFile = index.html
-AccessLogfile = LOG_DIR/access.log
-ErrorLogfile = LOG_DIR/error.log
-
-
-# VIRTUAL HOSTS
-# Use a VirtualHost section for each website you want to host.
-#
-#VirtualHost {
-#	Hostname = www.my-domain.com
-#	WebsiteRoot = /var/www/my-domain/public
-#	AccessLogfile = /var/www/my-domain/log/access.log
-#	ErrorLogfile = /var/www/my-domain/log/error.log
-#	TimeForCGI = 5
-#	UseFastCGI = PHP7
-#	UseToolkit = banshee
-#	UseDirectory = static, files
-#}
+StartFile = index.xml
+PIDfile = WOKRING_DIR/hiawatha.pid
+WorkDirectory = WOKRING_DIR
+ShowIndex = WEBROOT_DIR/index.xslt
+UseXSLT = yes
