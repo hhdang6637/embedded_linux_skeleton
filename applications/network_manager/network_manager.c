@@ -1,8 +1,9 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <unistd.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <string.h>
@@ -44,16 +45,5 @@ void network_manager_init() {
     if (_network_manager_wake_up("eth0")) {
         // start udhcp
         system("udhcpc eth0");
-    }
-
-    // start web server
-    system("hiawatha -c /etc/hiawatha");
-
-    if ((access("/dev/mmcblk0p2", F_OK)) != -1 && (access("/mnt", F_OK) != -1)) {
-        system("mount -t vfat /dev/mmcblk0p2 /mnt");
-    }
-
-    if ((access("/dev/mmcblk0p3", F_OK)) != -1 && (access("/data", F_OK) != -1)) {
-        system("mount -t ext4 /dev/mmcblk0p3 /data/");
     }
 }

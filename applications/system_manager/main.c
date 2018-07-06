@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "network_manager.h"
+#include "system_manager.h"
 
 typedef struct {
     bool daemon;
@@ -61,7 +61,7 @@ int main(int argc, char const *argv[])
         }
     }
 
-    network_manager_init();
+    system_manager_init();
 
     printf("%s init complete\n", argv[0]);
 

@@ -3,7 +3,7 @@
 
 export CC      = $(CROSS_COMPILE)gcc
 export CXX     = $(CROSS_COMPILE)g++
-export CFLAGS  = -Wall
+export CFLAGS  = -Wall -Werror
 export INCLUDE = $(BUILD_DIR)/buildroot/host/usr/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/include
 export LIB     = $(BUILD_DIR)/buildroot/host/usr/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/lib
 
@@ -24,7 +24,8 @@ all: $(ROOTFS_DIR)
 	@$(MAKE) -C hello_world_app all
 	@$(MAKE) -C hiawatha/hiawatha-10.8.1 all
 	@$(MAKE) -C web_server all
-	@$(MAKE) -C network_manager all
+	@$(MAKE) -C network_manager clean all
+	@$(MAKE) -C system_manager clean all
 
 clean:
 	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean
