@@ -10,7 +10,7 @@ export LIB     = $(BUILD_DIR)/buildroot/host/usr/arm-buildroot-linux-uclibcgnuea
 $(ROOTFS_DIR):
 	# remove app dir before we build it
 	@rm -rf   $(ROOTFS_DIR)
-	
+
 	@mkdir    $(ROOTFS_DIR)
 	@mkdir    $(ROOTFS_DIR)/data
 	@mkdir    $(ROOTFS_DIR)/usr
@@ -22,10 +22,12 @@ $(ROOTFS_DIR):
 
 all: $(ROOTFS_DIR)
 	@$(MAKE) -C hello_world_app all
-	@$(MAKE) -C hiawatha/hiawatha-10.8.1 all
+	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean all
 	@$(MAKE) -C web_server all
 	@$(MAKE) -C network_manager clean all
 	@$(MAKE) -C system_manager clean all
+	@$(MAKE) -C lib_fastcgi/fcgi-2.4.1-SNAP-0910052249 clean all
 
 clean:
 	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean
+	@$(MAKE) -C lib_fastcgi/fcgi-2.4.1-SNAP-0910052249 clean
