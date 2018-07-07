@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="1">
+	<title>Hiawatha webserver</title>
+	<background file="hiawatha_logo.png" mime-type="image/png" alignment="bottomleft" />
+	<welcome file="Welcome.txt" mime-type="text/plain" />
+	<license file="License.txt" mime-type="text/plain" />
+	<conclusion file="Conclusion.txt" mime-type="text/plain" />
+
+    <pkg-ref id="org.hiawatha-webserver.httpd" />
+	<options customize="never" require-scripts="false" />
+	<choices-outline>
+		<line choice="default">
+			<line choice="org.hiawatha-webserver.httpd" />
+		</line>
+	</choices-outline>
+	<choice id="default" />
+	<choice id="org.hiawatha-webserver.httpd" visible="false">
+		<pkg-ref id="org.hiawatha-webserver.httpd" />
+	</choice>
+	<pkg-ref id="org.hiawatha-webserver.httpd" version="8.5" onConclusion="none">hiawatha.pkg</pkg-ref>
+</installer-gui-script>

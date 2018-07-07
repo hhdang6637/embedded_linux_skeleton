@@ -1,0 +1,11 @@
+#!/bin/sh
+#
+
+echo ">>> Generating ECDSA key / certificate file\n"
+
+openssl ecparam -out ec.pem -name prime256v1 -genkey
+openssl req -new -key ec.pem -x509 -days 3650 -out cert.pem
+echo "" >> ec.pem
+cat cert.pem >> ec.pem
+echo "" >> ec.pem
+rm -f cert.pem

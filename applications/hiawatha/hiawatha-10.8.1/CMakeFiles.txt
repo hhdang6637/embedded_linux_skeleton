@@ -1,0 +1,106 @@
+# cgi-wrapper sources
+set(cgi_wrapper_src
+	src/alternative.c
+	src/cgi-wrapper.c
+	src/memdbg.c
+	src/libfs.c
+	src/libstr.c
+	src/userconfig.c
+)
+
+# hiawatha sources
+set(hiawatha_src
+	src/alternative.c
+	src/cache.c
+	src/cgi.c
+	src/challenge.c
+	src/client.c
+	src/envir.c
+	src/filehashes.c
+	src/hiawatha.c
+	src/http.c
+	src/httpauth.c
+	src/ip.c
+	src/libfs.c
+	src/liblist.c
+	src/libstr.c
+	src/log.c
+	src/memdbg.c
+	src/mimetype.c
+	src/monitor.c
+	src/rproxy.c
+	src/send.c
+	src/serverconfig.c
+	src/session.c
+	src/tls.c
+	src/target.c
+	src/tomahawk.c
+	src/toolkit.c
+	src/userconfig.c
+	src/workers.c
+	src/xslt.c
+)
+if(NOT ENABLE_TLS AND NOT USE_SYSTEM_MBEDTLS)
+	set(hiawatha_src ${hiawatha_src}
+		mbedtls/library/base64.c
+		mbedtls/library/md5.c
+		mbedtls/library/sha256.c
+	)
+endif()
+
+# ssi-cgi sources
+set(ssi_cgi_src
+	src/alternative.c
+	src/ip.c
+	src/libfs.c
+	src/liblist.c
+	src/libstr.c
+	src/memdbg.c
+	src/ssi-cgi.c
+)
+
+# wigwam sources
+set(wigwam_src
+	src/alternative.c
+	src/filehashes.c
+	src/ip.c
+	src/libfs.c
+	src/libstr.c
+	src/liblist.c
+	src/memdbg.c
+	src/toolkit.c
+	src/wigwam.c
+)
+if(NOT ENABLE_TLS AND NOT USE_SYSTEM_MBEDTLS)
+	set(wigwam_src ${wigwam_src}
+		mbedtls/library/md5.c
+		mbedtls/library/sha256.c
+	)
+endif()
+
+# configuration files
+set(config_files
+	config/cgi-wrapper.conf
+	config/mimetype.conf
+)
+if(ENABLE_XSLT)
+	set(config_files ${config_files}
+		config/error.xslt
+		config/index.xslt
+	)
+endif()
+
+set(config_files_in
+	config/hiawatha.conf
+)
+
+# manual pages
+set(manual_pages
+	man/ssi-cgi.1
+	man/wigwam.1
+)
+
+set(manual_pages_in
+	man/cgi-wrapper.1
+	man/hiawatha.1
+)

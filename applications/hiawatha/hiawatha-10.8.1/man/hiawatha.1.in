@@ -1,0 +1,1103 @@
+.\" Hiawatha manualpage
+.\"
+.TH HIAWATHA 1
+
+
+.SH NAME
+hiawatha - advanced and secure webserver
+
+
+.SH SYNOPSIS
+.B hiawatha
+[options]
+.br
+Options: -c <path>: path to where the configrationfiles are located.
+.br
+         -d: don't fork to the background.
+.br
+         -h: show help and exit.
+.br
+         -k: check configuration and exit.
+.br
+         -m: show enabled modules and exit.
+.br
+         -v: show version and compile information and exit.
+
+.SH DESCRIPTION
+Hiawatha is a secure webserver for Unix. It has been written with 'being secure' and 'easy to use' as its main goals. Hiawatha has lots of features that no other webserver has. Although most of them started as an experiment, many of them turned out to be quite effective.
+.br
+
+Hiawatha has been tested and runs perfectly on Linux, BSD, MacOS X and Cygwin.
+
+.\" ==========[ Configuration files ]==========================================
+.SH CONFIGURATION FILES
+Hiawatha has the following configuration files:
+.TP
+.B cgi-wrapper.conf
+See cgi-wrapper(1) for more information.
+.TP
+.B hiawatha.conf
+See chapters SERVER CONFIGURATION, BINDING CONFIGURATION, VIRTUAL HOST CONFIGURATION, DIRECTORY CONFIGURATION, FASTCGI CONFIGURATION, URL TOOLKIT and XSLT for more information.
+.TP
+.B mimetype.conf
+See chapter MIMETYPES for more information.
+.TP
+.B .hiawatha
+See chapter USER SETTINGS PER DIRECTORY for more information.
+
+.\" ==========[ Records ]=====================================================
+.SH RECORDS
+The binding, directory, FastCGI, virtual host and URL toolkit configuration must be placed inside a record. A record is defined as follows:
+.br
+
+Record {
+.br
+	...
+.br
+}
+
+where the word "Record" must be replaced with "Binding", "Directory", "FastCGIserver", "VirtualHost" or "UrlToolkit".
+
+.\" ==========[ Server configuration ]=========================================
+.SH SERVER CONFIGURATION
+The global configuration of the Hiawatha webserver.
+.TP
+.B set variable = value
+With 'set', you can declare a variable. Make sure the name of the variable doesn't conflict with any of the configuration options. The variables are case-sensitive and cannot be redeclared. The variable CONFIG_DIR will be set by Hiawatha to the directory where hiawatha.conf is located.
+.br
+Example: set local_net = 192.168.1.0/24
+         AccessList = allow local_net, deny 0.0.0.0/0 (see AccessList for more information about this option)
+.TP
+.B AnonymizeIP = yes|no
+Anonymize IP addresses before writing them to the access and error logfiles or sending them to the Hiawatha Monitor.
+.br
+Default = no     Example: AnonymizeIP = yes
+.TP
+.B BanlistMask = (allow|deny) <ip-address>[/netmask][, (allow|deny) <ip-address>[/netmask], ...]
+Prevent IPs from getting banned in case of bad behaviour. By default, all IPs can be banned. IPs that are 'denied' in the banlist will not be banned.
+.br
+Example: BanlistMask = deny 127.0.0.1, deny 192.168.0.1
+.TP
+.B BanOnDeniedBody = <ban-time>
+Number of seconds to ban an IP in case of a denied request body. See als DenyBody.
+.br
+Default = 0     Example: BanOnDeniedBody = 120
+.TP
+.B BanOnFlooding = <number>/<time>:<ban-time>
+When a client sends more than <number> requests in <time> seconds, the IP will be banned for <ban-time> seconds.
+.br
+Default = -/-:0     Example: BanOnFlooding = 10/1:15
+.TP
+.B BanOnGarbage = <ban-time>
+Number of seconds to ban an IP in case of a misformed HTTP request (400 Bad Request). Webbrowsers normally don't send misformed HTTP requests. So in case of a 400 errorcode, someone is probably trying something not-so-nice.
+.br
+Default = 0     Example: BanOnGarbage = 60
+.TP
+.B BanOnInvalidURL = <ban-time>
+Number of seconds to ban an IP in case of an invalid URL.
+.br
+Default = 0     Example: BanOnInvalidURL = 60
+.TP
+.B BanOnMaxPerIP = <ban-time>
+How many seconds a client will be banned when the maximum number of simultaneous connections has been crossed. See also ConnectionsPerIP.
+.br
+Default = 2     Example: BanOnMaxPerIP = 5
+.TP
+.B BanOnMaxReqSize = <ban-time>
+Number of seconds to ban an IP in case of a too large HTTP request (413 Request Entity Too Large). See also MaxRequestSize.
+.br
+Default = 0     Example: BanOnMaxReqSize = 10
+.TP
+.B BanOnSQLi = <ban-time>
+Number of seconds to ban an IP in case of a detected SQL-injection attempt. See also PreventSQLi.
+.br
+Default = 0     Example: BanOnSQLi = 60
+.TP
+.B BanOnTimeout = <ban-time>
+Number of seconds to ban an IP in case of a timeout before the first request has been send. See also TimeForRequest.
+.br
+Default = 0     Example: BanOnTimeout = 30
+.TP
+.B BanOnWrongPassword = <number>:<ban-time>
+Number of seconds to ban an IP in case of <number> wrong passwords for HTTP authentication within a minute.
+.br
+Default = -:0, Example: BanOnWrongPassword = 3:120
+.TP
+.B BlockExtensions = <extension>[,<extension>, ...]
+Prevent the uploading of files with these extensions.
+.br
+Example: BlockExtensions = pem, key, exe
+.TP
+.B CAcertificates = <file|directory>
+Load CA root certificates which Hiawatha uses for validation when acting as a client, which it does for the reverse proxy and the websockets. If not set, TLS connections that Hiawatha makes are not secure.
+.br
+Example: CAcertificates = /etc/ssl/certs/ca-certificates.crt
+.TP
+.B CacheRProxyExtensions = <extension>[, <extension>, ...]
+Enable the internal cache for reverse proxy requests for these extensions.
+.br
+Example: CacheRProxyExtensions = css, gif, html, jpg, js, png, txt
+.br
+
+(requires that Hiawatha was not compiled with -DENABLE_CACHE=off or -DENABLE_RPROXY=off)
+.TP
+.B CacheSize = <size in megabytes>
+Size of Hiawatha's internal file cache. Maximum is 1024 (megabytes).
+.br
+Default = 10     Example: CacheSize = 25
+.br
+
+(requires that Hiawatha was not compiled with -DENABLE_CACHE=off)
+.TP
+.B CacheMaxFilesize = <size in kilobytes>
+Maximum size of a file Hiawatha will store in its internal cache.
+.br
+Default = 256     Example: CacheMaxFilesize = 128
+.br
+
+(requires that Hiawatha was not compiled with -DENABLE_CACHE=off)
+.TP
+.B CGIextension = <extension>[, <extension>, ...]
+Default extension of a CGI program.
+.br
+Example: CGIextension = cgi
+.TP
+.B CGIhandler = <CGI handler>:<extension>[, <extension>, ...]
+Specify the handler for a CGI extension. A handler is an executable which will run the CGI script.
+.br
+Example: CGIhandler = /usr/bin/php5-cgi:php,php5
+.TP
+.B CGIwrapper = <CGI wrapper>
+Specify the wrapper for CGI processes. A secure CGI wrapper is included in the Hiawatha package (see cgi-wrapper(1) for more information).
+.br
+Default = @CMAKE_INSTALL_FULL_SBINDIR@/cgi-wrapper     Example: CGIwrapper = /bin/cgi-wrapper
+.TP
+.B ChallengeClient = <threshold>, (httpheader|javascript), <ban-time>[, <secret>]
+Challenge the client to verify that it's a real web browser and not an HTTP bot. When the total amount of connections reaches <threshold>, Hiawatha sends a response to the first request in a connection which will make the client resend the request, but now with a cookie. The cookie can be set via an HTTP Set-Cookie header or a Javascript. Further requests are only accepted when the client sends this cookie. Otherwise, the client is banned for <ban-time> seconds. This feature can be used to reduce the effects of a DDoS attack. The <secret> can be a random string of up to 20 characters (the rest is ignored) and is used to generate the cookie. When not set, Hiawatha will generate a random secret.
+.br
+Example: ChallengeClient = 200, httpheader, 60
+.TP
+.B ConnectionsPerIP = <number>
+Maximum number of simultaneous connections per IP address. See also RequestLimitMask.
+.br
+Default = 15     Example: ConnectionsPerIP = 50
+.TP
+.B ConnectionsTotal = <number>
+Maximum number of simultaneous connections.
+.br
+Default = 150     Example: ConnectionsTotal = 1000
+.TP
+.B DHsize = 2048|4096|8192
+Set the size of the Diffie-Hellman keys.
+.br
+Default = 2048     Example: DHsize = 4096
+.TP
+.B ExploitLogfile = <filename with full path>
+Logfile for all exploit attempts: CSRF, denied bodies, SQL injection and XSS
+.br
+Default = @LOG_DIR@/exploit.log     Example: ExploitLogfile = /var/log/exploit_attempts.log
+.TP
+.B GarbageLogfile = <filename with full path>
+Logfile for all misformed HTTP requests.
+.br
+Example: GarbageLogfile = @LOG_DIR@/garbage.log
+.TP
+.B GZipExtensions = <extension>[, <extension>, ...]
+Add extensions to the list of extensions of the files Hiawatha will compress before uploading. Files with the text/* or image/svg+xml mimetype will also be compressed.
+.br
+Default = cer,crt,doc,pem,ppt,ttf,xls,xml,xsl,xslt     Example: GZipExtensions = json
+.TP
+.B HideProxy = <ip-address>[/netmask][, <ip-address>[/netmask], ...]
+A request sent from the supplied IP address will be searched for a X-Forwarded-For header. When found, the last IP address in that field will be used as the client IP address. Make sure you only allow trusted reverse proxies in this IP list.
+.br
+Example: HideProxy = 192.168.10.20
+.TP
+.B Include <filename>|<directory>
+Include another configuration file or configuration files in a directory.
+.br
+Example: Include /etc/hiawatha/hosts.conf
+.TP
+.B KickOnBan = yes|no
+Close all other connections that originate from the same IP in case of a ban.
+.br
+Default = no     Example: KickOnBan = yes
+.TP
+.B KillTimedoutCGI = yes|no
+If a CGI process times out (see TimeForCGI for more information), Hiawatha will send a TERM signal to the CGI process, wait 1 second and then send a KILL signal to the CGI process. This option has no effect on FastCGI jobs.
+.br
+Default = yes     Example: KillTimedoutCGI = no
+.TP
+.B ListenBacklog = <value>
+The backlog value for the listen() system call. This value defines the size of the waiting queue for incoming connections.
+.br
+Default = 16     Example: ListenBacklog = 128
+.TP
+.B LogfileMask = (allow|deny) <ip-address>[/netmask][, (allow|deny) <ip-address>[/netmask], ...]
+List of IPs from which HTTP requests will be logged. If an IP does not match an entry in the list, the request will be logged.
+.br
+Example: LogfileMask = deny 10.0.0.0/24
+.TP
+.B LogFormat = hiawatha|common|extended
+Define the format of the logfile: hiawatha = Hiawatha's default format, common = Common Log Format, extended = Extended Common Log Format.
+.br
+Default = hiawatha     Example: LogFormat = extended
+.TP
+.B LogTimeouts = yes|no
+Log connection timeouts in the system logfile.
+.br
+Default = yes     Example: LogTimeouts = no
+.TP
+.B MaxServerLoad = <value>
+When the server has a load higher than <value>, Hiawatha will drop incoming connections. This options is only available under Linux.
+.br
+Example: MaxServerLoad = 0.7
+.TP
+.B MaxUrlLength = <value>
+The maximum length of the path of an URL that the webserver accepts as being valid. Otherwise, a 414 error code is returned. The value 'none' disables this check.
+.br
+Default = 1000     Example: MaxUrlLength = 500
+.TP
+.B MimetypeConfig = <configuration file>
+The location of the mimetype configuration file. It the path is omitted, Hiawatha's configuration file directory will be used.
+.br
+Default = mimetype.conf     Example: MimetypeConfig = /etc/mime.types
+.TP
+.B MinTLSversion = 1.0|1.1|1.2
+Specify the minimum TLS version Hiawatha accepts for HTTPS connections.
+.br
+Default = 1.1, Example: MinTLSversion = 1.2
+.br
+
+(requires that Hiawatha was not compiled with -DENABLE_TLS=off)
+.TP
+.B MonitorServer = <ip-address>
+Specify the IP address of the Hiawatha Monitor server. This enables logging of statistical information. Use a X-Hiawatha-Monitor CGI header to log an event. Use the value 'failed_login' to log a failed login or 'exploit_attempt' to log an exploit attempt.
+.br
+Example: MonitorServer = 192.168.1.2
+.br
+
+(requires that Hiawatha was compiled with -DENABLE_MONITOR=on)
+.TP
+.B PIDfile = <filename>
+The name of the file in which Hiawatha will write its process-ID. Don't change unless you know what you are doing (the CGI-wrapper and the MacOS X preference pane need the PID-file at its default location).
+.br
+Default = @PID_DIR@/hiawatha.pid     Example: PIDfile = /data/hiawatha.pid
+.TP
+.B Platform = cygwin|windows
+If set to 'windows', Hiawatha will convert the Unix-style path to CGI programs to a Windows-style path.
+.br
+Default = windows     Example: Platform = cygwin
+
+This option is only available in the Windows (Cygwin) version of Hiawatha.
+.TP
+.B RebanDuringBan = yes|no
+Reset the ban-time when a client tries to reconnect during a ban.
+.br
+Default = no     Example: RebanDuringBan = yes
+.TP
+.B ReconnectDelay = <time>
+The number of seconds Hiawatha will remember the IP address of the connection and pretend the client is still connected. In combination with ConnectionsPerIP, this can be used to prevent flooding. Note that the BanOnMaxPerIP ban-timer will be used, not the BanOnFlooding ban-timer. Causes some load on the server.
+.br
+Default = 0     Example: ReconnectDelay = 3
+.TP
+.B RequestLimitMask = (allow|deny) <ip-address>[/netmask][, (allow|deny) <ip-address>[/netmask], ...]
+Define for which clients the ConnectionsPerIP, MaxRequestSize, TimeForRequest and PreventSQLi settings should not be used. If an IP is allowed or not listed, the mentioned settings will be used.
+.br
+Example: RequestLimitMask = deny 192.168.0.1
+.TP
+.B ServerId = <userid>|<userid>:<groupid>[, <groupid>, ...]
+The userid and groupid(s) the server will change to. If only a userid is specified, the groupid(s) will be looked up in /etc/passwd and /etc/group. The userid en groupid of user root are not allowed here. The userid or groupid can also be a name.
+.br
+Default = 65534:65534     Example: ServerId = www-data
+.TP
+.B ServerString = <text>
+The text behind 'Server:' in the HTTP header of a response. Use 'none' to completely remove the Server string from the HTTP header.
+.br
+Default = Hiawatha v<version>     Example: ServerString = myWebserver
+.TP
+.B SetResourceLimits = yes|no
+Let Hiawatha set the resource limits for number of threads and file descriptors.
+.br
+Default = yes     Example: SetResourceLimits = no
+.TP
+.B SocketSendTimeout = <time>
+Sets the SO_SNDTIMEO value for all client connection sockets. Use 0 to disable this feature.
+.br
+Default = 3     Example: SocketSendTimeout = 10
+.TP
+.B Syslog = [system][, exploit][, garbage][, access][, error][, all]
+Log information to syslog.
+.br
+Example: Syslog = system, access, error
+.TP
+.B SystemLogfile = <filename with full path>
+Logfile for all system- and errormessages.
+.br
+Default = @LOG_DIR@/system.log     Example: SystemLogfile = /var/log/hiawatha.sys
+.TP
+.B ThreadKillRate = <amount>
+At startup, Hiawatha starts the amount of threads as specified by ThreadPoolSize. When more threads are required, Hiawatha spawns them on the fly. When those extra threads are no longer needed, max <amount> threads are killed per 10 seconds.
+.br
+Default = 1     Example: ThreadKillRate = 10
+.TP
+.B ThreadPoolSize = <size>
+Initial size of the thread pool.
+.br
+Default = 25     Example: ThreadPoolSize = 50
+.TP
+.B Throttle = (<main-mimetype>/[<sub-mimetype>]|.<extension>):<speed in kB/s>
+Control the upload speed of certain files.
+.br
+Example: Throttle = audio/mpeg:30
+.br
+         Throttle = .mp:50
+.TP
+.B Tomahawk = <port number>, <MD5 hash of password>
+The port and the password for Tomahawk. You can use telnet to connect to Tomahawk (localhost:<port number>). Once connected to Tomahawk, type 'help' for more information.
+.br
+Example: Tomahawk = 81,41d0c72bd73afaa2c207064d81d5a3d9
+.br
+
+(requires that Hiawatha was compiled with -DENABLE_TOMAHAWK=on)
+.TP
+.B TunnelSSH = <ip-address>[, <ip-address>, ...][; <authentication code>]
+This option allows you to connect to the SSH daemon on your server when port 22 is blocked by a firewall. The parameter of this option is the IP address from where you want to connect to your server. In PuTTY and WinSCP, use the HTTP proxy type and enable the 'Consider proxying local host connections' option. Use 'localhost' as the hostname and your server's hostname as the proxy hostname.
+Optionally, you can set an authentication code, which is base64(<username>:<password>). The username and password are for in the PuTTY proxy page. When set, you can connect from any IP address you want.
+.br
+Example: TunnelSSH = 123.45.67.89
+.TP
+.B UserDirectory = <directory>
+The name of the web directory in a user's home directory (see UserWebsites for more information).
+.br
+Default = public_html     Example: UserDirectory = website
+.TP
+.B WaitForCGI = yes|no
+Lets Hiawatha wait for CGI processes to finish after receiving the last output byte (via waitpid() call) or not (SIGCHLD set to SIG_IGN).
+.br
+Default = yes     Example: WaitForCGI = no
+.TP
+.B WorkDirectory = <path>
+The directory where Hiawatha can temporarily store files for uploading and the Monitor. Note that Hiawatha will change the ownership and access rights of this directory for security reasons. So, don't use existing direcories like /tmp.
+.br
+Default = @WORK_DIR@     Example: WorkDirectory = /tmp/hiawatha
+.TP
+.B WrapUserCGI = yes|no
+Always use the CGI-wrapper when handling CGI scripts in user websites (see UserWebsites for more information). The userid of the owner of the website will be used.
+.br
+Default = no     Example: WrapUserCGI = yes
+
+.\" ==========[ Binding configuration ]========================================
+.SH BINDING CONFIGURATION
+A binding is where a client can connect to (a port on a network interface).
+.TP
+.B BindingId = <binding_id>
+The binding ID can be used to hook a virtual host to a binding (see RequiredBinding for more information).
+.br
+Example: BindingId = LAN
+.TP
+.B EnableAccf = yes|no
+Enable the HTTP accept filter. This is only available on FreeBSD. This requires the accf_http kernel module to be loaded.
+.br
+Default = no     Example: EnableAccf = yes
+.TP
+.B EnableAlter = yes|no
+Enable the PUT and DELETE HTTP request method for this binding (see AlterList and UploadDirectory for more information).
+.br
+Default = no     Example: EnableAlter = yes
+.TP
+.B EnableTRACE = yes|no
+Enable the TRACE HTTP request method for this binding.
+.br
+Default = no     Example: EnableTRACE = yes
+.TP
+.B Interface =  <IP address>
+The IP address of the interface that must be binded.
+.br
+Default = 0.0.0.0 (IPv4)     Example: Interface = 192.168.0.1
+.TP
+.B MaxKeepAlive = <number>
+Maximum number of stay-alives after the first request. After that, the connection will be closed. Of course, the browser can reconnect. But this gives other users a chance to connect in case of a 'crowded' webserver.
+.br
+Default = 50     Example: MaxKeepAlive = 100
+.TP
+.B MaxRequestSize = <size>
+The maximum size of a request in kilobytes the webserver is allowed to receive. This does not include PUT requests. See also RequestLimitMask.
+.br
+Default = 64     Example: MaxRequestSize = 256
+.TP
+.B MaxUploadSize = <size>
+The maximum size of a PUT request entity in megabytes the webserver is allowed to receive. The maximum size is 2047 megabytes.
+.br
+Default = 1     Example: MaxUploadSize = 15
+.TP
+.B Port = <port number>
+The port number that will be used for the binding. This is a required option.
+.br
+Example: Port = 80
+.TP
+.B RequiredCA = <CA certificate file>[, <CA CRL file>
+Use the CA certificates in this file to authenticate users. Users without a certificate from one of the listed CAs will not be allowed.
+.br
+Example: RequiredCA = /etc/ssl/cacert.pem, /etc/ssl/cacrl.pem
+.br
+
+(requires that Hiawatha was not compiled with -DENABLE_TLS=off)
+.TP
+.B TLScertFile = <TLS private key and certificate file>
+Encrypt the connections of the current binding with the TLS private key and certificate in the specified file. Intermediate certificates also go in this file. Make sure the order matches the TLS chain order: host certificate first, CA certificate last.
+.br
+Example: TLScertFile = my_domain.pem
+.br
+
+(requires that Hiawatha was not compiled with -DENABLE_TLS=off)
+.TP
+.B TimeForRequest = [<time1>, ]<time2>
+Maximum time in seconds for a client to send its HTTP request. time1 is for the first request, time2 is for the following requests (Keep-Alive time). If time2 is omitted, time1 is used for all requests. See also RequestLimitMask.
+.br
+Default = 5, 30     Example: TimeForRequest = 2, 45
+
+.\" ==========[ Host configuration ]===========================================
+.SH VIRTUAL HOST CONFIGURATION
+The (virtual) hosts the webserver will be serving. The first host must NOT be placed inside a record. This is the default host and therefor not virtual. It is wise to have the IP-address of the webserver as the Hostname of the default host and give it a blank page. Automated vulnerable-website scanners will not find your possible vulnerable website if you do so.
+.TP
+.B AccessList = (allow|deny|pwd) <ip-address>[/netmask][, (allow|deny|pwd) <ip-address>[/netmask], ...]
+Define which IPs have access to the website. If an IP does not match an entry in the list, access is granted. 'all' is an alias for 0.0.0.0/0. The IP address of the machine that connects and the IP address specified in the X-Forwarded-For header field (deny only) will be used to find a match. 'allow' gives access, 'deny' denies access and 'pwd' gives access if a valid password has been given (see PasswordFile for more information).
+.br
+Hiawatha will ignore this setting for files in /.well-known/acme-challenge/, which are used for authentication in the Let's Encrypt certificate request process.
+.br
+Example: AccessList = deny 10.0.0.13, allow 10.0.0.0/24, deny all
+.TP
+.B AccessLogfile = <filename with full path>[,daily|monthly|weekly]|none
+Logfile for the HTTP requests. Hiawatha can rotate them on a daily, weekly or monthly basis. Use 'none' to disable the access log.
+.br
+Default = @LOG_DIR@/access.log     Example: AccessLogfile = /var/log/hiawatha.acc, weekly
+.TP
+.B Alias = <softlink>:<directory>
+An alias is a virtual softlink to a directory. Every request to <websiteroot>/<softlink> will be rerouted to <directory>.
+.br
+Example: Alias = /doc:/usr/share/doc
+.TP
+.B AllowDotFiles = <yes|no>
+Allow files that start with a dot (hidden files for Unix) to be downloaded by a client. Requests for .hiawatha files are always blocked. A requests URI that start with /.well-known/ is always accepted, as defined in RFC 5785.
+.br
+Default = no     Example: AllowDotFiles = yes
+.TP
+.B AlterGroup = <groupname>[, <groupname>, ...]
+The <groupname> is the name of the group a user must be a member of to use the PUT and DELETE HTTP method (see PasswordFile and AlterList for more information).
+.br
+Example: AlterGroup = publishers
+.TP
+.B AlterList = (allow|deny|pwd) <ip-address>[/netmask][, (allow|deny|pwd) <ip-address>[/netmask], ...]
+Define which IPs are allowed to use the PUT and DELETE HTTP request method. If an IP does not match an entry in the list, usage is denied. 'all' is an alias for 0.0.0.0/0. The IP address of the machine that connects and the IP address specified in the X-Forwarded-For header field (deny only) will be used to find a match. Look out for the uploading of CGI scripts! Use "ExecuteCGI = no" in a Directory record to disable CGI execution (see EnableAlter, AlterGroup and AlterMode for more information).
+.br
+Example: AlterList = deny 10.0.0.13, allow 10.0.0.0/24, deny all
+.TP
+.B AlterMode = <filemode>
+The files that are created via PUT will have the file permissions set to <filemode> (see AlterList for more information).
+.br
+Default = 640     Example: AlterMode = 664
+.TP
+.B BanByCGI = yes|no[, <max value>]
+Allow a CGI application to ban a client via a 'X-Hiawatha-Ban: <value>' CGI header. The value is the maximum amount of seconds a CGI application is allowed to ban a client.
+.br
+Default = no     Example: BanByCGI = yes
+.TP
+.B CustomHeaderClient = <key>: <value>
+Set a custom HTTP header for every response sent to the client.
+.br
+Example: CustomHeaderClient = Access-Control-Allow-Origin: *
+.TP
+.B CustomHeaderBackend = <key>: <value>
+Set a custom HTTP header for every request forwarded to the backend while acting as a reverse proxy.
+.br
+Example: CustomHeaderBackend = X-Custom-Header: some_value
+
+(requires that Hiawatha was not compiled with -DENABLE_RPROXY=off)
+.TP
+.B DenyBody = <regular expression>
+If the request body matches the case insensitive POSIX regular expression, return a 403 Forbidden.
+.br
+Example: DenyBody = ^.*%3Cscript.*%3C%2Fscript%3E.*$
+.TP
+.B EnablePathInfo = yes|no
+Accepts URLs like /index.php/parameter if /index.php exists and the extension .php has been configured as a CGI program. '/parameter' will be placed in the environment variable PATH_INFO.
+.br
+Default = no     Example: EnablePathInfo = yes
+.TP
+.B EnforceFirstHostname = yes|no
+If the hostname used in the URL is not the same as the first one in the list of the Hostname setting, then Hiawatha will send a 301 redirect with that hostname. This option is ignored if the first hostname starts with a wildcard.
+.br
+Default = no     Example EnforceFirstHostname = yes
+.TP
+.B ErrorHandler = <error code>:<filename>[?key=value&...]
+When a 401, 403, 404, 501 or 503 error occures, this file will be send to the browser. The WebsiteRoot and the ErrorHandler together must form the complete path to the file. The generated errorcode can be found via the environment variable HTTP_GENERATED_ERROR. To override the returned HTTP code in a CGI script, use the HTTP Header "Status", for example "Status: 404".
+.br
+Example: ErrorHandler = 404:/error.php?code=404
+.TP
+.B ErrorLogfile = <filename with full path>
+Logfile for the messages that have been written to stdout by CGI processes.
+.br
+Default = @LOG_DIR@/error.log     Example: ErrorLogfile = /var/log/hiawatha.err
+.TP
+.B ErrorXSLTfile = <XSLT file with full path>
+In case of an error, use the specified XSLT file to generate the error message. Upon any error, Hiawatha will fall back to the hardcoded error message. An example of the generated XML that will be used can be found in extra/error.xml inside the source package.
+.br
+Example: ErrorXSLTfile = /etc/hiawatha/error.xslt
+.br
+
+(requires that Hiawatha was not compiled with -DENABLE_XSLT=off)
+.TP
+.B ExecuteCGI = yes|no
+Allow execution of CGI programs.
+.br
+Default = no     Example: ExecuteCGI = yes
+.TP
+.B FileHashes = <file containing file hashes>
+Points Hiawatha to a file containing SHA256 hashes for every file in the webroot directory. Before serving a file, Hiawatha checks the file hash of that file. If it doesn't match, access is denied. This protects against file changes or uploading of malware. FastCGI scripts are also checked if the FastCGI server can be reached via a UNIX socket. The file hashes file can be created via the -s option of the wigwam(1) tool.
+.br
+Example: FileHashes = /etc/hiawatha/hashes/my_website.txt
+.TP
+.B FollowSymlinks = yes|no
+Allow Hiawatha to follow symlinks to files and directories. Symlinks that stay inside the webroot or are owned by root are always followed. Note that this does not apply to CGI's which are executed via FastCGI, because Hiawatha is not able to look for symlinks on remote FastCGI servers.
+.br
+Default = no     Example: FollowSymlinks = yes
+.TP
+.B Hostname = <hostname>, [<hostname>, ...]
+Name(s) of the host that Hiawatha will be serving. May start with a wildcard, except the first hostname (a valid name is required in case of a 301 error). Hostname is a required field.
+.br
+Example: Hostname = www.my-domain.com, *.my-domain.com, www.some-alias.com
+.TP
+.B HTTPAuthToCGI = yes|no
+Place the HTTP Authorization header in the CGI's HTTP_AUTHORIZATION environment variable.
+.br
+Default = no     Example: HTTPAuthToCGI = yes
+.TP
+.B LoginMessage = <text>
+Message that will be displayed in the login window in case of HTTP authentication (see PasswordFile for more information). When using Digest HTTP authentication, the LoginMessage should not contain a ':' sign.
+.br
+Default = Private page     Example: LoginMessage = My personal files
+.TP
+.B NoExtensionAs = <extension>
+If the requested file has no extension, treat it as if the extension was equal to <extension>.
+.br
+Example: NoExtensionAs = cgi
+.TP
+.B PasswordFile = ((Basic|Digest):<passwordfile>)|none[, <groupfile>]
+When this option is set, HTTP authentication is enabled. Use the full path to the password file when that password file should also be used for sub-directories. Entries for the password file can be created via the wigwam(1) tool. The realm for Digest HTTP authentication must be equal to the text set via LoginMessage.
+.br
+The <groupfile> contains the groupnames followed by the names of the users that are a member of that group. The format of the lines in the groupfile is:
+.br
+	<groupname>:<username>[ <username> ...]
+.br
+Hiawatha will ignore this setting for files in /.well-known/acme-challenge/, which are used for authentication in the Let's Encrypt certificate request process.
+.br
+Example: PasswordFile = basic:/var/www/.passwords,/var/www/.groups
+.TP
+.B PreventCSRF = no|detect|prevent|block
+Prevent Cross-Site Request Forgery attacks. The 'detect' option only detects and logs a CSRF attack, 'prevent' discards the POST data and cookies and 'block' returns a 443 error. This setting can cause problems for users who use tools to hide/remove the Referer HTTP header string while browsing.
+
+Don't use this as a generic security feature. Only use it to prevent a specific vulnerablility in an application that can't be taken offline while you wait for a patch.
+.br
+Default = no     Example: PreventCSRF = block
+.TP
+.B PreventSQLi = no|detect|prevent|block
+Prevent SQL-injection attacks. The 'detect' option only detects and logs an SQL injection attack, 'prevent' returns a 404 error and 'block' returns a 441 error. It is important to understand that the detection of SQL injections is done by best effort. There is no 100% guarantee that all SQL injections are blocked. Note that using this feature can have a negative effect on the performance of your webserver and can make the exploit logfile grow very large. See also BanOnSQLi and RequestLimitMask.
+
+Don't use this as a generic security feature. Only use it to prevent a specific vulnerablility in an application that can't be taken offline while you wait for a patch.
+.br
+Default = no     Example: PreventSQLi = detect
+.TP
+.B PreventXSS = no|detect|prevent|block
+Prevent Cross-Site Scripting attacks. The 'detect' option only detects and logs a XSS attack, 'prevent' disables the <script> tag in the input and 'block' returns a 442 error.
+
+Don't use this as a generic security feature. Only use it to prevent a specific vulnerablility in an application that can't be taken offline while you wait for a patch.
+.br
+Default = no     Example: PreventXSS = prevent
+.TP
+.B PublicKeyPins = <public key file>[, max_age=<value>[d]]
+Hiawatha will load public keys from the <public key file>, which will be used to calculate the pin-sha256 values for the Public-Key-Pins HTTP header (HPKP). The <public key file> can contain certificates, certificate signing requests and public keys, all in PEM format. The optional max_age value is in seconds or in days when it ends with a 'd'. The default value for max_age is '30d'.
+.br
+Example: PublicKeyPins = /etc/hiawatha/letsencrypt.pem, 60d
+.br
+
+(requires that Hiawatha was not compiled with -DENABLE_TLS=off)
+.TP
+.B RequiredBinding = <binding_id>[, <binding_id>, ...]
+By default, a virtual host can be visited via all bindings. Via this opion, you can specify via which bindings a virtual host can be visited (see chapter BINDING CONFIGURATION for more information).
+.br
+Example: RequiredBinding = LAN
+.TP
+.B RandomHeader = <length>
+Adds an X-Random HTTP header to the response for HTTPS connections. The header contains a random string. The length of that string is a random value between 1 and <length>. This header helps to prevent attackers from guessing what file was requested based on the response length. <length> must be between 10 and 1000.
+.br
+Example: RandomHeader = 250
+.TP
+.B RequiredCA = ...
+Use this option inside a virtualhost block if you want to make use of the SNI capabilities of Hiawatha. See the RequiredCA option in the BINDING CONFIGURATION chapter for more information.
+.TP
+.B RequiredGroup = <groupname>[, <groupname>, ...]
+The <groupname> is the name of the group a user must be a member of to have access (see PasswordFile for more information).
+.br
+Example: RequiredGroup = webadmins,staff
+.TP
+.B RequireTLS = yes|no[, <HSTS time>[d]][; includeSubDomains][; preload]
+Specify that a domain must be visited with a TLS connection. If it is visited via HTTP, Hiawatha will send a redirect (301) with an HTTPS URL. The <HSTS time> is the max-age value of the Strict-Transport-Security HTTP header in seconds or in days when it ends with a 'd'.
+.br
+Hiawatha will ignore this setting for files in /.well-known/acme-challenge/, which are used for authentication in the Let's Encrypt certificate request process.
+.br
+Default = no     Example: RequireTLS = yes, 2678400
+.br
+
+(requires that Hiawatha was not compiled with -DENABLE_TLS=off)
+.TP
+.B ReverseProxy = [!]<pattern> [<skip directories>] http[s]://<hostname>[:<port>][/<path>]|<unix-socket> [<timeout>] [keep-alive]
+Forward the request with URLs that match the POSIX regular expression <pattern> to another webserver, where <path> is placed before the original URL. When <hostname> is an IP address, the value of the Host HTTP header is unchanged. Otherwise, it is replaced with the value of <hostname>. The optional <skip directories> is a number that indicates how many directories in the original URL should be skipped when sending it to the final webserver. The connection is closed after <timeout> seconds, which is set to 5 seconds by default. By default, Hiawatha doesn't use keep-alive connections to the final webserver. You can enable this by adding 'keep-alive' to the configuration line. When specifying multiple reverse proxies for one (virtual) host, Hiawatha prefers reverse proxies with a scheme (HTTP/HTTPS) matching the one of the client connection. See also CAcertificates.
+.br
+Example: ReverseProxy = ^/icons/ 1 http://resources.lan/images
+
+(requires that Hiawatha was not compiled with -DENABLE_RPROXY=off)
+.TP
+.B RunOnAlter = <path to program>
+Run a program after a client has sent a PUT or a DELETE request. Information about the request is placed in environment variables, just like CGI
+.br
+Example: RunOnAlter = /usr/local/sbin/alter-script
+.TP
+.B Setenv <key> = <value>
+Define environment settings for CGI programs.
+.br
+Example: Setenv PHPRC = /var/www/conf
+.TP
+.B ScriptAlias = <softlink>:<script>
+A script alias is a virtual softlink to a CGI script. Every request to <websiteroot>/<softlink> will be rerouted to <script>.
+.br
+Example: ScriptAlias = /script.cgi:/usr/lib/script.cgi
+.TP
+.B ShowIndex = yes|no|<XSLT file with full path>|xml
+Return a directory listing in HTML format for a directory request when the startfile does not exist. If you want to change the index layout completely, specify the path of a XSLT file. If the XSLT file is not found or 'xml' is used, Hiawatha will output the XML of the directory index. An example of the XML output can be found in extra/index.xml inside the source package.
+.br
+Default = no     Example: ShowIndex = /etc/hiawatha/index.xslt
+.br
+
+(requires that Hiawatha was not compiled with -DENABLE_XSLT=off)
+.TP
+.B SkipCacheCookie = <cookie name>[, <cookie name>, ...]
+Skip the internal cache for requests for GGI scripts that contain one of the mentioned cookies.
+.br
+Example: SkipCacheCookie = banshee_login_id
+.TP
+.B TLScertFile = <TLS private key and certificate file>
+Use this option inside a virtualhost block if you want to make use of the SNI capabilities of Hiawatha. See the TLScertFile option in the BINDING CONFIGURATION chapter for more information.
+.TP
+.B StartFile = <filename>
+The file which will be send to the browser when a directory is requested.
+.br
+Default = index.html     Example: StartFile = start.php
+.TP
+.B TimeForCGI = <time>
+Maximum time in seconds for a CGI-process to finish its job.
+.br
+Default = 5     Example: TimeForCGI = 15
+.TP
+.B TriggerOnCGIstatus = yes|no
+Print an HTTP error message or invoke the ErrorHandler when a CGI outputs a Status HTTP header line.
+.br
+Default = no     Example: TriggerOnCGIstatus = yes
+.TP
+.B UseDirectory = <directory_id>[, <directory_id>, ...]
+The Directory records to use for this virtual host. See chapter DIRECTORY CONFIGURATION for more information.
+.br
+Example: UseDirectory = my_dir
+.TP
+.B UseLocalConfig = yes|no
+Tell Hiawatha to use or ignore .hiawatha files.
+.br
+Default = no     Example: UseLocalConfig = yes
+.TP
+.B UseFastCGI = <fcgi_server_id>[, <fcgi_server_id>, ...]
+The FastCGI server to use for this virtual host. The first FastCGI server record that matches (including extension), will be used. See chapter FASTCGI CONFIGURATION for more information. This option sets ExecuteCGI to 'yes' for this host.
+.br
+Example: UseFastCGI = PHP7
+.TP
+.B UserWebsites = yes|no
+Activates user websites for this (virtual) host (the /~user/ URL's) (see UserDirectory for more information).
+.br
+Default = no     Example: UserWebsites = yes
+.TP
+.B UseToolkit = <toolkit_id>[, <toolkit_id>, ...]
+Perform special operations, like rewriting via regular expressions, on the URL. See chapter URL TOOLKIT for more information.
+.br
+Example: UseToolkit = my_toolkit
+
+(requires that Hiawatha was not compiled with -DENABLE_TOOLKIT=off)
+.TP
+.B UseXSLT = yes|no
+Activate XSL transformations (see chapter XSLT for more information).
+.br
+Default = no     Example: UseXSLT = yes
+.br
+
+(requires that Hiawatha was not compiled with -DENABLE_XSLT=off)
+.TP
+.B WebDAVapp = <yes|no>
+Enables support for WebDAV applications.
+.br
+Default: WebDAVapp = no     Example: WebDAVapp = yes
+.TP
+.B WebsiteRoot = <directory>
+Root directory for this virtual host. It's not allowed to use the root of a disk as the website root directory.
+.br
+Example: WebsiteRoot = /home/webmaster/website
+.TP
+.B WebSocket = ws[s]://<IP address>:<port> <request uri>[,...] [connection timeout]
+This setting will make Hiawatha forward the connection to a websocket for every request where the URL starts with <request uri>. A wildcard request URI will forward every request for this host. The connection timeout is in minutes and the default is 10. See also CAcertificates.
+.br
+Example: WebSocket = ws://127.0.0.1:5000 /chat 30
+.TP
+.B WrapCGI = <wrap_id>
+Specify a CGI-wrapper id for this virtual host (see cgi-wrapper(1) for more information).
+.br
+Example: WrapCGI = test
+
+.\" ==========[ Directory configuration ]======================================
+.SH DIRECTORY CONFIGURATION
+This chapter explains which options can be set for a specific directory. These options will override (virtual) host settings.
+.TP
+.B DirectoryId = <directory_id>
+A unique ID for a directory record. Use this Id with the UseDirectory setting in a virtual host.
+.br
+Example: DirectoryId = my_dir
+.TP
+.B ExpirePeriod <time> seconds|minutes|hours|days|weeks|months[, public|private]
+.br
+Adds an Expires HTTP header with current timestamp + <time>. The public/private (default is private) option defines the value of the Cache-Control header.
+.br
+Example: ExpirePeriod = 2 weeks, public
+.TP
+.B Extensions = <extension>[, <extension>, ...]
+When set, settings that affect files will only be used when the extension of the requested file matches with the supplied list.
+.br
+Example: Extensions = png, jpg, gif
+.TP
+.B Path = <path>[, <path>, ...]
+The path to the subdirectory, which may be virtual (not existing on disk). This is a required setting.
+.br
+Example: Path = /files
+.TP
+.B RunOnDownload = <path to program>
+Run a program when a client requests a static resource. This does not include CGI programs. Information about the request is placed in environment variables, just like CGI.
+.br
+Example: RunOnDownload = /var/www/log_download
+.TP
+.B UploadSpeed = <speed>, <maximum number of connections>
+Set the uploadspeed in kB/s for all the files in the directory regardless of the extension or mimetype. The uploadspeed per connection will be divided by the number of connections.
+.br
+Example: UploadSpeed = 20,4
+.PP
+.br
+.B AccessList
+,
+.br
+.B AlterGroup
+,
+.br
+.B AlterList
+,
+.br
+.B AlterMode
+,
+.br
+.B ExecuteCGI
+,
+.br
+.B WrapCGI
+,
+.br
+.B FollowSymlinks
+,
+.br
+.B PasswordFile
+,
+.br
+.B RequiredGroup
+,
+.br
+.B Setenv
+,
+.br
+.B ShowIndex
+,
+.br
+.B StartFile
+and
+.br
+.B TimeForCGI
+
+.\" ==========[ FastCGI configuration ]========================================
+.SH FASTCGI CONFIGURATION
+This chapter explains how to use one or more FastCGI servers.
+.TP
+.B ConnectTo = <ip-address>:<port number>|<path>[, <ip-address>:<port number>|<path>, ...]
+The IP-address and TCP port or UNIX socket Hiawatha must connect to to reach the FastCGI server.
+.br
+Example: ConnectTo = 127.0.0.1:2004 (IPv4)
+         ConnectTo = [::1]:2004 / ::1.2004 (IPv6)
+         ConnectTo = /tmp/hiawatha.sock (UNIX socket)
+.TP
+.B Extension = <extension>[, <extension>, ...]
+The extension of the script the FastCGI server is able to interpret. If no extension is specified, all requests will be sent to the FastCGI server.
+.br
+Example: Extension = php
+.TP
+.B FastCGIid = <fcgi_server_id>
+Give each FastCGI server an unique Id. Use this Id with the UseFastCGI setting in a virtual host.
+.br
+Example: FastCGIid = PHP7
+.TP
+.B ServerRoot = <path>
+If the FastCGI server is running in a chroot, use this setting to specify that chroot directory.
+.br
+Example: ServerRoot = /var/www/chroot
+.TP
+.B SessionTimeout = <time in minutes>
+The maximum duration of a CGI session for this FastCGI server. Will only be used when specifing multiple ConnectTo's.
+.br
+Default = 15     Example: SessionTimeout = 30
+
+.\" ==========[ URL toolkit configuration ]====================================
+.SH URL TOOLKIT
+How to use the URL toolkit is explained in this chapter. To use URL toolkits, Hiawatha should not have been compiled with -DENABLE_TOOLKIT=off. The main toolkit commands are:
+.TP
+.B Do <action>
+Perform an action, where <action> can be one of the following:
+.br
+Ban, Call, DenyAccess, Exit, Goto, OmitRequestLog, Return, Skip or Use.
+.br
+Example: Do Call other_rule_set
+.TP
+.B Header <key> [!]<pattern> <action>
+.br
+Perform an action when the HTTP header <key> matches the POSIX regular expresion <pattern>, where <action> can be one of the following:
+.br
+Ban, Call, DenyAccess, Exit, Goto, OmitRequestLog, Return, Skip or Use.
+.br
+A negative pattern (leading exclamation mark) can't be used with the redirect action. The <key> can be * to test every HTTP header. Note that the wildcard means 'any header', not 'every header'.
+.TP
+.B Match [!]<pattern> <action>
+.br
+Perform an action when the URL matches the POSIX regular expression <pattern>, where <action> can be one of the following:
+.br
+Ban, Call, DenyAccess, Exit, Goto, Redirect, Return, Rewrite, Skip or UseFastCGI.
+.br
+Use MatchCI to perform case insensitive URL matching. A negative pattern (leading exclamation mark) can't be used with the redirect and rewrite action.
+.TP
+.B Method [!]<request method> <action>
+.br
+Perform an action when the request method equals <request method>, where <action> can be one of the following:
+.br
+Call, DenyAccess, Exit, Goto, Return, Skip or Use
+.br
+Example: Method POST Return
+.TP
+.B RequestURI exists|isfile|isdir|notfound <action>
+Perform an action based on the presence of the requested file, where <action> can be one of the following:
+.br
+Call, Return, Exit or Skip.
+.br
+Example: RequestURI isfile Return
+.TP
+.B ToolkitId = <toolkit_id>
+The toolkit ID can be used to bind toolkit rules to a virtual host. See also UseToolkit.
+.br
+Example: ToolkitId = my_toolkit
+.TP
+.B TotalConnections <value> <action>
+Perform an action if the total amount of connections is equal to or higher than <value>, where <action> can be one of the following:
+.br
+Call, Goto, OmitRequestLog, Redirect or Skip
+.br
+Example: TotalConnections 1000 Call CheckUserAgent
+.TP
+.B UseTLS <action>
+.br
+Perform an action when the client is connection via a TLS secured connection, where <action> can be one of the following:
+.br
+Call, Exit, Goto, Return or Skip.
+
+.TP
+An exclamation mark in front of a pattern (negative pattern matching) makes Hiawatha perform the action when the pattern does not match. The <action> statements mentioned above are described here:
+.TP
+.B Ban <seconds>
+.br
+Ban the client for <seconds> seconds.
+.TP
+.B Call <toolkit_id>
+.br
+Execute toolkit record <toolkit_id> and continue in the current record afterwards.
+.TP
+.B DenyAccess
+.br
+Deny access to the requested file (results in a 403 error) and terminate toolkit processing.
+.TP
+.B Exit
+.br
+Terminate toolkit processing.
+.TP
+.B Goto <toolkit_id>
+.br
+Execute <toolkit_id> and terminate the current URL rewriting process.
+.TP
+.B OmitRequestLog
+.br
+Don't log the current request in the file specified by AccessLogfile.
+.TP
+.B Redirect [301..308] <url>
+.br
+Redirect the browser to the specified URL and terminate toolkit processing. The default status code is 301.
+.TP
+.B Return
+.br
+Return from the current UrlToolkit record.
+.TP
+.B Rewrite <replacement> [<max_loop>] [Continue|Return]
+.br
+Rewrite the current URL using <replacement>. Examples:
+.br
+"Match ^/pics/(.*) Rewrite /images/$1" will change "/pics/logo.gif" into "/images/logo.gif".
+.br
+"Match a Rewrite b 3" will change "/aaaaa.html" into "/bbbaa.html". Default value of <max_loop> is 1, maximum is 20.
+.br
+Rewrite will terminate toolkit processing, unless Continue or Return has been given.
+.TP
+.B Skip <number>
+.br
+Skip the next following <number> lines (ToolkitId excluded).
+.TP
+.B Use <url>
+.br
+Replace the current URL with <url> and terminate toolkit processing.
+.TP
+.B UseFastCGI <fcgi_id>
+.br
+Use FastCGI server with id <fcgi_id> and terminate toolkit processing.
+
+.TP
+The original URL is stored in the environment variable REQUEST_URI. Before using URL toolkit rules, use the tool 'wigwam' to verify the result of your rules (see wigwam(1) for more information).
+
+.TP
+.B Example:
+VirtualHost {
+.br
+	...
+.br
+	UseToolkit = clean_url
+.br
+}
+.br
+
+UrlToolkit {
+.br
+	ToolkitId = clean_url
+.br
+	Match ^/(css|images|js)(/|$) Return
+.br
+	RequestURI exists Return
+.br
+	Match ^/.*\\?(.*) Rewrite /index.php?$1
+.br
+	Match ^/.* Rewrite /index.php
+.br
+}
+
+.\" ==========[ XSLT ]=========================================================
+.SH XSLT
+If a XML file is requested, Hiawatha can do a XSL transformation when a XSLT sheet is present. For the requested XML file (<name>.xml), '<name>.xslt', 'index.xslt' in the current directory or 'index.xslt' in the WebsiteRoot needs to be present. Otherwise, the XML file itself will be uploaded. The environment variables which are available during CGI execution are available as XSLT parameters. URL variables start with 'GET_', POST variables start with 'POST_' and cookies start with 'COOKIE_'.
+
+.\" ==========[ CGI cache ]====================================================
+.SH CGI OUTPUT CACHE
+Hiawatha can cache the output of CGI applications. When and for how long is determined by the application itself. It can use the following CGI headers to control the caching of its output. This feature requires that Hiawatha was not compiled with -DENABLE_CACHE=off.
+.TP
+.B X-Hiawatha-Cache: <seconds>
+.br
+The output can be cached for <seconds> seconds. The minimum value is 2, the maximum value is 3600 (one hour).
+.br
+Example: X-Hiawatha-Cache: 600
+.TP
+.B X-Hiawatha-Cache-Remove: <url>
+.br
+The output of <url> should be removed from the cache. Use this when you update a cached page in your CMS. Use 'all' as the URL to clear the cache for the current website.
+.br
+Example: X-Hiawatha-Cache-Remove: /about
+
+.\" ===========================================================================
+.SH USER SETTINGS PER DIRECTORY
+A user can override the settings listed below for a certain directory. This can be done by placing one or more of those settings in a .hiawatha file in that directory. Hiawatha will not look for a .hiawatha file in the root directory of the disk.
+.PP
+.B AccessList
+,
+.br
+.B AlterGroup
+,
+.br
+.B AlterList
+,
+.br
+.B AlterMode
+,
+.br
+.B ErrorHandler
+,
+.br
+.B LoginMessage
+,
+.br
+.B PasswordFile
+,
+.br
+.B RequiredGroup
+,
+.br
+.B ShowIndex
+,
+.br
+.B StartFile
+and
+.br
+.B UseToolkit
+(only valid in the root directory of a website)
+
+.SH MIMETYPES
+Specify the mimetypes of files in /etc/hiawatha/mimetypes.conf.
+.TP
+.B <mimetype> <extension> [<extension> ...]
+Example: image/jpeg jpg jpeg jpe
+
+.SH SIGNALS
+.TP
+.B TERM
+Shutdown the webserver.
+.TP
+.B HUP
+Close all open logfiles.
+.TP
+.B USR1
+Unban all IP addresses.
+.TP
+.B USR2
+Clear the internal cache (requires that Hiawatha was not compiled with -DENABLE_CACHE=off).
+
+.SH FILES
+.B /usr/sbin/hiawatha
+.br
+.B /etc/hiawatha/hiawatha.conf
+.br
+.B /etc/hiawatha/mime.types
+.br
+.B /etc/hiawatha/cgi-wrapper.conf
+
+
+.SH SEE ALSO
+cgi-wrapper(1), ssi-cgi(1), wigwam(1)
+
+
+.SH AUTHOR
+Hugo Leisink <hugo@hiawatha-webserver.org> - \fIhttp://www.hiawatha-webserver.org/\fP

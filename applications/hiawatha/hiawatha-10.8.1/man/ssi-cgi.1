@@ -1,0 +1,102 @@
+.\" Hiawatha manualpage
+.\"
+.TH SSI-CGI 1
+
+.SH NAME
+ssi-cgi - Server Side Includes parser as a CGI program
+
+
+.SH SYNOPSIS
+.B ssi-cgi
+.br
+-h: show help and exit.
+.br
+-v: show version and compile information and exit.
+
+
+.SH DESCRIPTION
+SSI parser which works like a CGI application.
+
+
+.SH SSI COMMANDS
+SSI commands have the following format: <!--#command parameter="value"-->. This chapter shows all the available SSI commands and their parameters in ssi-cgi.
+.TP
+.B config
+Use the config command to control the output.
+.br
+
+Parameters:
+.br
+.B errmsg:
+Set the message ssi-cgi must print in case of an error.
+.br
+
+Example: <!--#config errmsg="SSI error"-->
+.TP
+.B echo
+Print the value of a variable.
+.br
+
+Parameters:
+.br
+.B var:
+Print the value of an environment variable.
+.br
+
+Example: <!--#echo var="DOCUMENT_ROOT"-->
+.TP
+.B exec
+Execute a program and include its output at the position of the exec command.
+.br
+
+Parameters:
+.br
+.B cgi:
+Execute a CGI program relative to the website root.
+.br
+.B cmd:
+Execute any command as a parameter of /bin/sh.
+.br
+
+Example: <!--#exec cmd="ls -Flsh"-->
+.TP
+.B fsize
+Print the size of a file.
+.br
+
+Parameters:
+.br
+.B file:
+The file of which the size should be printed.
+.br
+
+Example: <!--#fsize file="info.txt"-->
+.TP
+.B include
+Include another file at the position of the include command.
+.br
+
+Parameters:
+.br
+.B file:
+Include another file relative to the current file.
+.br
+.B virtual:
+Include another file relative to the website root.
+.br
+
+Example: <!--#include file="information.txt"-->
+.TP
+.B printenv
+Print all environment variables.
+.br
+
+Example: <!--#printenv-->
+
+
+.SH SEE ALSO
+SSI-CGI is part of the Hiawatha webserver. See hiawatha(1) for more information about Hiawatha.
+
+
+.SH AUTHOR
+Hugo Leisink <hugo@hiawatha-webserver.org> - \fIhttp://www.hiawatha-webserver.org/\fP

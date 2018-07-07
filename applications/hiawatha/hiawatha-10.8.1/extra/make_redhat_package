@@ -1,0 +1,65 @@
+#!/bin/sh
+
+if [ ! -f /etc/redhat-release ]; then
+	echo "Red Hat (clone) required."
+	exit
+fi
+
+# Check for CMake
+#
+cmake --version 2> /dev/null
+if [ $? != 0 ]; then
+	echo "CMake is not installed but required for building Hiawatha."
+	exit
+fi
+
+# Checking for packages required for building a Red Hat package
+#
+echo "-- Checking for required packages"
+packages="make gcc glibc-devel rpm-build libxml2-devel libxslt-devel"
+missing=""
+for package in ${packages}; do
+	installed=`yum list installed | grep "^${package}\." | wc -l`
+	if [ "$installed" = "0" ]; then
+		missing="${missing} ${package}"
+	fi
+done
+if [ "${missing}" != "" ]; then
+	echo "The following packages are missing:${missing}"
+	exit
+fi
+
+# Get software version
+#
+cd `dirname $0`/..
+if [ -d build_redhat_package ]; then
+	rm -rf build_redhat_package
+fi
+mkdir build_redhat_package
+cd build_redhat_package
+cmake ..
+version=`grep VERSION config.h | cut -f2 -d'"'`
+cd ..
+
+# Prepare package building
+#
+rm -f ~/rpmbuild/SOURCES/hiawatha-${version}.tar.gz
+cd ..
+if [ ! -d "hiawatha-${version}" ]; then
+	echo -e "\n!! Invalid source directory name. Should be named 'hiawatha-${version}'."
+	exit
+fi
+mkdir -p ${HOME}/rpmbuild/SOURCES
+tar -czf ${HOME}/rpmbuild/SOURCES/hiawatha-${version}.tar.gz hiawatha-${version}
+cd hiawatha-${version}
+sed "s/VERSION/${version}/" extra/redhat/hiawatha.spec > build_redhat_package/hiawatha.spec
+cp extra/redhat/*.patch ${HOME}/rpmbuild/SOURCES
+
+# Make Red Hat package
+#
+rpmbuild -bb build_redhat_package/hiawatha.spec
+
+# Done
+#
+rm -rf build_redhat_package
+echo -e "\n-- Package located at ~/rpmbuild/RPMS/"

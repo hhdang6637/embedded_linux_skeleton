@@ -1,0 +1,111 @@
+#!/bin/sh
+
+default_dir="C:\\\\Program Files\\\\Hiawatha"
+
+if [ `uname -o` != "Cygwin" ]; then
+	echo "Cygwin required."
+	exit
+fi
+
+# Check for CMake
+#
+cmake --version 2> /dev/null
+if [ $? != 0 ]; then
+	echo "CMake is not installed but required for building Hiawatha."
+	exit
+fi
+
+# Checking for tools required for building a Windows package
+#
+echo "-- Checking for required tools"
+tools="cmake:/usr/bin/cmake make:/usr/bin/make gcc-g++:/usr/bin/gcc libcrypt-devel:/usr/include/crypt.h man-db:/usr/bin/man ghostscript:/usr/bin/ps2pdf dos2unix:/usr/bin/unix2dos zip:/usr/bin/zip cygrunsrv:/usr/bin/cygrunsrv"
+missing=""
+for tool in ${tools}; do
+	package=`echo ${tool} | cut -f1 -d:`
+	file=`echo ${tool} | cut -f2 -d:`
+	if [ ! -f ${file} ]; then
+		missing="${missing} ${package}"
+	fi
+done
+if [ "${missing}" != "" ]; then
+	echo "The following tools are missing:${missing}"
+	exit
+fi
+
+# Setup build directory
+#
+cd `dirname $0`/..
+if [ -d build_windows_package ]; then
+	rm -rf build_windows_package
+fi
+mkdir build_windows_package
+cd build_windows_package
+
+# Compile Hiawatha
+#
+default_dir_cyg=`cygpath -p "${default_dir}"`
+cmake .. -DCMAKE_INSTALL_SBINDIR="${default_dir_cyg}/program" \
+         -DCONFIG_DIR="${default_dir_cyg}/config" \
+         -DLOG_DIR="${default_dir_cyg}/logfiles" \
+         -DPID_DIR="${default_dir_cyg}/work" \
+         -DWORK_DIR="${default_dir_cyg}/work" \
+         -DWEBROOT_DIR="${default_dir}/default_site"
+make
+
+# Make Windows package
+#
+echo "-- Building package"
+
+mkdir -p root/Hiawatha
+mkdir root/Hiawatha/config
+mkdir root/Hiawatha/default_site
+mkdir root/Hiawatha/documentation
+mkdir root/Hiawatha/logfiles
+mkdir root/Hiawatha/program
+mkdir root/Hiawatha/work
+
+cp hiawatha.exe root/Hiawatha/program
+cp ssi-cgi.exe root/Hiawatha/program
+cp wigwam.exe root/Hiawatha/program
+cp mbedtls/library/cygmbed*.dll root/Hiawatha/program
+strip root/Hiawatha/program/*.exe
+
+files="cygcrypt-0.dll cyggcc_s-1.dll cyggcc_s-seh-1.dll cygrunsrv.exe cygiconv-2.dll cygwin1.dll cygxml2-2.dll cygxslt-1.dll cygz.dll cyglzma-5.dll"
+for file in ${files}; do
+	if [ -f /bin/${file} ]; then
+		cp /bin/${file} root/Hiawatha/program
+	fi
+done
+
+cp ../config/index.xslt root/Hiawatha/config
+cp ../config/error.xslt root/Hiawatha/config
+cp ../config/mimetype.conf root/Hiawatha/config
+cp ../extra/windows/*.bat root/Hiawatha
+cp ../extra/windows/hiawatha.conf root/Hiawatha/config
+cp ../extra/windows/Installation.txt root
+cp ../extra/index.html root/Hiawatha/default_site
+cp ../ChangeLog root/ChangeLog.txt
+unix2dos root/ChangeLog.txt
+cp ../LICENSE root/License.txt
+unix2dos root/License.txt
+
+touch root/Hiawatha/logfiles/access.log
+touch root/Hiawatha/logfiles/error.log
+touch root/Hiawatha/logfiles/exploit.log
+touch root/Hiawatha/logfiles/system.log
+
+man -P cat -t man/hiawatha.1 | ps2pdf - > root/Hiawatha/documentation/hiawatha.pdf
+man -P cat -t ../man/ssi-cgi.1 | ps2pdf - > root/Hiawatha/documentation/ssi-cgi.pdf
+man -P cat -t ../man/wigwam.1 | ps2pdf - > root/Hiawatha/documentation/wigwam.pdf
+
+version=`grep VERSION config.h | cut -f2 -d'"'`
+cd root
+zip -r ../../"Hiawatha v${version}.zip" .
+cd ..
+
+# Done
+#
+cd ..
+if [ "$1" != "-b" ]; then
+	rm -rf build_windows_package
+fi

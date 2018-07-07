@@ -1,0 +1,31 @@
+.\" Newroot manualpage
+.\"
+.TH NEWROOT 1
+
+
+.SH NAME
+newroot - copy binaries and their libraries to a new directory
+
+
+.SH SYNOPSIS
+.B newroot
+<executable>
+
+
+.SH DESCRIPTION
+This script can be used to copy executables to a chroot directory.
+Go to a chroot directory and run this script from there. It needs
+a full path to an exectable as a parameter.
+
+
+.SH EXAMPLE
+Use 'newroot /bin/bash' to copy Bash and the libraries that
+Bash needs, including their paths, to the current directory.
+
+
+.SH SEE ALSO
+NewRoot is part of the Hiawatha webserver. See hiawatha(1) for more information about Hiawatha.
+
+
+.SH AUTHOR
+Hugo Leisink <hugo@hiawatha-webserver.org> - \fIhttp://www.hiawatha-webserver.org/\fP

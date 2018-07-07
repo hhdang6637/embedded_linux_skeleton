@@ -1,0 +1,4 @@
+For information about how to configure and use the Hiawatha webserver, type 'man hiawatha' in a Terminal window or visit https://www.hiawatha-webserver.org/
+
+Thanks for using my software. Hope you enjoy it!
+- Hugo Leisink

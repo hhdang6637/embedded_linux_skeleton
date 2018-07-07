@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<error>
+	<code>404</code>
+	<message>Not Found</message>
+	<hostname>www.example.com</hostname>
+	<request_method>GET</request_method>
+	<request_uri>/file.txt</request_uri>
+	<software>Hiawatha</software>
+</error>
