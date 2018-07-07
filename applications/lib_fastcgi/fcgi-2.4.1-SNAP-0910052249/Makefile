@@ -1,13 +1,12 @@
+FCGI_FLAGS := --host=arm --prefix=$(ROOTFS_DIR)/usr/local/lib
+
 export CFLAGS =-Wall
 
-$(BIN):
+all:
 	@rm -rf build
 	@mkdir build
-	@cd build && ../configure --host=arm && make ARCH=arm
-
-install:
-
-all: $(BIN)
+	@cd build && ../configure $(FCGI_FLAGS)
+	@cd build && make && make install
 
 clean:
 	@rm -rf build
