@@ -55,7 +55,7 @@ compile_linux_kernel: $(BIN_BUILD_DIR)
 	@$(MAKE) -j3 -C linux-4.14.22 O=$(LINUX_BUILD_DIR) > $(BUILD_DIR)/linux_kernel.log 2>&1
 	@$(MAKE) -j3 -C linux-4.14.22 O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install >> $(BUILD_DIR)/linux_kernel.log 2>&1
 	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/zImage                      $(BIN_BUILD_DIR)
-	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/dts/bcm2835-rpi-b-plus.dtb  $(BIN_BUILD_DIR)
+	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/dts/*.dtb  $(BIN_BUILD_DIR)
 	@echo "**********done**********"
 
 clean_linux_kernel:
