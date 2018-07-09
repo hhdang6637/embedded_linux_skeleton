@@ -7,7 +7,7 @@
     images {
         kernel@0 {
             description = "Linux Kernel";
-            data = /incbin/("../build/bin/zImage");
+            data = /incbin/("./zImage");
             type = "kernel";
             arch = "arm";
             os = "linux";
@@ -20,7 +20,7 @@
         };
         fdt@0 {
             description = "Flattened Device Tree blob - bcm2835";
-            data = /incbin/("../build/bin/bcm2835-rpi-b-plus.dtb");
+            data = /incbin/("./bcm2835-rpi-b-plus.dtb");
             type = "flat_dt";
             arch = "arm";
             compression = "none";
@@ -30,7 +30,7 @@
         };
         ramdisk@0 {
             description = "ramdisk";
-            data = /incbin/("../build/sdcard_boot/rootfs.cpio");
+            data = /incbin/("./rootfs.cpio");
             type = "ramdisk";
             arch = "arm";
             os = "linux";
