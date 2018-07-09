@@ -1,11 +1,12 @@
 #!/bin/sh
 
-sudo qemu-system-i386 \
+qemu-system-arm \
 -nographic \
--kernel \
-./build/bin/bzImage \
--initrd \
-./build/bin/rootfs.cpio \
--append console=ttyS0 \
--serial telnet:127.0.0.1:4444,server \
--netdev tap,id=t0,ifname=vnet0,script=qemu_scripts/qemu-ifup.sh,downscript=no -device e1000,netdev=t0
+-kernel kernel-qemu-4.4.34-jessie \
+-cpu arm1176 \
+-m 256 \
+-M versatilepb \
+-append "console=ttyAMA0,115200  root=/dev/root ro loglevel=8" \
+-initrd ../build/sdcard_boot/rootfs.cpio \
+-net nic \
+-net user,hostfwd=tcp::2022-:22,hostfwd=tcp::2080-:80
