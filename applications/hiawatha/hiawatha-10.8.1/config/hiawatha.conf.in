@@ -26,7 +26,7 @@ ErrorLogfile = LOG_DIR/error.log
 # A binding is where a client can connect to.
 #
 Binding {
-	Port = 80
+    Port = 80
 }
 
 
@@ -41,4 +41,10 @@ StartFile = index.html
 PIDfile = WOKRING_DIR/hiawatha.pid
 WorkDirectory = WOKRING_DIR
 ShowIndex = WEBROOT_DIR/index.html
-UseXSLT = yes
+UseFastCGI = QFastCGI
+
+FastCGIserver {
+        FastCGIid = QFastCGI
+        ConnectTo = 127.0.0.1:2005
+        SessionTimeout = 30
+}

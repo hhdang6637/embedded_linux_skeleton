@@ -6,6 +6,9 @@ CONFIG_FILE   := config/hiawatha.conf.in
 MIMETYPE_FILE := config/mimetype.conf
 INDEX_FILE    := config/index.xslt
 
+export CFLAGS = -Wall
+
+
 $(BIN):
 	@rm -rf build
 	@mkdir build

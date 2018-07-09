@@ -1,16 +1,18 @@
-# CC       = gcc
-CFLAGS += -Wall -g
+INCLUDE = $(ROOTFS_DIR)/usr/local/include/
+LIB     = $(ROOTFS_DIR)/usr/local/lib
+
+CFLAGS += -Wall -g -I$(INCLUDE) -L$(LIB) -lfcgi
 
 BIN=hello_world
 SRCS=main.o
 
 %.o : %.c
-	$(CC) $(CFLAGS) $< -c -o $@
+	$(CC) $< $(CFLAGS) -c -o $@
 
 OBJS   = $(patsubst %.c,%.o,$(SRCS))
 
 $(BIN): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(BIN)
+	$(CC) $(OBJS) $(CFLAGS) -o $(BIN)
 
 clean:
 	rm -f $(OBJS) $(BIN)
