@@ -11,6 +11,8 @@ export SCRIPT_BUILD_DIR     := $(CONFIGS_DIR)/scripts
 export SKELETON_ROOTFS_DIR  := $(CONFIGS_DIR)/skeleton_rootfs
 export ROOTFS_DIR           := $(BUILD_DIR)/rootfs
 
+include $(CONFIGS_DIR)/Makefile.variable
+
 # follow https://elinux.org/RPi_U-Boot
 # sudo apt-get install binutils-arm-linux-gnueabi gcc-arm-linux-gnueabi
 export PATH := $(BUILDROOT_BUILD_DIR)/host/usr/bin:$(PATH)
@@ -84,7 +86,7 @@ make_disk: compile_apps
 	@rm -rf $(BUILD_DIR)/sdcard_boot
 	@mkdir $(BUILD_DIR)/sdcard_boot
 
-	@cp $(BIN_BUILD_DIR)/bcm2835-rpi-b-plus.dtb   $(BUILD_DIR)/sdcard_boot
+	@cp $(BIN_BUILD_DIR)/$(DTB_FILE)              $(BUILD_DIR)/sdcard_boot
 	@cp pi-boot/start.elf                         $(BUILD_DIR)/sdcard_boot
 	@cp pi-boot/fixup.dat                         $(BUILD_DIR)/sdcard_boot
 	@cp pi-boot/bootcode.bin                      $(BUILD_DIR)/sdcard_boot
@@ -96,6 +98,7 @@ make_disk: compile_apps
 
 	@fakeroot $(SCRIPT_BUILD_DIR)/fakeroot.sh
 
-	cd $(BIN_BUILD_DIR); mkimage -f $(SCRIPT_BUILD_DIR)/image.its $(BUILD_DIR)/sdcard_boot/firmware
+	@cp $(SCRIPT_BUILD_DIR)/image.its $(BUILD_DIR)/sdcard_boot/
+	mkimage -f $(BUILD_DIR)/sdcard_boot/image.its $(BUILD_DIR)/sdcard_boot/firmware
 
 	@echo "**********done**********"
