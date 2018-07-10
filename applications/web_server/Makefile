@@ -2,7 +2,7 @@
 # CFLAGS += -Wall -g
 BOOTSTRAP_CSS := bootstrap-4.0.0-dist/css
 BOOTSTRAP_JS  := bootstrap-4.0.0-dist/js
-HTML          := htmls
+HTML          := html
 JS            := js
 
 $(BIN):
