@@ -4,8 +4,6 @@
 export CC      = $(CROSS_COMPILE)gcc
 export CXX     = $(CROSS_COMPILE)g++
 export CFLAGS  = -Wall -Werror
-export INCLUDE = $(BUILD_DIR)/buildroot/host/usr/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/include
-export LIB     = $(BUILD_DIR)/buildroot/host/usr/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/lib
 
 $(ROOTFS_DIR):
 	# remove app dir before we build it

@@ -1,13 +1,12 @@
-# CC       = gcc
-# CFLAGS += -Wall -g
 BIN           := build/hiawatha
 MBEDTLS_LIB   := build/mbedtls/library
 CONFIG_FILE   := config/hiawatha.conf.in
 MIMETYPE_FILE := config/mimetype.conf
 INDEX_FILE    := config/index.xslt
 
-export CFLAGS = -Wall
-
+export CFLAGS  = -Wall
+export INCLUDE = $(BUILD_DIR)/buildroot/host/usr/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/include
+export LIB     = $(BUILD_DIR)/buildroot/host/usr/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/lib
 
 $(BIN):
 	@rm -rf build
