@@ -1,5 +1,5 @@
 export MODEL ?= pi_b_plus
-export TFTP_DIR             := tftp_boot
+export PI_BOOT_DIR          := $(PWD)/pi-boot
 export BUILD_DIR            := $(PWD)/build/$(MODEL)
 export CONFIGS_DIR          := $(PWD)/configs/$(MODEL)
 export BUILDROOT_BUILD_DIR  := $(BUILD_DIR)/buildroot
@@ -34,12 +34,6 @@ $(BIN_BUILD_DIR):
 	@mkdir -p $(LINUX_BUILD_DIR)
 	@mkdir -p $(UBOOT_BUILD_DIR)
 	@mkdir -p $(BIN_BUILD_DIR)
-
-tftp_boot: compile_buildroot compile_linux_kernel compile_uboot
-	@rm -rf $(TFTP_DIR)
-	@mkdir $(TFTP_DIR)
-	@cp $(LINUX_BUILD_DIR)/arch/x86/boot/bzImage $(TFTP_DIR)
-	@cp $(BUILDROOT_BUILD_DIR)/images/rootfs.cpio $(TFTP_DIR)
 
 compile_buildroot: $(BIN_BUILD_DIR)
 	@echo "**********compile_buildroot**********"
@@ -81,15 +75,12 @@ clean_apps:
 clean_uboot:
 	@rm -rf $(UBOOT_BUILD_DIR)
 
-make_disk: compile_apps
+make_disk:
 	@echo "**********make_disk**********"
 	@rm -rf $(BUILD_DIR)/sdcard_boot
 	@mkdir $(BUILD_DIR)/sdcard_boot
 
 	@cp $(BIN_BUILD_DIR)/$(DTB_FILE)              $(BUILD_DIR)/sdcard_boot
-	@cp pi-boot/start.elf                         $(BUILD_DIR)/sdcard_boot
-	@cp pi-boot/fixup.dat                         $(BUILD_DIR)/sdcard_boot
-	@cp pi-boot/bootcode.bin                      $(BUILD_DIR)/sdcard_boot
 
 	@mkimage -C none -A arm -T script -d $(SCRIPT_BUILD_DIR)/boot.cmd  $(BUILD_DIR)/sdcard_boot/boot.scr
 	@cp $(UBOOT_BUILD_DIR)/u-boot.bin    $(BUILD_DIR)/sdcard_boot/kernel.img
@@ -99,6 +90,9 @@ make_disk: compile_apps
 	@fakeroot $(SCRIPT_BUILD_DIR)/fakeroot.sh
 
 	@cp $(SCRIPT_BUILD_DIR)/image.its $(BUILD_DIR)/sdcard_boot/
-	mkimage -f $(BUILD_DIR)/sdcard_boot/image.its $(BUILD_DIR)/sdcard_boot/firmware
+	@mkimage -f $(BUILD_DIR)/sdcard_boot/image.its $(BUILD_DIR)/sdcard_boot/firmware
+	@cp $(BUILD_DIR)/sdcard_boot/firmware $(BUILD_DIR)/sdcard_boot/fw_0
 
+	@echo "prepare SD card"
+	@cd $(BUILD_DIR)/sdcard_boot && $(SCRIPT_BUILD_DIR)/sd_card_setup.sh
 	@echo "**********done**********"
