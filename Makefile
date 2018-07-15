@@ -66,7 +66,8 @@ compile_uboot: $(BIN_BUILD_DIR)
 
 compile_apps: $(BIN_BUILD_DIR)
 	@echo "**********compile_apps**********"
-	@$(MAKE) -C applications all > $(BUILD_DIR)/apps.log 2>&1
+	@cp -as $(PWD)/applications $(BUILD_DIR)
+	@$(MAKE) -C $(BUILD_DIR)/applications all > $(BUILD_DIR)/apps.log 2>&1
 	@echo "**********done**********"
 
 clean_apps:
