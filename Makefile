@@ -66,7 +66,7 @@ compile_uboot: $(BIN_BUILD_DIR)
 
 compile_apps: $(BIN_BUILD_DIR)
 	@echo "**********compile_apps**********"
-	@cp -as $(PWD)/applications $(BUILD_DIR)
+	@cp -asf $(PWD)/applications $(BUILD_DIR)
 	@$(MAKE) -C $(BUILD_DIR)/applications all > $(BUILD_DIR)/apps.log 2>&1
 	@echo "**********done**********"
 
@@ -76,7 +76,7 @@ clean_apps:
 clean_uboot:
 	@rm -rf $(UBOOT_BUILD_DIR)
 
-make_disk:
+make_disk: compile_apps
 	@echo "**********make_disk**********"
 	@rm -rf $(BUILD_DIR)/sdcard_boot
 	@mkdir $(BUILD_DIR)/sdcard_boot
