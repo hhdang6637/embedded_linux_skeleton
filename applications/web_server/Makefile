@@ -15,9 +15,10 @@ install:
 	@cp  $(BOOTSTRAP_CSS)/*   $(ROOTFS_DIR)/var/www/hiawatha/css
 	@cp  $(BOOTSTRAP_JS)/*    $(ROOTFS_DIR)/var/www/hiawatha/js
 	@cp  $(JS)/*              $(ROOTFS_DIR)/var/www/hiawatha/js
-	@cp  $(HTML)/*          $(ROOTFS_DIR)/var/www/hiawatha
+	@cp  $(HTML)/*            $(ROOTFS_DIR)/var/www/hiawatha
 
 all: $(BIN) install
+	@$(MAKE) -C src clean all
 
 clean:
-	@echo "nothing to clean"
+	@$(MAKE) -C src clean
