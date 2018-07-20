@@ -41,10 +41,18 @@ StartFile = index.html
 PIDfile = WOKRING_DIR/hiawatha.pid
 WorkDirectory = WOKRING_DIR
 ShowIndex = WEBROOT_DIR/index.html
-UseFastCGI = QFastCGI
+#UseFastCGI = WebHandlerFCGI
+UseToolkit = WebHandlerToolkit
 
 FastCGIserver {
-        FastCGIid = QFastCGI
-        ConnectTo = 127.0.0.1:2005
+        FastCGIid = WebHandlerFCGI
+        ConnectTo = /tmp/web_handler.socket
         SessionTimeout = 30
+}
+
+UrlToolkit {
+    ToolkitID = WebHandlerToolkit
+    RequestURI isfile Return
+    Match ^/(.*) Rewrite / Continue
+    Match / UseFastCGI WebHandlerFCGI
 }

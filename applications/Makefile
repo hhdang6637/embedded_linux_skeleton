@@ -3,7 +3,9 @@
 
 export CC      = $(CROSS_COMPILE)gcc
 export CXX     = $(CROSS_COMPILE)g++
+export LD      = $(CROSS_COMPILE)ld
 export CFLAGS  = -Wall -Werror
+export CXXFLAGS= -Wall -Werror
 
 $(ROOTFS_DIR):
 	# remove app dir before we build it
@@ -20,10 +22,10 @@ $(ROOTFS_DIR):
 
 all: $(ROOTFS_DIR)
 	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean all
+	@$(MAKE) -C lib_fastcgi/fcgi-2.4.0 clean all
 	@$(MAKE) -C web_server all
 	@$(MAKE) -C network_manager clean all
 	@$(MAKE) -C system_manager clean all
-	@$(MAKE) -C lib_fastcgi/fcgi-2.4.0 clean all
 	@$(MAKE) -C hello_world_app clean all
 
 clean:
