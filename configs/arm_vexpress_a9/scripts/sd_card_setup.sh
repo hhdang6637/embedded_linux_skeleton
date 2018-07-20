@@ -2,7 +2,7 @@
 
 SD_P1="sd_p1.img"
 
-dd if=/dev/zero of=$SD_P1 bs=1M count=30
+dd if=/dev/zero of=$SD_P1 bs=1M count=128
 
 mkfs.vfat $SD_P1
 
