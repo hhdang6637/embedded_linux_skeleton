@@ -4,7 +4,7 @@ LIB     = $(ROOTFS_DIR)/usr/local/lib
 CFLAGS += -Wall -g -I$(INCLUDE) -L$(LIB) -lfcgi
 
 BIN=web_handler
-SRCS=main.o simplewebfactory.o
+SRCS=main.o simplewebfactory.o fcgi.cpp
 SRCS_HTML=footer.ohtml header.ohtml navbar.ohtml dashboard.ohtml
 
 %.o : %.cpp
@@ -23,6 +23,6 @@ clean:
 	rm -f $(OBJS) $(BIN)
 
 install:
-	cp $(BIN) $(ROOTFS_DIR)/usr/bin
+	cp $(BIN) $(ROOTFS_DIR)/usr/sbin
 
 all: $(BIN) install

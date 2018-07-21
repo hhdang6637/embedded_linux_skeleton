@@ -135,6 +135,7 @@ const char* simpleWebFactory::get_html_str(const char * url)
     html_str += "</div";
 
     html_str += this->get_html_footer_str();
+
     html_str += "</body>";
     html_str += "</html>";
 

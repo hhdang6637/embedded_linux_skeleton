@@ -7,6 +7,7 @@ void system_manager_init() {
     // start web server
     system("mkdir /tmp/hiawatha");
     system("hiawatha -c /etc/hiawatha");
+    system("web_handler");
 
     if ((access("/dev/mmcblk0p2", F_OK)) != -1 && (access("/mnt", F_OK) != -1)) {
         system("mount -t vfat /dev/mmcblk0p2 /mnt");
