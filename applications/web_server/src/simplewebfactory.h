@@ -18,14 +18,15 @@ private:
     simpleWebFactory();
 
     static simpleWebFactory* s_instance;
+    static char* binary_html_to_chars(unsigned char start[], unsigned char end[]);
 
     std::string html_header_str;
     std::string html_footer_str;
     std::string html_navbar_str;
 
-    std::map<std::string,std::string> url_map;
+    std::map<std::string,std::string> url_html_map;
 
-    void init_url_map();
+    void init_url_html_map();
 
 public:
     virtual ~simpleWebFactory();

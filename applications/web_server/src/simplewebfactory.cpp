@@ -13,7 +13,7 @@
 
 #include "simplewebfactory.h"
 
-static char* binary_html_to_chars(unsigned char start[], unsigned char end[]) {
+char* simpleWebFactory::binary_html_to_chars(unsigned char start[], unsigned char end[]) {
 
     char * str = new char [(end - start) + 1];
     memcpy(str, start, (end - start));
@@ -27,35 +27,25 @@ simpleWebFactory::simpleWebFactory()
     extern unsigned char _binary_header_html_start[];
     extern unsigned char _binary_header_html_end[];
 
-    char * header_buffer = binary_html_to_chars(_binary_header_html_start, _binary_header_html_end);
+    char * header_buffer = simpleWebFactory::binary_html_to_chars(_binary_header_html_start, _binary_header_html_end);
     this->html_header_str = header_buffer;
     delete []header_buffer;
 
     extern unsigned char _binary_footer_html_start[];
     extern unsigned char _binary_footer_html_end[];
 
-    char * footer_buffer = binary_html_to_chars(_binary_footer_html_start, _binary_footer_html_end);
+    char * footer_buffer = simpleWebFactory::binary_html_to_chars(_binary_footer_html_start, _binary_footer_html_end);
     this->html_footer_str = footer_buffer;
     delete []footer_buffer;
 
     extern unsigned char _binary_navbar_html_start[];
     extern unsigned char _binary_navbar_html_end[];
 
-    char * navbar_buffer = binary_html_to_chars(_binary_navbar_html_start, _binary_navbar_html_end);
+    char * navbar_buffer = simpleWebFactory::binary_html_to_chars(_binary_navbar_html_start, _binary_navbar_html_end);
     this->html_navbar_str = navbar_buffer;
     delete []navbar_buffer;
 
-    this->init_url_map();
-}
-
-void simpleWebFactory::init_url_map()
-{
-    extern unsigned char _binary_dashboard_html_start[];
-    extern unsigned char _binary_dashboard_html_end[];
-
-    char * dashboard_buffer = binary_html_to_chars(_binary_dashboard_html_start, _binary_dashboard_html_end);
-    this->url_map.insert(std::pair<std::string,std::string>("/", dashboard_buffer));
-    delete []dashboard_buffer;
+    this->init_url_html_map();
 }
 
 simpleWebFactory::~simpleWebFactory()
@@ -94,8 +84,8 @@ const char* simpleWebFactory::get_html_str(const char * url)
     const char* main_content = NULL;
     std::map<std::string,std::string>::iterator it;
 
-    it = this->url_map.find(url);
-    if (it == this->url_map.end()) {
+    it = this->url_html_map.find(url);
+    if (it == this->url_html_map.end()) {
         return NULL;
     }
 

@@ -1,3 +1,88 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
-    <h1 class="h2">Hello Dashboard</h1>
+    <h1 class="h2">Dashboard</h1>
 </div>
+<h1 class="h5">CPU USAGE (%)</h1>
+<div id="real_time_chart" class="dashboard-flot-chart" style="padding: 0px;height: 275px;position: relative;"></div>
+<!-- ChartJs -->
+<script src="js/plugins/chartjs/Chart.bundle.js"></script>
+
+<!-- Flot Charts Plugin Js -->
+<script src="js/plugins/flot-charts/jquery.flot.js"></script>
+<script src="js/plugins/flot-charts/jquery.flot.resize.js"></script>
+<script src="js/plugins/flot-charts/jquery.flot.pie.js"></script>
+<script src="js/plugins/flot-charts/jquery.flot.categories.js"></script>
+<script src="js/plugins/flot-charts/jquery.flot.time.js"></script>
+
+<!-- Sparkline Chart Plugin Js -->
+<script src="js/plugins/jquery-sparkline/jquery.sparkline.js"></script>
+<script>
+$(function () {
+    initRealTimeChart();
+});
+
+var realtime = 'on';
+function initRealTimeChart() {
+    //Real time ==========================================================================================
+    var plot = $.plot('#real_time_chart', [getRandomData()], {
+        series: {
+            shadowSize: 0,
+            color: 'rgb(0, 188, 212)'
+        },
+        grid: {
+            borderColor: '#f3f3f3',
+            borderWidth: 1,
+            tickColor: '#f3f3f3'
+        },
+        lines: {
+            fill: true
+        },
+        yaxis: {
+            min: 0,
+            max: 100
+        },
+        xaxis: {
+            min: 0,
+            max: 100
+        }
+    });
+
+    function updateRealTime() {
+        plot.setData([getRandomData()]);
+        plot.draw();
+
+        var timeout;
+        if (realtime === 'on') {
+            timeout = setTimeout(updateRealTime, 1000);
+        } else {
+            clearTimeout(timeout);
+        }
+    }
+
+    updateRealTime();
+
+    $('#realtime').on('change', function () {
+        realtime = this.checked ? 'on' : 'off';
+        updateRealTime();
+    });
+    //====================================================================================================
+}
+
+var data = [], totalPoints = 110;
+function getRandomData() {
+    if (data.length > 0) data = data.slice(1);
+
+    while (data.length < totalPoints) {
+        var prev = data.length > 0 ? data[data.length - 1] : 50, y = prev + Math.random() * 10 - 5;
+        if (y < 0) { y = 0; } else if (y > 100) { y = 100; }
+
+        data.push(y);
+    }
+
+    var res = [];
+    for (var i = 0; i < data.length; ++i) {
+        res.push([i, data[i]]);
+    }
+
+    return res;
+}
+</script>

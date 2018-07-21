@@ -13,11 +13,11 @@ install:
 	@mkdir -p $(ROOTFS_DIR)/var/www/hiawatha/css
 	@mkdir -p $(ROOTFS_DIR)/var/www/hiawatha/js
 
-	@cp  $(BOOTSTRAP_CSS)/*   $(ROOTFS_DIR)/var/www/hiawatha/css
-	@cp  $(BOOTSTRAP_JS)/*    $(ROOTFS_DIR)/var/www/hiawatha/js
-	@cp  $(CSS)/*             $(ROOTFS_DIR)/var/www/hiawatha/css
-	@cp  $(JS)/*              $(ROOTFS_DIR)/var/www/hiawatha/js
-	@cp  $(HTML)/*            $(ROOTFS_DIR)/var/www/hiawatha
+	@cp -aLr $(BOOTSTRAP_CSS)/*   $(ROOTFS_DIR)/var/www/hiawatha/css
+	@cp -aLr $(BOOTSTRAP_JS)/*    $(ROOTFS_DIR)/var/www/hiawatha/js
+	@cp -aLr $(CSS)/*             $(ROOTFS_DIR)/var/www/hiawatha/css
+	@cp -aLr $(JS)/*              $(ROOTFS_DIR)/var/www/hiawatha/js
+	@cp -aLr $(HTML)/*            $(ROOTFS_DIR)/var/www/hiawatha
 
 all: $(BIN) install
 	@$(MAKE) -C src clean all

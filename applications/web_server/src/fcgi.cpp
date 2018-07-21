@@ -41,8 +41,7 @@ static void handle_request(FCGX_Request *request)
 
     const char *request_uri = FCGX_GetParam("REQUEST_URI", request->envp);
 
-    const char *html_content = simpleWebFactory::getInstance()->get_html_str(
-            request_uri);
+    const char *html_content = simpleWebFactory::getInstance()->get_html_str(request_uri);
 
     if (html_content != NULL) {
 

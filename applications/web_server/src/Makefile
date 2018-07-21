@@ -4,7 +4,7 @@ LIB     = $(ROOTFS_DIR)/usr/local/lib
 CFLAGS += -Wall -g -I$(INCLUDE) -L$(LIB) -lfcgi
 
 BIN=web_handler
-SRCS=main.o simplewebfactory.o fcgi.cpp
+SRCS=main.o simplewebfactory.o fcgi.cpp simplewebfactory_url_html_map.o
 SRCS_HTML=footer.ohtml header.ohtml navbar.ohtml dashboard.ohtml
 
 %.o : %.cpp
