@@ -4,6 +4,7 @@ BOOTSTRAP_CSS := bootstrap-4.0.0-dist/css
 BOOTSTRAP_JS  := bootstrap-4.0.0-dist/js
 HTML          := html
 JS            := js
+CSS           := css
 
 $(BIN):
 	@echo "nothing to build"
@@ -14,6 +15,7 @@ install:
 
 	@cp  $(BOOTSTRAP_CSS)/*   $(ROOTFS_DIR)/var/www/hiawatha/css
 	@cp  $(BOOTSTRAP_JS)/*    $(ROOTFS_DIR)/var/www/hiawatha/js
+	@cp  $(CSS)/*             $(ROOTFS_DIR)/var/www/hiawatha/css
 	@cp  $(JS)/*              $(ROOTFS_DIR)/var/www/hiawatha/js
 	@cp  $(HTML)/*            $(ROOTFS_DIR)/var/www/hiawatha
 
