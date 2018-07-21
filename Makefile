@@ -11,6 +11,9 @@ export SCRIPT_BUILD_DIR     := $(CONFIGS_DIR)/scripts
 export SKELETON_ROOTFS_DIR  := $(CONFIGS_DIR)/skeleton_rootfs
 export ROOTFS_DIR           := $(BUILD_DIR)/rootfs
 
+export CURRENT_LOG          := $(BUILD_DIR)/current.log
+export ALL_LOG              := $(BUILD_DIR)/all.log
+
 include $(CONFIGS_DIR)/Makefile.variable
 
 # follow https://elinux.org/RPi_U-Boot
@@ -38,7 +41,7 @@ $(BIN_BUILD_DIR):
 compile_buildroot: $(BIN_BUILD_DIR)
 	@echo "**********compile_buildroot**********"
 	@cp $(CONFIGS_DIR)/buildroot/config $(BUILDROOT_BUILD_DIR)/.config
-	@$(MAKE) -C buildroot-2017.02.10 O=$(BUILDROOT_BUILD_DIR) > $(BUILD_DIR)/buildroot.log 2>&1
+	@$(MAKE) -C buildroot-2017.02.10 O=$(BUILDROOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
 	@cp $(BUILDROOT_BUILD_DIR)/images/rootfs.cpio $(BIN_BUILD_DIR)
 	@echo "**********done**********"
 
@@ -48,7 +51,7 @@ clean_buildroot:
 compile_linux_kernel: $(BIN_BUILD_DIR)
 	@echo "**********compile_linux_kernel**********"
 	@cp $(CONFIGS_DIR)/linux/config $(LINUX_BUILD_DIR)/.config
-	@$(MAKE) -j3 -C linux-4.14.22 O=$(LINUX_BUILD_DIR) > $(BUILD_DIR)/linux_kernel.log 2>&1
+	@$(MAKE) -j3 -C linux-4.14.22 O=$(LINUX_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
 	@$(MAKE) -j3 -C linux-4.14.22 O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install >> $(BUILD_DIR)/linux_kernel.log 2>&1
 	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/zImage                      $(BIN_BUILD_DIR)
 	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/dts/*.dtb  $(BIN_BUILD_DIR)
@@ -60,14 +63,14 @@ clean_linux_kernel:
 compile_uboot: $(BIN_BUILD_DIR)
 	@echo "**********compile_uboot**********"
 	@cp $(CONFIGS_DIR)/uboot/config $(UBOOT_BUILD_DIR)/.config
-	@$(MAKE) -j$(NUM_OF_CPU) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR) > $(BUILD_DIR)/uboot.log 2>&1
+	@$(MAKE) -j$(NUM_OF_CPU) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
 	@cp $(UBOOT_BUILD_DIR)/u-boot $(UBOOT_BUILD_DIR)/u-boot.bin $(BIN_BUILD_DIR)
 	@echo "**********done**********"
 
 compile_apps: $(BIN_BUILD_DIR)
 	@echo "**********compile_apps**********"
 	@cp -asf $(PWD)/applications $(BUILD_DIR)
-	@$(MAKE) -C $(BUILD_DIR)/applications all > $(BUILD_DIR)/apps.log 2>&1
+	@$(MAKE) -C $(BUILD_DIR)/applications all > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
 	@echo "**********done**********"
 
 clean_apps:
