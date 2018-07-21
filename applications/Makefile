@@ -4,8 +4,8 @@
 export CC      = $(CROSS_COMPILE)gcc
 export CXX     = $(CROSS_COMPILE)g++
 export LD      = $(CROSS_COMPILE)ld
-export CFLAGS  = -Wall -Werror
-export CXXFLAGS= -Wall -Werror
+export CFLAGS  = -Wall -Werror -D$(MODEL)
+export CXXFLAGS= -Wall -Werror -D$(MODEL)
 
 $(ROOTFS_DIR):
 	# remove app dir before we build it
