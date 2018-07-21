@@ -5,7 +5,7 @@ CFLAGS += -Wall -g -I$(INCLUDE) -L$(LIB) -lfcgi
 
 BIN=web_handler
 SRCS=main.o simplewebfactory.o
-SRCS_HTML=footer.ohtml header.ohtml navbar.ohtml
+SRCS_HTML=footer.ohtml header.ohtml navbar.ohtml dashboard.ohtml
 
 %.o : %.cpp
 	$(CXX) $< $(CFLAGS) -c -o $@

@@ -30,32 +30,19 @@ static void fcgi_init() {
 
 static void handle_request(FCGX_Request *request) {
 
-    const char* header = simpleWebFactory::getInstance()->get_html_header_str();
-    const char* footer = simpleWebFactory::getInstance()->get_html_footer_str();
-    const char* navbar = simpleWebFactory::getInstance()->get_html_navbar_str();
+    const char *request_uri = FCGX_GetParam("REQUEST_URI", request->envp);
 
-    printfcgi("Content-Type: text/html; charset=utf-8\r\n\r\n");
-    printfcgi(""
-            "<!doctype html>"
-            "<html lang=\"en\">"
-            //head
-            "%s"
-            // body
-            "<body>"
-            // navbar
-            "%s"
-"    <main role=\"main\" class=\"container\">"
-"      <div class=\"starter-template\">"
-"        <h1>Bootstrap starter template</h1>"
-"        <p class=\"lead\">Use this document as a way to quickly start any new project.<br> All you get is this text and a mostly barebones HTML document.</p>"
-"      </div>"
-"    </main><!-- /.container -->"
-            // footer
-            "%s"
-            "</body>"
-            "</html>", header, navbar, footer
-            );
-    printfcgi("\n");
+    const char *html_content = simpleWebFactory::getInstance()->get_html_str(request_uri);
+
+    if (html_content != NULL) {
+
+        printfcgi("Content-Type: text/html; charset=utf-8\r\n\r\n");
+        printfcgi("%s", html_content);
+
+    } else {
+        printfcgi("HTTP/1.1 404 Not Found\r\n\r\n");
+    }
+
 }
 
 static void fcgi_accept_loop() {
@@ -67,14 +54,14 @@ static void fcgi_accept_loop() {
             std::cout << "\n" << *e;
             e++;
         }
-#endif
         std::cout << std::endl;
 
-//        const char *script      = FCGX_GetParam("SCRIPT_NAME", fcgi_request.envp);
-//        const char *http_scheme = FCGX_GetParam("HTTP_SCHEME", fcgi_request.envp);
-//        const char *http_host   = FCGX_GetParam("HTTP_HOST",   fcgi_request.envp);
-//        const char *request_uri = FCGX_GetParam("REQUEST_URI", fcgi_request.envp);
-//        handle_request(&request);
+       const char *script      = FCGX_GetParam("SCRIPT_NAME", fcgi_request.envp);
+       const char *http_scheme = FCGX_GetParam("HTTP_SCHEME", fcgi_request.envp);
+       const char *http_host   = FCGX_GetParam("HTTP_HOST",   fcgi_request.envp);
+       const char *request_uri = FCGX_GetParam("REQUEST_URI", fcgi_request.envp);
+       handle_request(&request);
+#endif
         handle_request(&fcgi_request);
         FCGX_Finish_r(&fcgi_request);
     }
