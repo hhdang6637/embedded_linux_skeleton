@@ -29,4 +29,7 @@ all: $(BIN) install
 	@$(MAKE) -C src clean all
 
 clean:
+	@rm -rf $(CSS_DIR)
+	@rm -rf $(JS_DIR)
+	@rm -rf $(PRIVATE_DIR)
 	@$(MAKE) -C src clean

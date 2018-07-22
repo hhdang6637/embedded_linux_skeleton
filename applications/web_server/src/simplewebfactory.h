@@ -25,6 +25,7 @@ private:
     std::string html_header_str;
     std::string html_footer_str;
     std::string html_navbar_str;
+    std::string html_menu_str;
 
     std::map<std::string,std::string> url_html_map;
 
@@ -33,9 +34,6 @@ private:
 public:
     virtual ~simpleWebFactory();
     static simpleWebFactory* getInstance();
-    const char* get_html_header_str();
-    const char* get_html_footer_str();
-    const char* get_html_navbar_str();
     const char* get_html_str(const char* url);
 };
 
