@@ -1,93 +1,120 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
-    <h1 class="h2">Dashboard</h1>
+    <h1 class="h2">CPU USAGE (%)</h1>
 </div>
-<h1 class="h5">CPU USAGE (%)</h1>
-<div id="real_time_chart" class="dashboard-flot-chart" style="padding: 0px;height: 275px;position: relative;"></div>
+<style>
+    canvas{
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+    }
+    .chart-container {
+        width: 500px;
+        margin-left: 40px;
+        margin-right: 40px;
+        margin-bottom: 40px;
+    }
+    .cpu_chart_canvas {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+</style>
+<div id="chart-container">
+    <canvas id="cpu_chart_canvas"></canvas>
+</div>
 <!-- ChartJs -->
 <script src="/js/plugins/chartjs/Chart.bundle.js"></script>
-
-<!-- Flot Charts Plugin Js -->
-<script src="/js/plugins/flot-charts/jquery.flot.js"></script>
-<script src="/js/plugins/flot-charts/jquery.flot.resize.js"></script>
-<script src="/js/plugins/flot-charts/jquery.flot.pie.js"></script>
-<script src="/js/plugins/flot-charts/jquery.flot.categories.js"></script>
-<script src="/js/plugins/flot-charts/jquery.flot.time.js"></script>
-
-<!-- Sparkline Chart Plugin Js -->
-<script src="/js/plugins/jquery-sparkline/jquery.sparkline.js"></script>
 <script>
 
 $(function () {
     $("#main_menu").find("a[href='/pages/dashboard']").addClass("active")
 });
 
-$(function () {
-    initRealTimeChart();
-});
+//////////////////////////////////////////////////////
+    // CPU chart setup
+//////////////////////////////////////////////////////
+
+var second_datas = [];
+for(i = 60; i >= 0; i--) {
+    second_datas.push(i);
+}
+
+var cpu_percents = [20];
+for(i = 0; i <= 60; i++) {
+    
+    latest = cpu_percents[cpu_percents.length - 1];
+    
+    var prev = cpu_percents.length > 0 ? cpu_percents[cpu_percents.length - 1] : 50
+    y = prev + Math.random() * 10 - 5;
+    if (y < 0) { y = 0; } else if (y > 100) { y = 100; }
+
+    cpu_percents.push(Math.floor(y));
+}
+var config = {
+    type: 'line',
+    data: {
+        labels: second_datas,
+        datasets: [{
+            label: 'CPU Percents',
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: cpu_percents,
+            fill: true,
+        }]
+    },
+    options: {
+        responsive: true,
+        title: { display: false, text: 'CPU USAGE (%)'},
+        tooltips: { mode: 'index', intersect: false, },
+        hover: { mode: 'nearest', intersect: true },
+        scales: {
+            xAxes: [{
+                display: false,
+                scaleLabel: { display: false, labelString: 'Seconds' },
+                // ticks: { min: 0, max: 40, stepSize: 5, reverse: false, },
+            }],
+            yAxes: [{
+                display: true,
+                scaleLabel: { display: false, labelString: 'Percents' },
+                ticks: { min: 0, max: 100, stepSize: 10, reverse: false, },
+            }]
+        }
+    }
+};
 
 var realtime = 'on';
-function initRealTimeChart() {
-    //Real time ==========================================================================================
-    var plot = $.plot('#real_time_chart', [getRandomData()], {
-        series: {
-            shadowSize: 0,
-            color: 'rgb(0, 188, 212)'
-        },
-        grid: {
-            borderColor: '#f3f3f3',
-            borderWidth: 1,
-            tickColor: '#f3f3f3'
-        },
-        lines: {
-            fill: true
-        },
-        yaxis: {
-            min: 0,
-            max: 100
-        },
-        xaxis: {
-            min: 0,
-            max: 100
-        }
-    });
 
-    function updateRealTime() {
-        plot.setData([getRandomData()]);
-        plot.draw();
+function updateRealTime() {
 
-        var timeout;
-        if (realtime === 'on') {
-            timeout = setTimeout(updateRealTime, 1000);
-        } else {
-            clearTimeout(timeout);
-        }
+    if (config.data.datasets.length > 0) {
+        config.data.datasets.forEach(function(dataset) {
+            var prev = dataset.data.length > 0 ? dataset.data[dataset.data.length - 1] : 50
+            y = prev + Math.random() * 10 - 5;
+            if (y < 0) { y = 0; } else if (y > 100) { y = 100; }
+
+            dataset.data.push(Math.floor(y));
+        });
+
+        config.data.datasets.forEach(function(dataset) {
+            dataset.data.splice(0, 1);
+        });
     }
 
+    window.myLine.update();
+
+    var timeout;
+    if (realtime === 'on') {
+        timeout = setTimeout(updateRealTime, 1000);
+    } else {
+        clearTimeout(timeout);
+    }
+}
+
+window.onload = function() {
+    var ctx = document.getElementById('cpu_chart_canvas').getContext('2d');
+    window.myLine = new Chart(ctx, config);
     updateRealTime();
+};
 
-    $('#realtime').on('change', function () {
-        realtime = this.checked ? 'on' : 'off';
-        updateRealTime();
-    });
-    //====================================================================================================
-}
-
-var data = [], totalPoints = 110;
-function getRandomData() {
-    if (data.length > 0) data = data.slice(1);
-
-    while (data.length < totalPoints) {
-        var prev = data.length > 0 ? data[data.length - 1] : 50, y = prev + Math.random() * 10 - 5;
-        if (y < 0) { y = 0; } else if (y > 100) { y = 100; }
-
-        data.push(y);
-    }
-
-    var res = [];
-    for (var i = 0; i < data.length; ++i) {
-        res.push([i, data[i]]);
-    }
-
-    return res;
-}
 </script>
