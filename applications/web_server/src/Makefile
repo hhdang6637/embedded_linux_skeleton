@@ -5,16 +5,11 @@ CFLAGS += -Wall -g -I$(INCLUDE) -L$(LIB) -lfcgi
 
 BIN=web_handler
 SRCS=main.o simplewebfactory.o fcgi.cpp simplewebfactory_url_html_map.o
-SRCS_HTML=footer.ohtml header.ohtml navbar.ohtml dashboard.ohtml
 
 %.o : %.cpp
 	$(CXX) $< $(CFLAGS) -c -o $@
 
-%.ohtml : %.html
-	$(LD) -r -b binary -o $@ $<
-
 OBJS   = $(patsubst %.cpp,%.o,$(SRCS))
-OBJS   += $(patsubst %.html,%.ohtml,$(SRCS_HTML))
 
 $(BIN): $(OBJS)
 	$(CXX) $(OBJS) $(CFLAGS) -o $(BIN)

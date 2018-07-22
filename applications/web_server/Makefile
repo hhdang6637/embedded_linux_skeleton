@@ -6,18 +6,24 @@ HTML          := html
 JS            := js
 CSS           := css
 
+PUBLIC_DIR    := $(ROOTFS_DIR)/var/www/hiawatha/public
+PRIVATE_DIR   := $(ROOTFS_DIR)/var/www/hiawatha/private
+CSS_DIR       := $(PUBLIC_DIR)/css
+JS_DIR        := $(PUBLIC_DIR)/js
+
 $(BIN):
 	@echo "nothing to build"
 
 install:
-	@mkdir -p $(ROOTFS_DIR)/var/www/hiawatha/css
-	@mkdir -p $(ROOTFS_DIR)/var/www/hiawatha/js
+	@mkdir -p $(CSS_DIR)
+	@mkdir -p $(JS_DIR)
+	@mkdir -p $(PRIVATE_DIR)
 
-	@cp -aLr $(BOOTSTRAP_CSS)/*   $(ROOTFS_DIR)/var/www/hiawatha/css
-	@cp -aLr $(BOOTSTRAP_JS)/*    $(ROOTFS_DIR)/var/www/hiawatha/js
-	@cp -aLr $(CSS)/*             $(ROOTFS_DIR)/var/www/hiawatha/css
-	@cp -aLr $(JS)/*              $(ROOTFS_DIR)/var/www/hiawatha/js
-	@cp -aLr $(HTML)/*            $(ROOTFS_DIR)/var/www/hiawatha
+	@cp -aLr $(BOOTSTRAP_CSS)/*   $(CSS_DIR)
+	@cp -aLr $(BOOTSTRAP_JS)/*    $(JS_DIR)
+	@cp -aLr $(CSS)/*             $(CSS_DIR)
+	@cp -aLr $(JS)/*              $(JS_DIR)
+	@cp -aLr $(HTML)/*            $(PRIVATE_DIR)
 
 all: $(BIN) install
 	@$(MAKE) -C src clean all

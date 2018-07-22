@@ -7,7 +7,7 @@
 # The variables are case-sensitive and cannot be redeclared.
 #
 set LOG_DIR     = /var/log/hiawatha
-set WEBROOT_DIR = /var/www/hiawatha
+set WEBROOT_DIR = /var/www/hiawatha/public
 set WOKRING_DIR = /tmp/hiawatha
 
 # GENERAL SETTINGS

@@ -11,6 +11,8 @@
 #include <string>
 #include <map>
 
+#define INTERNAL_RESOURCE "/var/www/hiawatha/private/"
+
 class simpleWebFactory
 {
 private:
@@ -18,7 +20,7 @@ private:
     simpleWebFactory();
 
     static simpleWebFactory* s_instance;
-    static char* binary_html_to_chars(unsigned char start[], unsigned char end[]);
+    static bool file_to_string(std::string filename, std::string &output);
 
     std::string html_header_str;
     std::string html_footer_str;
