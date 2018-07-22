@@ -1,1 +1,3 @@
 /,dashboard.html
+/pages/home,dashboard.html
+/pages/dashboard,dashboard.html

@@ -4,18 +4,23 @@
 <h1 class="h5">CPU USAGE (%)</h1>
 <div id="real_time_chart" class="dashboard-flot-chart" style="padding: 0px;height: 275px;position: relative;"></div>
 <!-- ChartJs -->
-<script src="js/plugins/chartjs/Chart.bundle.js"></script>
+<script src="/js/plugins/chartjs/Chart.bundle.js"></script>
 
 <!-- Flot Charts Plugin Js -->
-<script src="js/plugins/flot-charts/jquery.flot.js"></script>
-<script src="js/plugins/flot-charts/jquery.flot.resize.js"></script>
-<script src="js/plugins/flot-charts/jquery.flot.pie.js"></script>
-<script src="js/plugins/flot-charts/jquery.flot.categories.js"></script>
-<script src="js/plugins/flot-charts/jquery.flot.time.js"></script>
+<script src="/js/plugins/flot-charts/jquery.flot.js"></script>
+<script src="/js/plugins/flot-charts/jquery.flot.resize.js"></script>
+<script src="/js/plugins/flot-charts/jquery.flot.pie.js"></script>
+<script src="/js/plugins/flot-charts/jquery.flot.categories.js"></script>
+<script src="/js/plugins/flot-charts/jquery.flot.time.js"></script>
 
 <!-- Sparkline Chart Plugin Js -->
-<script src="js/plugins/jquery-sparkline/jquery.sparkline.js"></script>
+<script src="/js/plugins/jquery-sparkline/jquery.sparkline.js"></script>
 <script>
+
+$(function () {
+    $("#main_menu").find("a[href='/pages/dashboard']").addClass("active")
+});
+
 $(function () {
     initRealTimeChart();
 });
