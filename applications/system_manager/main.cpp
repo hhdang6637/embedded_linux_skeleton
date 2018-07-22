@@ -1,8 +1,8 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
+#include <syslog.h>
 #include <unistd.h>
 #include <stdlib.h>
+
+#include <iostream>
 
 #include "system_manager.h"
 
@@ -15,21 +15,24 @@ static global_settings settings = {
 };
 
 static void show_help(const char *app_name) {
-    printf("Usage: %s [options]\n", app_name);
-    printf("         -d: don't fork to the background.\n");
+    std::cout << "Usage: " << app_name << " [options]\n";
+    std::cout << "         -d: don't fork to the background.\n";
 }
 
 void parse_arguments(int argc, char const *argv[]) {
     int i = 0;
 
+    std::string debug_flag("-d");
+    std::string help_flag("-h");
+
     while (++i < argc) {
-        if (strcmp(argv[i], "-d") == 0) {
+        if (debug_flag.compare("-d") == 0) {
             settings.daemon = false;
-        } else if (strcmp(argv[i], "-h") == 0) {
+        } else if (help_flag.compare("-h") == 0) {
             show_help(argv[0]);
             exit(EXIT_SUCCESS);
         } else {
-            fprintf(stderr, "Unknown option. Use '-h' for help.\n");
+            std::cerr << "Unknown option. Use '-h' for help.\n";
             exit(EXIT_FAILURE);
         }
     }
@@ -37,6 +40,8 @@ void parse_arguments(int argc, char const *argv[]) {
 
 int main(int argc, char const *argv[])
 {
+    openlog(argv[0], 0, LOG_USER);
+
     pid_t pid;
 
     parse_arguments(argc, argv);
@@ -56,14 +61,14 @@ int main(int argc, char const *argv[])
             }
             break;
         default:
-            printf("%s just fork to new proccess %d\n", argv[0], pid);
+            std::cout << argv[0] << " just fork to new process " << pid << "\n";
             return 0;
         }
     }
 
     system_manager_init();
 
-    printf("%s init complete\n", argv[0]);
+    std::cout << argv[0] << " init complete\n";
 
     while(1) {
         sleep(1);

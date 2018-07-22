@@ -2,15 +2,15 @@
 # CFLAGS +=
 
 BIN=system_manager_daemon
-SRCS=main.o system_manager.o
+SRCS=main.o system_manager.o service.o service_hiawatha.o
 
-%.o : %.c
-	$(CC) $(CFLAGS) $< -c -o $@
+%.o : %.cpp
+	$(CXX) $(CXXFLAGS) $< -c -o $@
 
-OBJS   = $(patsubst %.c,%.o,$(SRCS))
+OBJS   = $(patsubst %.cpp,%.o,$(SRCS))
 
 $(BIN): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(BIN)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN)
 
 clean:
 	rm -f $(OBJS) $(BIN)
