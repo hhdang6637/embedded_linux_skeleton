@@ -10,6 +10,8 @@
 
 #include <string>
 
+namespace app
+{
 class service {
 public:
     service();
@@ -19,5 +21,6 @@ public:
     virtual bool start() {return true;};
     virtual bool stop() {return true;};
 };
+} /* namespace app */
 
 #endif /* _SERVICES_H_ */

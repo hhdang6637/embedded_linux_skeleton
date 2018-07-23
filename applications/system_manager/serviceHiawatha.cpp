@@ -8,39 +8,42 @@
 #include <sys/types.h>
 
 #include <fstream>
+#include "serviceHiawatha.h"
 
-#include "service_hiawatha.h"
 
 #define HIAWATHA_CONFIG_DIR "/tmp/configs/hiawahta/"
 
-service_hiawatha::service_hiawatha()
+namespace app
+{
+
+serviceHiawatha::serviceHiawatha()
 {
     // TODO Auto-generated constructor stub
 }
 
-service_hiawatha::~service_hiawatha()
+serviceHiawatha::~serviceHiawatha()
 {
     // TODO Auto-generated destructor stub
 }
 
-std::string service_hiawatha::service_name()
+std::string serviceHiawatha::service_name()
 {
     static std::string service_name("hiawatha");
     return service_name;
 }
 
-service_hiawatha *service_hiawatha::s_instance = 0;
+serviceHiawatha *serviceHiawatha::s_instance = 0;
 
-service_hiawatha* service_hiawatha::getInstance()
+serviceHiawatha* serviceHiawatha::getInstance()
 {
     if (s_instance == 0) {
-        s_instance = new service_hiawatha();
+        s_instance = new serviceHiawatha();
     }
 
     return s_instance;
 }
 
-bool service_hiawatha::init()
+bool serviceHiawatha::init()
 {
     mkdir(HIAWATHA_CONFIG_DIR, 0755);
 
@@ -194,7 +197,7 @@ bool service_hiawatha::init()
     return true;
 }
 
-bool service_hiawatha::start()
+bool serviceHiawatha::start()
 {
     std::string command;
     command = "hiawatha -c ";
@@ -204,3 +207,5 @@ bool service_hiawatha::start()
 
     return true;
 }
+
+} /* namespace app */

@@ -9,8 +9,8 @@
 #include <iostream>
 #include <list>
 
+#include "serviceHiawatha.h"
 #include "simpleTimerSync.h"
-#include "service_hiawatha.h"
 
 #define CONFIG_DIR "/tmp/configs"
 
@@ -19,8 +19,8 @@ void system_manager_init()
 
     mkdir(CONFIG_DIR, 0755);
     // start web server
-    service_hiawatha::getInstance()->init();
-    service_hiawatha::getInstance()->start();
+    app::serviceHiawatha::getInstance()->init();
+    app::serviceHiawatha::getInstance()->start();
 
     system("web_handler");
 
