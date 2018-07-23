@@ -10,7 +10,7 @@ SRCS=main.o system_manager.o service.o service_hiawatha.o
 OBJS   = $(patsubst %.cpp,%.o,$(SRCS))
 
 $(BIN): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN) -lapp
 
 clean:
 	rm -f $(OBJS) $(BIN)

@@ -1,4 +1,4 @@
-FCGI_FLAGS := --host=arm --prefix=$(ROOTFS_DIR)/usr/local
+FCGI_FLAGS := --host=arm --prefix=$(ROOTFS_DIR)/usr
 
 export CFLAGS =-Wall
 

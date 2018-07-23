@@ -1,8 +1,8 @@
 # CC       = gcc
-CFLAGS += -fPIC
+CXXFLAGS += -fPIC
 
-SHARED=libipc.so.1
-SRCS=rpc_unix.o
+SHARED=libapp.so
+SRCS=rpc_unix.o simpleTimerSync.o
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@
@@ -16,6 +16,7 @@ clean:
 	rm -f $(OBJS) $(SHARED)
 
 install:
+	cp *.h       $(ROOTFS_DIR)/usr/include
 	cp $(SHARED) $(ROOTFS_DIR)/usr/lib
 
 all: $(SHARED) install

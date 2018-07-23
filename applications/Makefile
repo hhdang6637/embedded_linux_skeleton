@@ -4,8 +4,10 @@
 export CC      = ccache $(CROSS_COMPILE)gcc
 export CXX     = ccache $(CROSS_COMPILE)g++
 export LD      = $(CROSS_COMPILE)ld
-export CFLAGS  = -Wall -Werror -D$(MODEL)
-export CXXFLAGS= -Wall -Werror -D$(MODEL)
+export INCLUDE = $(ROOTFS_DIR)/usr/include
+export LIB     = $(ROOTFS_DIR)/usr/lib
+export CFLAGS  = -Wall -Werror -D$(MODEL) -I$(INCLUDE) -L$(LIB)
+export CXXFLAGS= -Wall -Werror -D$(MODEL) -I$(INCLUDE) -L$(LIB)
 
 $(ROOTFS_DIR):
 	@mkdir    $(ROOTFS_DIR)
@@ -20,7 +22,7 @@ $(ROOTFS_DIR):
 all: $(ROOTFS_DIR)
 	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean all
 	@$(MAKE) -C lib_fastcgi/fcgi-2.4.0 clean all
-	@$(MAKE) -C lib_rpc clean all
+	@$(MAKE) -C lib_app clean all
 	@$(MAKE) -C web_server clean all
 	@$(MAKE) -C network_manager clean all
 	@$(MAKE) -C system_manager clean all

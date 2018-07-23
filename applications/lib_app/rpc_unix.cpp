@@ -5,11 +5,12 @@
  *      Author: hhdang
  */
 
+#include "rpc_unix.h"
+
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
 
-#include "rpc_unix.h"
 
 int open_server_socket(const char*socket_path)
 {
