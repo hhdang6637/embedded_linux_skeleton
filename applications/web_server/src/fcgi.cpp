@@ -8,8 +8,10 @@
 #include <sys/stat.h>
 #include <syslog.h>
 #include <fcgiapp.h>
+#include <string.h>
 
 #include <iostream>
+#include <fstream>
 #include "simplewebfactory.h"
 
 #include "fcgi.h"
@@ -36,10 +38,53 @@ static void fcgi_init()
 #define printfcgi(...) FCGX_FPrintF(request->out, __VA_ARGS__)
 #define get_param(KEY) FCGX_GetParam(KEY, request->envp)
 
+static void handle_firmware_upgrade(FCGX_Request *request)
+{
+    const char *contentLength = FCGX_GetParam("CONTENT_LENGTH", request->envp);
+    int content_len = 0;
+
+    if (contentLength) {
+        content_len = strtol(contentLength, NULL, 10);
+    }
+
+    std::string post_data;
+
+    for (int len = 0; len < content_len; len++) {
+        int ch = FCGX_GetChar(request->in);
+
+        printf("CHAR: %c\n", ch);
+
+        if (ch < 0) {
+            printf("Not enough bytes received on standard input, got %d, wanted ",
+                   content_len);
+            content_len = len;
+            return;
+
+        } else {
+            post_data  += ch;
+        }
+    }
+
+    std::ofstream out("/tmp/output.txt");
+
+    out << post_data;
+
+    out.close();
+}
+
 static void handle_request(FCGX_Request *request)
 {
-
+    const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
     const char *request_uri = FCGX_GetParam("REQUEST_URI", request->envp);
+
+    if (method && (strcmp(method, "POST") == 0)) {
+
+        printf("request_uri: %s\n", request_uri);
+        if (strcmp(request_uri, "/firmware_upgrade") == 0) {
+            handle_firmware_upgrade(request);
+        }
+
+    }
 
     simpleWebFactory *web = simpleWebFactory::getInstance();
 
@@ -55,7 +100,7 @@ static void handle_request(FCGX_Request *request)
         printfcgi("Content-Type: application/json; charset=utf-8\r\n\r\n");
         printfcgi("%s", response_content);
 
-    }else {
+    } else {
         printfcgi("HTTP/1.1 404 Not Found\r\n\r\n");
     }
 

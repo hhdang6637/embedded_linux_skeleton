@@ -34,8 +34,7 @@
       <div class="js-upload-finished">
         <h3>Processed files</h3>
         <div class="list-group">
-          <a href="#" class="list-group-item list-group-item-success"><span class="badge alert-success pull-right">Success</span>image-01.jpg</a>
-          <a href="#" class="list-group-item list-group-item-success"><span class="badge alert-success pull-right">Success</span>image-02.jpg</a>
+          <a href="#" class="list-group-item list-group-item-success" id="file-info"><span class="badge alert-success pull-right">Success</span>image-01.jpg</a>
         </div>
       </div>
     </div>
@@ -51,8 +50,52 @@
     var dropZone = document.getElementById('drop-zone');
     var uploadForm = document.getElementById('js-upload-form');
 
+    var sendFile = function(file) {
+        var formData = new FormData();
+        formData.append('file', file);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/firmware_upgrade');
+        xhr.onload = function () {
+            //TODO show the progress
+        };
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                //TODO success callback
+            }
+        };
+
+        xhr.upload.onprogress = function (event) {
+            //TODO show the progress
+        };
+
+        xhr.send(formData);
+    }
+
     var startUpload = function(files) {
         console.log(files)
+
+        var txt = "";
+        var href = "";
+        for (var i = 0; i < files.length; i++) {
+            txt += "<br><strong>" + (i+1) + ". file</strong><br>";
+            var file = files[i];
+            if ('name' in file) {
+                txt += "name: " + file.name + "<br>";
+                href += file.name;
+            }
+            if ('size' in file) {
+                txt += "size: " + file.size + " bytes <br>";
+            }
+
+            sendFile(file);
+        }
+
+        document.getElementById("file-info").innerHTML = txt;
+        document.getElementById("file-info").href = href;
+
+
     }
 
     uploadForm.addEventListener('submit', function(e) {
