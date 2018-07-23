@@ -50,7 +50,7 @@ static void handle_request(FCGX_Request *request)
         printfcgi("Content-Type: text/html; charset=utf-8\r\n\r\n");
         printfcgi("%s", response_content);
 
-    } if ((response_content = web->get_js_str(request_uri)) != NULL) {
+    } else if ((response_content = web->get_js_str(request_uri)) != NULL) {
 
         printfcgi("Content-Type: application/json; charset=utf-8\r\n\r\n");
         printfcgi("%s", response_content);
