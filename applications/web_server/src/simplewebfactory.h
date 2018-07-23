@@ -10,8 +10,11 @@
 
 #include <string>
 #include <map>
+#include <functional>
 
 #define INTERNAL_RESOURCE "/var/www/hiawatha/private/"
+
+typedef std::function<std::string(const char*)> jsCallback;
 
 class simpleWebFactory
 {
@@ -27,14 +30,17 @@ private:
     std::string html_navbar_str;
     std::string html_menu_str;
 
-    std::map<std::string,std::string> url_html_map;
+    std::map<std::string,std::string>   url_html_map;
+    std::map<std::string,jsCallback> url_js_map;
 
     void init_url_html_map();
+    void init_url_js_map();
 
 public:
     virtual ~simpleWebFactory();
     static simpleWebFactory* getInstance();
     const char* get_html_str(const char* url);
+    const char* get_js_str(const char* url);
 };
 
 #endif /* _SIMPLE_WEB_FACTORY_H_ */

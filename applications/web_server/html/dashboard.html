@@ -40,17 +40,8 @@ for(i = 60; i >= 0; i--) {
     second_datas.push(i);
 }
 
-var cpu_percents = [20];
-for(i = 0; i <= 60; i++) {
-    
-    latest = cpu_percents[cpu_percents.length - 1];
-    
-    var prev = cpu_percents.length > 0 ? cpu_percents[cpu_percents.length - 1] : 50
-    y = prev + Math.random() * 10 - 5;
-    if (y < 0) { y = 0; } else if (y > 100) { y = 100; }
+var cpu_percents = [];
 
-    cpu_percents.push(Math.floor(y));
-}
 var config = {
     type: 'line',
     data: {
@@ -87,21 +78,13 @@ var realtime = 'on';
 
 function updateRealTime() {
 
-    if (config.data.datasets.length > 0) {
+    $.getJSON( "/json/cpu_usage_history", function( data ) {
+        // config.data.datasets = data.cpu_usage_history;
         config.data.datasets.forEach(function(dataset) {
-            var prev = dataset.data.length > 0 ? dataset.data[dataset.data.length - 1] : 50
-            y = prev + Math.random() * 10 - 5;
-            if (y < 0) { y = 0; } else if (y > 100) { y = 100; }
-
-            dataset.data.push(Math.floor(y));
+            dataset.data = data.json_cpu_usage_history;
         });
-
-        config.data.datasets.forEach(function(dataset) {
-            dataset.data.splice(0, 1);
-        });
-    }
-
-    window.myLine.update();
+        window.myLine.update();
+    });
 
     var timeout;
     if (realtime === 'on') {

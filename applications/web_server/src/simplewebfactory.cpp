@@ -52,6 +52,7 @@ simpleWebFactory::simpleWebFactory()
     simpleWebFactory::file_to_string(html_file, this->html_menu_str);
 
     this->init_url_html_map();
+    this->init_url_js_map();
 }
 
 simpleWebFactory::~simpleWebFactory()
@@ -113,4 +114,22 @@ const char* simpleWebFactory::get_html_str(const char * url)
     html = ss_html.str();
 
     return html.c_str();
+}
+
+const char* simpleWebFactory::get_js_str(const char * url)
+{
+    std::map<std::string,jsCallback>::iterator it;
+
+    std::cout << url << std::endl;
+
+    it = this->url_js_map.find(url);
+    if (it == this->url_js_map.end()) {
+        return NULL;
+    }
+
+    static std::string js;
+
+    js = it->second(url);
+
+    return js.c_str();
 }

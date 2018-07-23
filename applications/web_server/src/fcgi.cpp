@@ -41,14 +41,21 @@ static void handle_request(FCGX_Request *request)
 
     const char *request_uri = FCGX_GetParam("REQUEST_URI", request->envp);
 
-    const char *html_content = simpleWebFactory::getInstance()->get_html_str(request_uri);
+    simpleWebFactory *web = simpleWebFactory::getInstance();
 
-    if (html_content != NULL) {
+    const char *response_content = web->get_html_str(request_uri);
+
+    if (response_content != NULL) {
 
         printfcgi("Content-Type: text/html; charset=utf-8\r\n\r\n");
-        printfcgi("%s", html_content);
+        printfcgi("%s", response_content);
 
-    } else {
+    } if ((response_content = web->get_js_str(request_uri)) != NULL) {
+
+        printfcgi("Content-Type: application/json; charset=utf-8\r\n\r\n");
+        printfcgi("%s", response_content);
+
+    }else {
         printfcgi("HTTP/1.1 404 Not Found\r\n\r\n");
     }
 
