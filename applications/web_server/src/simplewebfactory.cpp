@@ -120,8 +120,6 @@ const char* simpleWebFactory::get_js_str(const char * url)
 {
     std::map<std::string,jsCallback>::iterator it;
 
-    std::cout << url << std::endl;
-
     it = this->url_js_map.find(url);
     if (it == this->url_js_map.end()) {
         return NULL;
