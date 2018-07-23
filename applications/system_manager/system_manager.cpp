@@ -11,6 +11,7 @@
 
 #include "serviceHiawatha.h"
 #include "simpleTimerSync.h"
+#include "resourceCollector.h"
 
 #define CONFIG_DIR "/tmp/configs"
 
@@ -54,7 +55,22 @@ static int build_fd_sets(fd_set *read_fds, std::list<int> &fds)
 }
 
 static void testTimerCallback() {
-    // do nothing
+    app::resourceCollector::getInstance()->cpu_do_collect();
+#if 0
+    std::list<app::jiffy_counts_t>  cpu_history = app::resourceCollector::getInstance()->get_cpu_history();
+
+    app::jiffy_counts_t jiffy = cpu_history.back();
+    cpu_history.pop_back();
+    app::jiffy_counts_t jiffy2 = cpu_history.back();
+
+    unsigned long long total = (jiffy.total - jiffy2.total);
+    unsigned long long idle = (jiffy.idle - jiffy2.idle);
+
+    idle = 100 * idle / total;
+
+    std::cout << "cpu idle : " << idle << "\n";
+    std::cout << "cpu usage: " << 100 - idle << "\n";
+#endif
 }
 
 void system_manager_service_loop()
