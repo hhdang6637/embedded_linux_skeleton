@@ -52,7 +52,7 @@ void MPFD::Parser::SetContentType(const std::string type) {
         throw MPFD::Exception(std::string("Cannot find boundary in Content-type: \"") + type + std::string("\""));
     }
 
-    Boundary = std::string("--") + type.substr(bp + 9, type.length() - bp);
+    Boundary = type.substr(bp + 9, type.length() - bp);
 }
 
 void MPFD::Parser::AcceptSomeData(const char *data, const long length) {
@@ -123,7 +123,8 @@ bool MPFD::Parser::ProcessContentOfTheField() {
     }
 
     if (DataLengthToSendToField > 0) {
-        Fields[ProcessingFieldName]->AcceptSomeData(DataCollector, DataLengthToSendToField);
+        // 2 is the last empty line
+        Fields[ProcessingFieldName]->AcceptSomeData(DataCollector, DataLengthToSendToField - 2);
         TruncateDataCollectorFromTheBeginning(DataLengthToSendToField);
     }
 

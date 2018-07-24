@@ -79,25 +79,10 @@ static int process_data(const char *input, const char *contentType)
     return 1;
 }
 
-static std::string get_content_type(FCGX_Request *request)
-{
-    std::string contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
-
-    std::string retStr      = "multipart/form-data; ";
-
-    std::string boundary = contentType.substr(contentType.find("boundary"));
-
-    // rm -------------
-    boundary.erase(std::remove(boundary.begin(), boundary.end(), '-'), boundary.end());
-
-    retStr += boundary;
-
-    return retStr;
-}
-
 static void handle_firmware_upgrade(FCGX_Request *request)
 {
     const char *contentLength = FCGX_GetParam("CONTENT_LENGTH", request->envp);
+    std::string contentType   = FCGX_GetParam("CONTENT_TYPE", request->envp);
 
     int content_len = 0;
 
@@ -119,7 +104,7 @@ static void handle_firmware_upgrade(FCGX_Request *request)
         }
     }
 
-    process_data(post_data.c_str(), get_content_type(request).c_str());
+    process_data(post_data.c_str(), contentType.c_str());
 }
 
 static void handle_request(FCGX_Request *request)
