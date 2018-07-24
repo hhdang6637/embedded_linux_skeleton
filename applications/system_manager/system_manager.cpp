@@ -56,7 +56,7 @@ static int build_fd_sets(fd_set *read_fds, std::list<int> &fds)
 
 static void testTimerCallback() {
     app::resourceCollector::getInstance()->cpu_do_collect();
-#if 1
+#if 0
     std::list<cpu_stat_t>  cpu_history = app::resourceCollector::getInstance()->get_cpu_history();
 
     long double total_diff = 0;
