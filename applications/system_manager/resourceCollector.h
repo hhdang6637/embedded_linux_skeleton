@@ -27,7 +27,7 @@ public:
     void cpu_do_collect();
 
     static resourceCollector* getInstance();
-    static const int cpu_history_max_sample = 60;
+    static const int cpu_history_max_sample = 61;
 };
 
 } /* namespace app */

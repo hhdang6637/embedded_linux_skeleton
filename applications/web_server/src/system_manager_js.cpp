@@ -10,47 +10,46 @@
 #include <list>          // std::queue
 
 #include "simplewebfactory.h"
+#include "rpcUnixClient.h"
+#include "rpcMessageCpuHistory.h"
 
 std::string json_cpu_usage_history(const char*url)
 {
-
-    static std::list<int> cpu_usage_history;
-
-    if (cpu_usage_history.size() == 0) {
-
-        cpu_usage_history.push_back(50);
-
-        for (int i = 0; i < 60; i++) {
-            int y = cpu_usage_history.back() + (rand() % 10) - 5;
-            if (y < 0) {
-                y = 0;
-            } else if (y > 100) {
-                y = 100;
-            }
-            cpu_usage_history.push_back(y);
-        }
-    }
-
-    int latest = cpu_usage_history.back() + (rand() % 10) - 5;
-    if (latest < 0) {
-        latest = 0;
-    } else if (latest > 100) {
-        latest = 100;
-    }
-
-    cpu_usage_history.pop_front();
-
     std::ostringstream ss_json;
-
     ss_json << "{\"json_cpu_usage_history\":[";
 
-    for (auto const& i : cpu_usage_history) {
-        ss_json << i;
-        ss_json << ",";
-    }
+    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+    app::rpcMessageCpuHistory msg;
+    if (rpcClient->doRpc(&msg)) {
 
-    cpu_usage_history.push_back(latest);
-    ss_json << cpu_usage_history.back();
+        cpu_stat_t pre, cur;
+        std::list<cpu_stat_t> cpu_usage_history = msg.get_cpu_history();
+
+        size_t counter = 0;
+        for(std::list<cpu_stat_t>::iterator it = cpu_usage_history.begin();
+                it != cpu_usage_history.end(); ++it) {
+
+            counter++;
+
+            if (it == cpu_usage_history.begin()) {
+                pre = *it;
+                continue;
+            }
+
+            cur = *it;
+
+            long double total_diff = cur.total - pre.total;
+            long double busy_diff = cur.busy - pre.busy;
+
+            ss_json << (long)(busy_diff / total_diff * 100);
+
+            if (counter < cpu_usage_history.size()) {
+                ss_json << ",";
+            }
+
+            pre = cur;
+        }
+    }
 
     ss_json << "]}";
 

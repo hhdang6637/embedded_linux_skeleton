@@ -38,16 +38,16 @@ std::list<cpu_stat_t> resourceCollector::get_cpu_history()
 
 void resourceCollector::cpu_do_collect()
 {
-	cpu_stat_t stat = { 0 };
+    cpu_stat_t stat = { 0 };
 
-	if (::get_cpu_stat(&stat) == true) {
+    if (::get_cpu_stat(&stat) == true) {
 
-		if (this->cpu_history.size() >= resourceCollector::cpu_history_max_sample) {
-			this->cpu_history.pop_front();
-		}
+        if (this->cpu_history.size() >= resourceCollector::cpu_history_max_sample) {
+            this->cpu_history.pop_front();
+        }
 
-		this->cpu_history.push_back(stat);
-	}
+        this->cpu_history.push_back(stat);
+    }
 }
 
 } /* namespace app */
