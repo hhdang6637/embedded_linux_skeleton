@@ -1,5 +1,3 @@
-# CC       = gcc
-# CFLAGS +=
 
 BIN=system_manager_daemon
 SRCS=main.o system_manager.o service.o serviceHiawatha.o resourceCollector.o

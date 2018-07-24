@@ -4,16 +4,17 @@
  *  Created on: Jul 24, 2018
  *      Author: hhdang
  */
+#include <sys/socket.h>
 
 #include "rpcMessage.h"
 
 namespace app
 {
 
-rpcMessage::rpcMessage(rpcMessageAddr addr)
+rpcMessage::rpcMessage(rpcMessageType msgType) :
+        msgType(msgType),
+        msgAddrType(rpcMessageAddr::system_manager_addr_t)
 {
-    this->state = rpcMessage::rpcMessageState::request;
-    this->addr = addr;
 }
 
 rpcMessage::~rpcMessage()
@@ -23,14 +24,17 @@ rpcMessage::~rpcMessage()
 
 bool rpcMessage::send(int fd)
 {
-    // TODO
+	uint16_t buff = this->msgType;
+    if (::send(fd, &buff, sizeof(buff), 0) != sizeof(buff)) {
+        return false;
+    }
+    this->serialize(fd);
     return true;
 }
 
 bool rpcMessage::receive(int fd)
 {
-    // TODO
-    return true;
+    return this->deserialize(fd);
 }
 
 } /* namespace app */

@@ -8,16 +8,31 @@
 #ifndef APPLICATIONS_LIB_APP_RPCMESSAGEADDR_H_
 #define APPLICATIONS_LIB_APP_RPCMESSAGEADDR_H_
 
+#include <sys/un.h>
+
 namespace app
 {
+class rpcUnixClient;
+class rpcUnixServer;
 
 class rpcMessageAddr
 {
-protected:
+private:
+    rpcMessageAddr(const char*path);
+
     struct sockaddr_un addr;
 public:
-    rpcMessageAddr();
+
+    enum rpcMessageAddrType {
+        system_manager_addr_t
+    };
+
     virtual ~rpcMessageAddr();
+
+    static rpcMessageAddr getRpcMessageAddrbyType(rpcMessageAddrType addrType);
+
+    friend class rpcUnixClient;
+    friend class rpcUnixServer;
 };
 
 } /* namespace app */

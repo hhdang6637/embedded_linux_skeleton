@@ -24,22 +24,24 @@ rpcUnixClient::~rpcUnixClient()
     // TODO Auto-generated destructor stub
 }
 
-int rpcUnixClient::connect(rpcMessageAddr &addr)
+int rpcUnixClient::connect(rpcMessageAddr addr)
 {
-    int fd = -1;
+    int socket_fd = -1;
 
-    if ( (fd = ::socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+    if ( (socket_fd = ::socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         return -1;
     }
 
-    if (::connect(fd, (struct sockaddr*)&addr.addr, sizeof(addr.addr)) == -1) {
+    if (::connect(socket_fd, (struct sockaddr*)&addr.addr, sizeof(addr.addr)) == -1) {
         goto error_exit;
     }
 
+    return socket_fd;
+
 error_exit:
 
-    if (fd != -1) {
-        close(fd);
+    if (socket_fd != -1) {
+        close(socket_fd);
     }
 
     return -1;
@@ -48,7 +50,7 @@ error_exit:
 bool rpcUnixClient::doRpc(rpcMessage *msg)
 {
     bool rc = false;
-    int sock_fd = this->connect(msg->addr);
+    int sock_fd = this->connect(rpcMessageAddr::getRpcMessageAddrbyType(msg->msgAddrType));
 
     if (sock_fd != -1) {
         if (msg->send(sock_fd) == true) {
@@ -56,7 +58,6 @@ bool rpcUnixClient::doRpc(rpcMessage *msg)
                 rc = true;
             }
         }
-        msg->receive(sock_fd);
         close (sock_fd);
     }
 

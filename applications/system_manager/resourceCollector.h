@@ -10,12 +10,7 @@
 
 #include <list>
 
-typedef struct cpu_stat_t {
-    unsigned long long usr, nic, sys, idle;
-    unsigned long long iowait, irq, softirq, steal;
-    unsigned long long total;
-    unsigned long long busy;
-} jiffy_counts_t;
+#include "cpu_stat.h"
 
 namespace app {
 

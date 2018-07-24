@@ -17,7 +17,7 @@ class rpcUnixClient
 {
 private:
     rpcUnixClient();
-    int connect(rpcMessageAddr &addr);
+    int connect(rpcMessageAddr addr);
 
     static rpcUnixClient* s_instance;
 public:
