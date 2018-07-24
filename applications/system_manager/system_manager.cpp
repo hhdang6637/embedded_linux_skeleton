@@ -66,27 +66,8 @@ static int build_fd_sets(fd_set *read_fds, std::list<int> &fds)
     return max;
 }
 
-static void testTimerCallback() {
+static void cpuHistoryCollect() {
     app::resourceCollector::getInstance()->cpu_do_collect();
-#if 0
-    std::list<cpu_stat_t>  cpu_history = app::resourceCollector::getInstance()->get_cpu_history();
-
-    long double total_diff = 0;
-    long double idle_diff = 0;
-
-    cpu_stat_t pre, cur;
-    cur = cpu_history.back();
-    cpu_history.pop_back();
-    pre = cpu_history.back();
-
-    total_diff += cur.total - pre.total;
-    idle_diff += cur.idle - pre.idle;
-
-    char buffer[158];
-    snprintf(buffer, sizeof(buffer), "cpu ide:%2.2Lf", idle_diff / total_diff * 100);
-    std::cout << buffer;
-    std::cout << std::endl;
-#endif
 }
 
 static bool get_cpu_history_handler(int socker_fd) {
@@ -108,7 +89,7 @@ void system_manager_service_loop()
 
     app::simpleTimerSync *timer = app::simpleTimerSync::getInstance();
     timer->init(1000);
-    timer->addCallback(1000, testTimerCallback);
+    timer->addCallback(1000, cpuHistoryCollect);
     timer->start();
 
     std::list<int> listReadFd;
