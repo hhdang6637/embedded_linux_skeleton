@@ -1,18 +1,15 @@
-INCLUDE = $(ROOTFS_DIR)/usr/local/include/
-LIB     = $(ROOTFS_DIR)/usr/local/lib
-
-CFLAGS += -Wall -g -I$(INCLUDE) -L$(LIB) -lfcgi
+CXXFLAGS += -g -lapp
 
 BIN=hello_world
 SRCS=main.o
 
-%.o : %.c
-	$(CC) $< $(CFLAGS) -c -o $@
+%.o : %.cpp
+	$(CXX) $< $(CXXFLAGS) -c -o $@
 
-OBJS   = $(patsubst %.c,%.o,$(SRCS))
+OBJS   = $(patsubst %.cpp,%.o,$(SRCS))
 
 $(BIN): $(OBJS)
-	$(CC) $(OBJS) $(CFLAGS) -o $(BIN)
+	$(CXX) $(OBJS) $(CXXFLAGS) -o $(BIN)
 
 clean:
 	rm -f $(OBJS) $(BIN)

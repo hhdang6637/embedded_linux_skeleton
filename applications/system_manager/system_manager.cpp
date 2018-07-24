@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/select.h>
+#include <syslog.h>
 #include <error.h>
 
 #include <iostream>
@@ -12,6 +13,9 @@
 #include "serviceHiawatha.h"
 #include "simpleTimerSync.h"
 #include "resourceCollector.h"
+#include "rpcUnixServer.h"
+#include "rpcMessageAddr.h"
+#include "rpcMessageCpuHistory.h"
 
 #define CONFIG_DIR "/tmp/configs"
 
@@ -38,6 +42,14 @@ void system_manager_init()
         system("mount -t ext4 /dev/mmcblk0p3 /data/");
     }
 #endif
+
+    app::rpcMessageAddr addr = app::rpcMessageAddr::getRpcMessageAddrbyType(
+            app::rpcMessageAddr::rpcMessageAddrType::system_manager_addr_t);
+
+    if (app::rpcUnixServer::getInstance()->openServer(addr) != true) {
+        syslog(LOG_ERR, "cannot open unix socket server");
+        exit(EXIT_FAILURE);
+    }
 }
 
 static int build_fd_sets(fd_set *read_fds, std::list<int> &fds)
@@ -54,41 +66,35 @@ static int build_fd_sets(fd_set *read_fds, std::list<int> &fds)
     return max;
 }
 
-static void testTimerCallback() {
+static void cpuHistoryCollect() {
     app::resourceCollector::getInstance()->cpu_do_collect();
-#if 0
-    std::list<cpu_stat_t>  cpu_history = app::resourceCollector::getInstance()->get_cpu_history();
+}
 
-    long double total_diff = 0;
-    long double idle_diff = 0;
-
-    cpu_stat_t pre, cur;
-    cur = cpu_history.back();
-    cpu_history.pop_back();
-    pre = cpu_history.back();
-
-    total_diff += cur.total - pre.total;
-    idle_diff += cur.idle - pre.idle;
-
-    char buffer[158];
-    snprintf(buffer, sizeof(buffer), "cpu ide:%2.2Lf", idle_diff / total_diff * 100);
-    std::cout << buffer;
-    std::cout << std::endl;
-#endif
+static bool get_cpu_history_handler(int socker_fd) {
+    app::rpcMessageCpuHistory msgCpuHistory;
+    if (msgCpuHistory.deserialize(socker_fd)) {
+        std::list<cpu_stat_t> cpu_history = app::resourceCollector::getInstance()->get_cpu_history();
+        msgCpuHistory.set_cpu_history(cpu_history);
+        return msgCpuHistory.serialize(socker_fd);
+    }
+    return false;
 }
 
 void system_manager_service_loop()
 {
     fd_set read_fds;
+    app::rpcUnixServer *rpcServer = app::rpcUnixServer::getInstance();
+    int server_socket = rpcServer->get_socket();
+    rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::get_cpu_history, get_cpu_history_handler);
 
     app::simpleTimerSync *timer = app::simpleTimerSync::getInstance();
     timer->init(1000);
-    timer->addCallback(1000, testTimerCallback);
-
+    timer->addCallback(1000, cpuHistoryCollect);
     timer->start();
 
     std::list<int> listReadFd;
     listReadFd.push_back(timer->getTimterFd());
+    listReadFd.push_back(server_socket);
 
     while(1) {
         int maxfd = build_fd_sets(&read_fds, listReadFd);
@@ -110,6 +116,13 @@ void system_manager_service_loop()
                  if (FD_ISSET(timer->getTimterFd(), &read_fds)) {
                      timer->do_schedule();
                  }
+
+                 if (FD_ISSET(server_socket, &read_fds)) {
+                     if (rpcServer->doReply() == false) {
+                        syslog(LOG_ERR, "fail to handle new connection");
+                     }
+                 }
+
              }
         }
     }

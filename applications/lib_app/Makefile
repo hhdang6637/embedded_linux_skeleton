@@ -2,7 +2,9 @@
 CXXFLAGS += -fPIC
 
 SHARED=libapp.so
-SRCS=rpc_unix.o simpleTimerSync.o
+SRCS=simpleTimerSync.o rpcMessage.o rpcMessageAddr.o rpcUnixClient.o rpcUnixServer.o
+SRCS += rpcMessageCpuHistory.o
+SRCS += cpu_stat.o
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@
