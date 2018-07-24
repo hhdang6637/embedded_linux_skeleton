@@ -10,29 +10,29 @@
 
 #include <list>
 
-namespace app {
-
-typedef struct jiffy_counts_t {
-    /* Linux 2.4.x has only first four */
+typedef struct cpu_stat_t {
     unsigned long long usr, nic, sys, idle;
     unsigned long long iowait, irq, softirq, steal;
     unsigned long long total;
     unsigned long long busy;
 } jiffy_counts_t;
 
+namespace app {
+
 class resourceCollector {
 private:
     resourceCollector();
     static resourceCollector* s_instance;
 
-    std::list<jiffy_counts_t> cpu_history;
+    std::list<cpu_stat_t> cpu_history;
 public:
     virtual ~resourceCollector();
 
-    std::list<jiffy_counts_t> get_cpu_history();
+    std::list<cpu_stat_t> get_cpu_history();
     void cpu_do_collect();
 
     static resourceCollector* getInstance();
+    static const int cpu_history_max_sample = 60;
 };
 
 } /* namespace app */

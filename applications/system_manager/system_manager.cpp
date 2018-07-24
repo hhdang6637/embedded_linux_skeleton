@@ -56,20 +56,24 @@ static int build_fd_sets(fd_set *read_fds, std::list<int> &fds)
 
 static void testTimerCallback() {
     app::resourceCollector::getInstance()->cpu_do_collect();
-#if 0
-    std::list<app::jiffy_counts_t>  cpu_history = app::resourceCollector::getInstance()->get_cpu_history();
+#if 1
+    std::list<cpu_stat_t>  cpu_history = app::resourceCollector::getInstance()->get_cpu_history();
 
-    app::jiffy_counts_t jiffy = cpu_history.back();
+    long double total_diff = 0;
+    long double idle_diff = 0;
+
+    cpu_stat_t pre, cur;
+    cur = cpu_history.back();
     cpu_history.pop_back();
-    app::jiffy_counts_t jiffy2 = cpu_history.back();
+    pre = cpu_history.back();
 
-    unsigned long long total = (jiffy.total - jiffy2.total);
-    unsigned long long idle = (jiffy.idle - jiffy2.idle);
+    total_diff += cur.total - pre.total;
+    idle_diff += cur.idle - pre.idle;
 
-    idle = 100 * idle / total;
-
-    std::cout << "cpu idle : " << idle << "\n";
-    std::cout << "cpu usage: " << 100 - idle << "\n";
+    char buffer[158];
+    snprintf(buffer, sizeof(buffer), "cpu ide:%2.2Lf", idle_diff / total_diff * 100);
+    std::cout << buffer;
+    std::cout << std::endl;
 #endif
 }
 

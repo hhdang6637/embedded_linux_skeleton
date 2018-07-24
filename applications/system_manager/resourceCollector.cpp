@@ -32,7 +32,7 @@ resourceCollector* resourceCollector::getInstance()
     return s_instance;
 }
 
-std::list<jiffy_counts_t> resourceCollector::get_cpu_history()
+std::list<cpu_stat_t> resourceCollector::get_cpu_history()
 {
     return this->cpu_history;
 }
@@ -41,26 +41,27 @@ void resourceCollector::cpu_do_collect()
 {
     static const char fmt[] = "cpu %llu %llu %llu %llu %llu %llu %llu %llu";
 
-    jiffy_counts_t p_jif = {0};
+    cpu_stat_t stat = {0};
 
     FILE * f;
     f = fopen("/proc/stat", "r");
     if (f != NULL) {
 
-        int ret = fscanf(f, fmt, &p_jif.usr, &p_jif.nic, &p_jif.sys, &p_jif.idle,
-                &p_jif.iowait, &p_jif.irq, &p_jif.softirq, &p_jif.steal);
+        int ret = fscanf(f, fmt, &stat.usr, &stat.nic, &stat.sys, &stat.idle,
+                &stat.iowait, &stat.irq, &stat.softirq, &stat.steal);
 
         if (ret >= 4) {
-            p_jif.total = p_jif.usr + p_jif.nic + p_jif.sys + p_jif.idle
-                    + p_jif.iowait + p_jif.irq + p_jif.softirq
-                    + p_jif.steal;
+            stat.total = stat.usr + stat.nic + stat.sys + stat.idle
+                    + stat.iowait + stat.irq + stat.softirq
+                    + stat.steal;
             /* procps 2.x does not count iowait as busy time */
-            p_jif.busy = p_jif.total - p_jif.idle - p_jif.iowait;
-        }
+            stat.busy = stat.total - stat.idle - stat.iowait;
 
-        this->cpu_history.push_back(p_jif);
-        if (this->cpu_history.size() > 60) {
-            this->cpu_history.pop_front();
+            if (this->cpu_history.size() >= resourceCollector::cpu_history_max_sample) {
+                this->cpu_history.pop_front();
+            }
+
+            this->cpu_history.push_back(stat);
         }
 
         fclose(f);
