@@ -74,7 +74,7 @@ compile_apps: $(BIN_BUILD_DIR)
 	@echo "**********done**********"
 
 clean_apps:
-	@$(MAKE) -C applications clean
+	@rm -rf $(BUILD_DIR)/applications
 
 clean_uboot:
 	@rm -rf $(UBOOT_BUILD_DIR)
