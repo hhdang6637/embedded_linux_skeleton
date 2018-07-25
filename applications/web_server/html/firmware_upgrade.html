@@ -1,41 +1,30 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
-    <h1 class="h2">Firmware Upgrade</h1>
+    <h1 class="h2">Firmware Upload</h1>
 </div>
 <div class="container">
   <div class="panel panel-default">
-    <div class="panel-heading"><strong>Upload Files</strong> <small>Bootstrap files upload</small></div>
     <div class="panel-body">
 
       <!-- Standar Form -->
-      <h4>Select files from your computer</h4>
+      <h4>Select the fimware from your computer</h4>
       <form action="" method="post" enctype="multipart/form-data" id="js-upload-form">
         <div class="form-inline">
           <div class="form-group">
             <input type="file" name="files[]" id="js-upload-files" multiple>
           </div>
-          <button type="submit" class="btn btn-sm btn-primary" id="js-upload-submit">Upload files</button>
+          <button type="submit" class="btn btn-sm btn-primary" id="js-upload-submit">Upload</button>
         </div>
       </form>
 
       <!-- Drop Zone -->
-      <h4>Or drag and drop files below</h4>
+      <h4>Or drag and drop the fimware below</h4>
       <div class="upload-drop-zone" id="drop-zone">
-        Just drag and drop files here
+        Just drag and drop the fimware here
       </div>
 
       <!-- Progress Bar -->
       <div class="progress">
-        <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;">
-          <span class="sr-only">60% Complete</span>
-        </div>
-      </div>
-
-      <!-- Upload Finished -->
-      <div class="js-upload-finished">
-        <h3>Processed files</h3>
-        <div class="list-group">
-          <a href="#" class="list-group-item list-group-item-success" id="file-info"><span class="badge alert-success pull-right">Success</span>image-01.jpg</a>
-        </div>
+        <div class="progress-bar" role="progressbar" aria-valuenow="00" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
       </div>
     </div>
   </div>
@@ -51,6 +40,10 @@
     var uploadForm = document.getElementById('js-upload-form');
 
     var sendFile = function(file) {
+        // var bar = $('.progress-bar');
+        // var percent = $('.progress-bar');
+        // var status = $('#file-info');
+
         var formData = new FormData();
         formData.append('file', file);
 
@@ -67,35 +60,27 @@
         };
 
         xhr.upload.onprogress = function (event) {
-            //TODO show the progress
+            // show the progress
+            if (event.lengthComputable)
+            {
+                var percentComplete = (event.loaded / event.total) * 100;
+                percentComplete = Math.round(percentComplete);
+                $('.progress-bar').attr('aria-valuenow', percentComplete).css('width',percentComplete + '%').text(percentComplete + '%' + " Completed")
+            }
         };
 
         xhr.send(formData);
     }
 
     var startUpload = function(files) {
-        console.log(files)
+        // reset the process bar
+        $('.progress-bar').attr('aria-valuenow', 0).css('width',0 + '%');
 
-        var txt = "";
         var href = "";
         for (var i = 0; i < files.length; i++) {
-            txt += "<br><strong>" + (i+1) + ". file</strong><br>";
             var file = files[i];
-            if ('name' in file) {
-                txt += "name: " + file.name + "<br>";
-                href += file.name;
-            }
-            if ('size' in file) {
-                txt += "size: " + file.size + " bytes <br>";
-            }
-
             sendFile(file);
         }
-
-        document.getElementById("file-info").innerHTML = txt;
-        document.getElementById("file-info").href = href;
-
-
     }
 
     uploadForm.addEventListener('submit', function(e) {
