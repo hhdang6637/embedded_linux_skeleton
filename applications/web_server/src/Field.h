@@ -26,7 +26,7 @@ namespace MPFD {
         void SetType(int type);
         int GetType();
 
-        void AcceptSomeData(char *data, long length);
+        void AcceptSomeData(char *data, long length, const char *filename);
 
 
         // File functions

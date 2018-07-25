@@ -47,7 +47,7 @@ int MPFD::Field::GetType() {
     }
 }
 
-void MPFD::Field::AcceptSomeData(char *data, long length) {
+void MPFD::Field::AcceptSomeData(char *data, long length, const char *filename) {
     if (type == TextType) {
         if (FieldContent == NULL) {
             FieldContent = new char[length + 1];
@@ -72,7 +72,7 @@ void MPFD::Field::AcceptSomeData(char *data, long length) {
                         }
 
                         std::stringstream ss;
-                        ss << "MPFD_Temp_" << i;
+                        ss << filename;
                         TempFile = ss.str();
 
                         tempfile = TempDir + "/" + TempFile;

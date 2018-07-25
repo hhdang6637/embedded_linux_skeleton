@@ -124,7 +124,8 @@ bool MPFD::Parser::ProcessContentOfTheField() {
 
     if (DataLengthToSendToField > 0) {
         // 2 is the last empty line
-        Fields[ProcessingFieldName]->AcceptSomeData(DataCollector, DataLengthToSendToField - 2);
+        Fields[ProcessingFieldName]->AcceptSomeData(DataCollector, DataLengthToSendToField - 2,
+                                                    Fields[ProcessingFieldName]->GetFileName().c_str());
         TruncateDataCollectorFromTheBeginning(DataLengthToSendToField);
     }
 
@@ -214,7 +215,6 @@ void MPFD::Parser::_ParseHeaders(std::string headers) {
                 std::string content_type = headers.substr(content_type_pos + 14, content_type_end_pos - (content_type_pos + 14));
                 Fields[ProcessingFieldName]->SetFileContentType(content_type);
             }
-
 
         }
 
