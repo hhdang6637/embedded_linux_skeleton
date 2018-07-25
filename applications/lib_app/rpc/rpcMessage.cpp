@@ -4,8 +4,6 @@
  *  Created on: Jul 24, 2018
  *      Author: hhdang
  */
-#include <sys/socket.h>
-
 #include "rpcMessage.h"
 
 namespace app
@@ -24,10 +22,12 @@ rpcMessage::~rpcMessage()
 
 bool rpcMessage::send(int fd)
 {
-	uint16_t buff = this->msgType;
-    if (::send(fd, &buff, sizeof(buff), 0) != sizeof(buff)) {
+    uint16_t buff = this->msgType;
+
+    if(rpcMessage::sendInterruptRetry(fd, &buff, sizeof(buff)) != true) {
         return false;
     }
+
     this->serialize(fd);
     return true;
 }

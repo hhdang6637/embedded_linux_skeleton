@@ -81,9 +81,8 @@ bool rpcUnixServer::doReply()
 
     uint16_t msgTypeNumber = 0;
 
-    if (::recv(client_socket, &msgTypeNumber, sizeof(uint16_t), 0) != sizeof(uint16_t)) {
-        syslog(LOG_ERR, "recv failed");
-        rc = false;
+    if (rpcMessage::recvInterruptRetry(client_socket, &msgTypeNumber, sizeof(uint16_t)) != true) {
+        return false;
     } else {
 
         auto it = this->messageHandlers.find(app::rpcMessage::rpcMessageType(msgTypeNumber));
@@ -95,6 +94,7 @@ bool rpcUnixServer::doReply()
             syslog(LOG_ERR, buff);
         }
     }
+
     ::close(client_socket);
 
     return rc;

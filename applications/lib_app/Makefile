@@ -1,5 +1,5 @@
 # CC       = gcc
-CXXFLAGS += -fPIC
+CXXFLAGS += -fPIC -I.
 
 SHARED=libapp.so
 SRCS=simpleTimerSync.o
@@ -20,6 +20,7 @@ clean:
 
 install:
 	cp *.h       $(ROOTFS_DIR)/usr/include
+	cp rpc/*.h       $(ROOTFS_DIR)/usr/include
 	cp $(SHARED) $(ROOTFS_DIR)/usr/lib
 
 all: $(SHARED) install
