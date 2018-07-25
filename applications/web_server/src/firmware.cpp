@@ -5,6 +5,7 @@
  *      Author: nmhien
  */
 #include <fcgiapp.h>
+#include <syslog.h>
 
 #include "Parser.h"
 #include "Field.h"
@@ -14,35 +15,50 @@
 /**
  * \return 0 on error
  */
-static int process_file_data(const char *input, const char *contentType, const int len)
+static int process_file_data(const char *data, const char *contentType, const int len)
 {
-    MPFD::Parser *POSTParser;
     try {
+        MPFD::Parser *POSTParser;
+
         POSTParser = new MPFD::Parser();
+
         POSTParser->SetTempDirForFileUpload("/tmp");
-        POSTParser->SetMaxCollectedDataLength(32*1024*1024);
+
+        POSTParser->SetMaxCollectedDataLength(32 * 1024 * 1024); // 32MB
 
         POSTParser->SetContentType(contentType);
 
-        POSTParser->AcceptSomeData(input, len);
+        POSTParser->AcceptSomeData(data, len);
 
         // Now see what we have:
-        std::map<std::string,MPFD::Field *> fields=POSTParser->GetFieldsMap();
+        std::map<std::string, MPFD::Field *> fields = POSTParser->GetFieldsMap();
 
-        std::cout << "Have " << fields.size() << " fields\n\r";
+        for (auto const &it : fields) {
+            char syslog_message[256];
 
-        std::map<std::string,MPFD::Field *>::iterator it;
-        for (it=fields.begin();it!=fields.end();it++) {
-            if (fields[it->first]->GetType()==MPFD::Field::TextType) {
-                std::cout<<"Got text field: ["<<it->first<<"], value: ["<< fields[it->first]->GetTextTypeContent() <<"]\n";
+            if (fields[it.first]->GetType() == MPFD::Field::TextType) {
+
+                snprintf(syslog_message, 256,
+                        "Got text field: [ %s ], value: [ %s ]\n",
+                        it.first.c_str(),
+                        fields[it.first]->GetTextTypeContent().c_str());
+
             } else {
-                std::cout<<"Got file field: ["<<it->first<<"] Filename:["<<fields[it->first]->GetFileName()<<"] \n";
-                std::cout << fields[it->first]->GetTempFileName() << std::endl;
+
+                snprintf(syslog_message, 256,
+                        "Got file field: [ %s ], Filename: [ %s ]\n",
+                        it.first.c_str(),
+                        fields[it.first]->GetTempFileName().c_str());
+
             }
+
+            syslog(LOG_INFO, syslog_message);
         }
     } catch (MPFD::Exception e) {
-        std::cout << "Parsing input error: " << e.GetError() << std::endl;
+
+        syslog(LOG_ERR, "%s\n", e.GetError().c_str());
         return 0;
+
     }
 
     return 1;
@@ -53,8 +69,8 @@ static int process_file_data(const char *input, const char *contentType, const i
  */
 int handle_firmware_upgrade(FCGX_Request *request)
 {
-    const char *contentLenStr  = FCGX_GetParam("CONTENT_LENGTH", request->envp);
-    const char *contentType    = FCGX_GetParam("CONTENT_TYPE", request->envp);
+    const char *contentLenStr = FCGX_GetParam("CONTENT_LENGTH", request->envp);
+    const char *contentType   = FCGX_GetParam("CONTENT_TYPE", request->envp);
 
     std::string data;
     int         contentLength = 0;
@@ -67,11 +83,12 @@ int handle_firmware_upgrade(FCGX_Request *request)
         int ch = FCGX_GetChar(request->in);
 
         if (ch < 0) {
-            std::cerr << "Failed to get file content" << std::endl;
+
+            syslog(LOG_ERR, "Failed to get file content\n");
             return 0;
 
         } else {
-            data  += ch;
+            data += ch;
         }
     }
 
