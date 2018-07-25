@@ -1,0 +1,106 @@
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">CPU USAGE (%)</h1>
+</div>
+<style>
+    canvas{
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+    }
+    .chart-container {
+        width: 500px;
+        margin-left: 40px;
+        margin-right: 40px;
+        margin-bottom: 40px;
+    }
+    .cpu_chart_canvas {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+</style>
+<div id="chart-container">
+    <canvas id="cpu_chart_canvas"></canvas>
+</div>
+<!-- ChartJs -->
+<script src="/js/plugins/chartjs/Chart.bundle.js"></script>
+<script>
+
+$(function () {
+    $("#main_menu").find("a[href='/pages/dashboard']").addClass("active")
+});
+
+//////////////////////////////////////////////////////
+    // CPU chart setup
+//////////////////////////////////////////////////////
+
+var second_datas = [];
+for(i = 60; i >= 0; i--) {
+    second_datas.push(i);
+}
+
+var cpu_percents = [];
+
+var config = {
+    type: 'line',
+    data: {
+        labels: second_datas,
+        datasets: [{
+            label: 'CPU Percents',
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: cpu_percents,
+            fill: true,
+        }]
+    },
+    options: {
+        responsive: true,
+        title: { display: false, text: 'CPU USAGE (%)'},
+        tooltips: { mode: 'index', intersect: false, },
+        hover: { mode: 'nearest', intersect: true },
+        scales: {
+            xAxes: [{
+                display: false,
+                scaleLabel: { display: false, labelString: 'Seconds' },
+                // ticks: { min: 0, max: 40, stepSize: 5, reverse: false, },
+            }],
+            yAxes: [{
+                display: true,
+                scaleLabel: { display: false, labelString: 'Percents' },
+                ticks: { min: 0, max: 100, stepSize: 10, reverse: false, },
+            }]
+        },
+        animation: {
+            duration: 0
+        }
+    }
+};
+
+var realtime = 'on';
+
+function updateRealTime() {
+
+    $.getJSON( "/json/cpu_usage_history", function( data ) {
+        // config.data.datasets = data.cpu_usage_history;
+        config.data.datasets.forEach(function(dataset) {
+            dataset.data = data.json_cpu_usage_history;
+        });
+        window.myLine.update();
+    });
+
+    var timeout;
+    if (realtime === 'on') {
+        timeout = setTimeout(updateRealTime, 1000);
+    } else {
+        clearTimeout(timeout);
+    }
+}
+
+window.onload = function() {
+    var ctx = document.getElementById('cpu_chart_canvas').getContext('2d');
+    window.myLine = new Chart(ctx, config);
+    updateRealTime();
+};
+
+</script>
