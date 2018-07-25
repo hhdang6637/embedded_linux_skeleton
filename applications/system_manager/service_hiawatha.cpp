@@ -60,6 +60,7 @@ bool service_hiawatha::init()
                 "ErrorLogfile       = LOG_DIR/error.log\n"
                 "Binding {\n"
                 "    Port = 80\n"
+                "    MaxRequestSize = 32768\n"
                 "}\n"
                 "Hostname       = 127.0.0.1\n"
                 "WebsiteRoot    = WEBROOT_DIR\n"
