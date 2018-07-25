@@ -4,6 +4,7 @@
  *  Created on: Jul 20, 2018
  *      Author: hhdang
  */
+#include <string.h>
 
 #include <iostream>
 #include <vector>
@@ -12,6 +13,7 @@
 #include <sstream>
 
 #include "simplewebfactory.h"
+#include "firmware.h"
 
 bool simpleWebFactory::file_to_string(std::string filename, std::string &output)
 {
@@ -73,7 +75,22 @@ simpleWebFactory* simpleWebFactory::getInstance()
 
 void simpleWebFactory::handle_request(FCGX_Request *request)
 {
-    const char *response_content = this->get_html_str(FCGX_GetParam("REQUEST_URI", request->envp));
+    const char *method           = FCGX_GetParam("REQUEST_METHOD", request->envp);
+    const char *request_uri      = FCGX_GetParam("REQUEST_URI", request->envp);
+    const char *response_content = this->get_html_str(request_uri);
+
+    if (method && (strcmp(method, "POST") == 0)) {
+
+        if (strcmp(request_uri, "/firmware_upgrade") == 0) {
+            if (handle_firmware_upgrade(request)) {
+                FCGX_FPrintF(request->out, "HTTP/1.1 200 OK\r\n\r\n");
+            } else {
+                FCGX_FPrintF(request->out, "HTTP/1.1 400 Bad Request\r\n\r\n");
+            }
+
+            return;
+        }
+    }
 
     if (response_content != NULL) {
 
@@ -85,7 +102,7 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
         FCGX_FPrintF(request->out, "Content-Type: application/json; charset=utf-8\r\n\r\n");
         FCGX_FPrintF(request->out, "%s", response_content);
 
-    }else {
+    } else {
         FCGX_FPrintF(request->out, "HTTP/1.1 404 Not Found\r\n\r\n");
     }
 }
