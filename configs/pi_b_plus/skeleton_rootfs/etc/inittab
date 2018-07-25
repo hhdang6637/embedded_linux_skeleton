@@ -15,6 +15,7 @@
 
 # Startup the system
 ::sysinit:/bin/mount -t proc proc /proc
+::sysinit:/bin/mount -t sysfs sysfs /sys
 ::sysinit:/bin/mount -o remount,ro /
 ::sysinit:/bin/mkdir -p /dev/pts
 ::sysinit:/bin/mkdir -p /dev/shm
