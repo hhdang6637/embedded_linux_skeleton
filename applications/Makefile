@@ -27,6 +27,7 @@ all: $(ROOTFS_DIR)
 	@$(MAKE) -C network_manager clean all
 	@$(MAKE) -C system_manager clean all
 	@$(MAKE) -C hello_world_app clean all
+	@$(MAKE) -C dropbear/dropbear-2018.76 clean all
 
 clean:
 	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean
@@ -36,4 +37,5 @@ clean:
 	@$(MAKE) -C network_manager clean
 	@$(MAKE) -C system_manager clean
 	@$(MAKE) -C web_server clean
+	@$(MAKE) -C dropbear/dropbear-2018.76 clean
 	@rm -rf   $(ROOTFS_DIR)
