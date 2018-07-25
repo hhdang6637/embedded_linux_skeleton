@@ -14,7 +14,7 @@
 /**
  * \return 0 on error
  */
-static int process_file_data(const char *input, const char *contentType)
+static int process_file_data(const char *input, const char *contentType, const int len)
 {
     MPFD::Parser *POSTParser;
     try {
@@ -24,9 +24,7 @@ static int process_file_data(const char *input, const char *contentType)
 
         POSTParser->SetContentType(contentType);
 
-        const int ReadBufferSize = strlen(input);
-
-        POSTParser->AcceptSomeData(input, ReadBufferSize);
+        POSTParser->AcceptSomeData(input, len);
 
         // Now see what we have:
         std::map<std::string,MPFD::Field *> fields=POSTParser->GetFieldsMap();
@@ -78,7 +76,7 @@ int handle_firmware_upgrade(FCGX_Request *request)
     }
 
     if (contentType) {
-        process_file_data(data.c_str(), contentType);
+        process_file_data(data.c_str(), contentType, data.size());
     }
 
     return 1;
