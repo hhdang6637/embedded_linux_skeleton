@@ -8,13 +8,14 @@
 #ifndef _SIMPLE_WEB_FACTORY_H_
 #define _SIMPLE_WEB_FACTORY_H_
 
+#include <fcgiapp.h>
 #include <string>
 #include <map>
 #include <functional>
 
 #define INTERNAL_RESOURCE "/var/www/hiawatha/private/"
 
-typedef std::function<std::string(const char*)> jsCallback;
+typedef std::function<std::string(FCGX_Request *request)> jsCallback;
 
 class simpleWebFactory
 {
@@ -39,8 +40,9 @@ private:
 public:
     virtual ~simpleWebFactory();
     static simpleWebFactory* getInstance();
+    void handle_request(FCGX_Request *request);
     const char* get_html_str(const char* url);
-    const char* get_js_str(const char* url);
+    const char* get_js_str(FCGX_Request *request);
 };
 
 #endif /* _SIMPLE_WEB_FACTORY_H_ */

@@ -71,6 +71,25 @@ simpleWebFactory* simpleWebFactory::getInstance()
     return s_instance;
 }
 
+void simpleWebFactory::handle_request(FCGX_Request *request)
+{
+    const char *response_content = this->get_html_str(FCGX_GetParam("REQUEST_URI", request->envp));
+
+    if (response_content != NULL) {
+
+        FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n\r\n");
+        FCGX_FPrintF(request->out, "%s", response_content);
+
+    } else if ((response_content = this->get_js_str(request)) != NULL) {
+
+        FCGX_FPrintF(request->out, "Content-Type: application/json; charset=utf-8\r\n\r\n");
+        FCGX_FPrintF(request->out, "%s", response_content);
+
+    }else {
+        FCGX_FPrintF(request->out, "HTTP/1.1 404 Not Found\r\n\r\n");
+    }
+}
+
 const char* simpleWebFactory::get_html_str(const char * url)
 {
     const char* main_content = NULL;
@@ -116,18 +135,18 @@ const char* simpleWebFactory::get_html_str(const char * url)
     return html.c_str();
 }
 
-const char* simpleWebFactory::get_js_str(const char * url)
+const char* simpleWebFactory::get_js_str(FCGX_Request *request)
 {
     std::map<std::string,jsCallback>::iterator it;
 
-    it = this->url_js_map.find(url);
+    it = this->url_js_map.find(FCGX_GetParam("REQUEST_URI", request->envp));
     if (it == this->url_js_map.end()) {
         return NULL;
     }
 
     static std::string js;
 
-    js = it->second(url);
+    js = it->second(request);
 
     return js.c_str();
 }

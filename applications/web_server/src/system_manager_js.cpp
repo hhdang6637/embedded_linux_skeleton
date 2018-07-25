@@ -13,7 +13,7 @@
 #include "rpcUnixClient.h"
 #include "rpcMessageCpuHistory.h"
 
-std::string json_cpu_usage_history(const char*url)
+std::string json_cpu_usage_history(FCGX_Request *request)
 {
     std::ostringstream ss_json;
     ss_json << "{\"json_cpu_usage_history\":[";

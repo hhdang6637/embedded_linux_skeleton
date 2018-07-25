@@ -33,39 +33,11 @@ static void fcgi_init()
     FCGX_InitRequest(&fcgi_request, fcgi_sock, 0);
 }
 
-#define printfcgi(...) FCGX_FPrintF(request->out, __VA_ARGS__)
-#define get_param(KEY) FCGX_GetParam(KEY, request->envp)
-
-static void handle_request(FCGX_Request *request)
-{
-
-    const char *request_uri = FCGX_GetParam("REQUEST_URI", request->envp);
-
-    simpleWebFactory *web = simpleWebFactory::getInstance();
-
-    const char *response_content = web->get_html_str(request_uri);
-
-    if (response_content != NULL) {
-
-        printfcgi("Content-Type: text/html; charset=utf-8\r\n\r\n");
-        printfcgi("%s", response_content);
-
-    } else if ((response_content = web->get_js_str(request_uri)) != NULL) {
-
-        printfcgi("Content-Type: application/json; charset=utf-8\r\n\r\n");
-        printfcgi("%s", response_content);
-
-    }else {
-        printfcgi("HTTP/1.1 404 Not Found\r\n\r\n");
-    }
-
-}
-
 static void fcgi_accept_loop()
 {
     while (FCGX_Accept_r(&fcgi_request) >= 0) {
 
-        handle_request(&fcgi_request);
+        simpleWebFactory::getInstance()->handle_request(&fcgi_request);
         FCGX_Finish_r(&fcgi_request);
 
     }

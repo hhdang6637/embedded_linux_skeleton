@@ -6,7 +6,7 @@
  */
 #include "simplewebfactory.h"
 
-extern std::string json_cpu_usage_history(const char*url);
+extern std::string json_cpu_usage_history(FCGX_Request *request);
 
 void simpleWebFactory::init_url_js_map()
 {

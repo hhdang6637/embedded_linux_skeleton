@@ -37,6 +37,8 @@ bool rpcUnixServer::openServer(rpcMessageAddr addr)
         goto error_exit;
     }
 
+    this->listened = true;
+
     return true;
 
 error_exit:
