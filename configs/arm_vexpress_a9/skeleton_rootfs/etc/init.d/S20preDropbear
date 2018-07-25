@@ -1,0 +1,10 @@
+#!/bin/sh
+# This script only converts PEM keys for drobear to work.
+
+echo Converting keys
+mkdir /tmp/dropbear
+chmod 700 /tmp/dropbear
+dropbearconvert openssh dropbear /etc/ssh_host_dsa_key /tmp/dropbear/dropbear_dss_host_key
+dropbearconvert openssh dropbear /etc/ssh_host_rsa_key /tmp/dropbear/dropbear_rsa_host_key
+echo Done
+exit $?

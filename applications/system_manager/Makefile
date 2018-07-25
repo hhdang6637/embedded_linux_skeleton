@@ -1,8 +1,6 @@
-# CC       = gcc
-# CFLAGS +=
 
 BIN=system_manager_daemon
-SRCS=main.o system_manager.o service.o service_hiawatha.o
+SRCS=main.o system_manager.o service.o serviceHiawatha.o resourceCollector.o
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@
@@ -10,7 +8,7 @@ SRCS=main.o system_manager.o service.o service_hiawatha.o
 OBJS   = $(patsubst %.cpp,%.o,$(SRCS))
 
 $(BIN): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN) -lapp
 
 clean:
 	rm -f $(OBJS) $(BIN)

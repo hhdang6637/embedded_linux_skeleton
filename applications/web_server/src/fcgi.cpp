@@ -82,7 +82,7 @@ static void fcgi_accept_loop()
 {
     while (FCGX_Accept_r(&fcgi_request) >= 0) {
 
-        handle_request(&fcgi_request);
+        simpleWebFactory::getInstance()->handle_request(&fcgi_request);
         FCGX_Finish_r(&fcgi_request);
 
     }

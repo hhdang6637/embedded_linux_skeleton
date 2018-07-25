@@ -69,10 +69,6 @@ int main(int argc, char const *argv[])
     system_manager_init();
 
     std::cout << argv[0] << " init complete\n";
-
-    while(1) {
-        sleep(1);
-    }
-
+    system_manager_service_loop();
     return 0;
 }
