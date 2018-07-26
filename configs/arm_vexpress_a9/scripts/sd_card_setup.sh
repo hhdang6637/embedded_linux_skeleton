@@ -8,8 +8,8 @@ mkfs.vfat $SD_P1
 
 UBOOT_SCRIPT_NAME=boot.scr
 UBOOT_NAME=kernel.img
-FW_NAME=firmware_0
+FW_NAME=firmware
 
 mcopy -i $SD_P1 $UBOOT_SCRIPT_NAME ::/$UBOOT_SCRIPT_NAME
 mcopy -i $SD_P1 $UBOOT_NAME ::/$UBOOT_NAME
-mcopy -i $SD_P1 $FW_NAME ::/$FW_NAME
+mcopy -i $SD_P1 $FW_NAME ::/firmware_0
