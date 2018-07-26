@@ -16,12 +16,13 @@
 # Startup the system
 ::sysinit:/bin/mount -t proc proc /proc
 ::sysinit:/bin/mount -t sysfs sysfs /sys
-::sysinit:/bin/mount -o remount,ro /
 ::sysinit:/bin/mkdir -p /dev/pts
+::sysinit:/bin/mount -t devpts -o gid=5,mode=620 devpts /dev/pts
 ::sysinit:/bin/mkdir -p /dev/shm
+::sysinit:/bin/mount -o remount,ro /
 ::sysinit:/bin/mount -t tmpfs tmpfs /tmp -o size=64m
 ::sysinit:/bin/mkdir /tmp/root
-::sysinit:/bin/mount -a
+#::sysinit:/bin/mount -a
 ::sysinit:/bin/hostname -F /etc/hostname
 # now run any rc scripts
 ::sysinit:/etc/init.d/rcS
