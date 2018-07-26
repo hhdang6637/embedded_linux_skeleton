@@ -36,6 +36,6 @@ console::respawn:/sbin/getty -L  console 0 vt100 # GENERIC_SERIAL
 #::ctrlaltdel:/sbin/reboot
 
 # Stuff to do before rebooting
-::shutdown:/etc/init.d/rcK
-::shutdown:/sbin/swapoff -a
-::shutdown:/bin/umount -a -r
+#::shutdown:/etc/init.d/rcK
+#::shutdown:/sbin/swapoff -a
+#::shutdown:/bin/umount -a -r
