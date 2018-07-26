@@ -4,7 +4,11 @@
 
 #include <iostream>
 
+#include "utilities.h"
 #include "fcgi.h"
+
+#define SERVICE_NAME    "web_handler"
+#define PID_FILE_NAME   "/var/run/web_handler.pid"
 
 typedef struct {
     bool daemon;
@@ -40,31 +44,20 @@ void parse_arguments(int argc, char const *argv[]) {
 
 int main(int argc, char const *argv[])
 {
-    openlog("web_handler", 0, LOG_USER);
-
-    pid_t pid;
+    openlog(SERVICE_NAME, 0, LOG_USER);
 
     parse_arguments(argc, argv);
 
-    /* Become a daemon
-     */
     if (settings.daemon) {
-        switch (pid = fork()) {
-        case -1:
-            perror("fork()");
-            return -1;
-        case 0:
-            if (setsid() == -1) {
-                perror("setsid()");
-                exit(EXIT_FAILURE);
-                ;
-            }
-            break;
-        default:
-            std::cout << argv[0] << " just fork to new process " << pid << "\n";
-            return 0;
+        if (daemon(1, 0)) {
+            syslog(LOG_ERR, "fork is not scuccess");
+            exit(EXIT_FAILURE);
         }
     }
+
+    write_pid(PID_FILE_NAME, getpid());
+
+    syslog(LOG_NOTICE,"%s init complete\n", SERVICE_NAME);
 
     fcgi_start();
     return 0;

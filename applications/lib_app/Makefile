@@ -3,7 +3,7 @@ CXXFLAGS += -fPIC -I.
 
 SHARED=libapp.so
 SRCS=simpleTimerSync.o
-SRCS += cpu_stat.o
+SRCS += cpu_stat.o utilities.o
 SRCS += rpc/rpcMessage.o rpc/rpcMessageAddr.o rpc/rpcUnixClient.o rpc/rpcUnixServer.o
 SRCS += rpc/rpcMessageCpuHistory.o
 

@@ -3,7 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <syslog.h>
 
+#include "utilities.h"
 #include "network_manager.h"
 
 typedef struct {
@@ -37,33 +39,22 @@ void parse_arguments(int argc, char const *argv[]) {
 
 int main(int argc, char const *argv[])
 {
-    pid_t pid;
+    openlog(SERVICE_NAME, 0, LOG_USER);
 
     parse_arguments(argc, argv);
 
-    /* Become a daemon
-     */
     if (settings.daemon) {
-        switch (pid = fork()) {
-        case -1:
-            perror("fork()");
-            return -1;
-        case 0:
-            if (setsid() == -1) {
-                perror("setsid()");
-                exit(EXIT_FAILURE);
-                ;
-            }
-            break;
-        default:
-            printf("%s just fork to new proccess %d\n", argv[0], pid);
-            return 0;
+        if (daemon(1, 0)) {
+            syslog(LOG_ERR, "fork is not scuccess");
+            exit(EXIT_FAILURE);
         }
     }
 
+    write_pid(PID_FILE_NAME, getpid());
+
     network_manager_init();
 
-    printf("%s init complete\n", argv[0]);
+    syslog(LOG_NOTICE,"%s init complete\n", SERVICE_NAME);
 
     while(1) {
         sleep(1);

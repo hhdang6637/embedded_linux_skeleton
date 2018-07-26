@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+#include "utilities.h"
 #include "system_manager.h"
 
 typedef struct {
@@ -40,35 +41,23 @@ void parse_arguments(int argc, char const *argv[]) {
 
 int main(int argc, char const *argv[])
 {
-    openlog(argv[0], 0, LOG_USER);
-
-    pid_t pid;
+    openlog(SERVICE_NAME, 0, LOG_USER);
 
     parse_arguments(argc, argv);
 
-    /* Become a daemon
-     */
     if (settings.daemon) {
-        switch (pid = fork()) {
-        case -1:
-            perror("fork()");
-            return -1;
-        case 0:
-            if (setsid() == -1) {
-                perror("setsid()");
-                exit(EXIT_FAILURE);
-                ;
-            }
-            break;
-        default:
-            std::cout << argv[0] << " just fork to new process " << pid << "\n";
-            return 0;
+        if (daemon(1, 0)) {
+            syslog(LOG_ERR, "fork is not scuccess");
+            exit(EXIT_FAILURE);
         }
     }
 
+    write_pid(PID_FILE_NAME, getpid());
+
     system_manager_init();
 
-    std::cout << argv[0] << " init complete\n";
+    syslog(LOG_NOTICE,"%s init complete\n", SERVICE_NAME);
+
     system_manager_service_loop();
     return 0;
 }
