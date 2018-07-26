@@ -10,4 +10,6 @@
 
 void write_pid(const char*pidfile, pid_t pid);
 
+bool copy_file(const char *src, const char*dst);
+
 #endif /* APPLICATIONS_LIB_APP_UTILITIES_H_ */

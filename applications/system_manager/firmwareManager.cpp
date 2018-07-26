@@ -6,16 +6,12 @@
  */
 #include <iostream>
 
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/sendfile.h>
 #include <syslog.h>
 
 #include "firmwareManager.h"
+#include "utilities.h"
 
-#define FIRMWARE_NAME "/mnt/fw_0"
+#define FIRMWARE_NAME "/boot/firmware_0"
 
 namespace app
 {
@@ -52,31 +48,6 @@ namespace app
         this->firmware_name = filename;
     }
 
-    static bool copy_file(const char *src, const char*dst)
-    {
-        int src_fd, dst_fd;
-        struct stat statbuf;
-        bool rc = false;
-
-        src_fd = ::open(src, O_RDONLY);
-
-        dst_fd = ::creat(dst, S_IRUSR | S_IWUSR);
-
-        if (src_fd != -1 && dst_fd != -1 && ::fstat(src_fd, &statbuf) == 0) {
-            if (::sendfile(dst_fd, src_fd, NULL, statbuf.st_size) == statbuf.st_size) {
-                rc = true;
-            }
-        }
-
-        if (src_fd != -1)
-            close(src_fd);
-
-        if (dst_fd != -1)
-            close(dst_fd);
-
-        return rc;
-    }
-
     bool firmwareManager::firmwareValidator()
     {
         syslog(LOG_INFO, "Validating firmware....\n");
@@ -89,12 +60,12 @@ namespace app
      */
     uint16_t firmwareManager::doFirmwareUpgrade()
     {
-        if (firmwareValidator() == false)
+        if (this->firmwareValidator() == false)
             return 1;
 
         syslog(LOG_INFO, "Processing firmware upgrade....\n");
 
-        if (copy_file(this->firmware_name.c_str(), FIRMWARE_NAME) == false)
+        if (::copy_file(this->firmware_name.c_str(), FIRMWARE_NAME) == false)
             return 1;
 
         return 0;
