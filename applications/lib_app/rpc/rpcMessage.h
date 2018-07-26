@@ -14,6 +14,7 @@
 #include <syslog.h>
 #include <iostream>
 #include <list>
+#include <string>
 
 #include "rpcMessageAddr.h"
 
@@ -47,6 +48,12 @@ public:
     {
         memcpy(dst, &src, sizeof(src));
         return sizeof(src);
+    }
+
+    static int bufferAppend(void*dst, std::string &str)
+    {
+        memcpy(dst, str.c_str(), str.length());
+        return str.length();
     }
 
     template<typename T> static int bufferAppendList(char*dst, T const &list)
