@@ -63,23 +63,9 @@ void MPFD::Field::AcceptSomeData(char *data, long length, const char *filename) 
         if (WhereToStoreUploadedFiles == Parser::StoreUploadedFilesInFilesystem) {
             if (TempDir.length() > 0) {
                 if (!file.is_open()) {
-                    int i = 1;
-                    std::ifstream testfile;
                     std::string tempfile;
-                    do {
-                        if (testfile.is_open()) {
-                            testfile.close();
-                        }
-
-                        std::stringstream ss;
-                        ss << filename;
-                        TempFile = ss.str();
-
-                        tempfile = TempDir + "/" + TempFile;
-
-                        testfile.open(tempfile.c_str(), std::ios::in);
-                        i++;
-                    } while (testfile.is_open());
+                    TempFile = filename;
+                    tempfile = TempDir + "/" + TempFile;
 
                     file.open(tempfile.c_str(), std::ios::out | std::ios::binary | std::ios_base::trunc);
                 }
@@ -87,6 +73,7 @@ void MPFD::Field::AcceptSomeData(char *data, long length, const char *filename) 
                 if (file.is_open()) {
                     file.write(data, length);
                     file.flush();
+                    file.close();
                 } else {
                     throw Exception(std::string("Cannot write to file ") + TempDir + "/" + TempFile);
                 }
