@@ -9,15 +9,22 @@ cp -r $LINUX_MOD_BUILD_DIR/lib .
 cp -r $SKELETON_ROOTFS_DIR/* .
 cp -r $ROOTFS_DIR/* .
 
+# remove /var/run
 if [ -e var/run ]; then
     rm -rf var/run
 fi
+# add new symbol link /var/run -> /tmp
 cd var && ln -sf ../tmp run && cd ..
 
+# remove /root
 if [ -e root ]; then
     rm -rf root
 fi
+# add new symbol link /root -> /tmp/root
 ln -sf tmp/root root
+
+# mkdir /boot
+mkdir boot
 
 find . -print | cpio -o -H newc > ../sdcard_boot/rootfs.cpio
 cd ..
