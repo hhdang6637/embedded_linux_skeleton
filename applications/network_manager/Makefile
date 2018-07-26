@@ -1,16 +1,15 @@
-# CC       = gcc
-# CFLAGS +=
+CXXFLAGS += -lapp
 
 BIN=network_manager_daemon
 SRCS=main.o network_manager.o
 
-%.o : %.c
-	$(CC) $(CFLAGS) $< -c -o $@
+%.o : %.cpp
+	$(CXX) $(CXXFLAGS) $< -c -o $@
 
-OBJS   = $(patsubst %.c,%.o,$(SRCS))
+OBJS   = $(patsubst %.cpp,%.o,$(SRCS))
 
 $(BIN): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(BIN)
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN)
 
 clean:
 	rm -f $(OBJS) $(BIN)

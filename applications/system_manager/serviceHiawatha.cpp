@@ -12,6 +12,7 @@
 
 
 #define HIAWATHA_CONFIG_DIR "/tmp/configs/hiawahta/"
+#define HIAWATHA_WOKRING_DIR "/tmp/hiawatha"
 
 namespace app
 {
@@ -68,7 +69,7 @@ bool serviceHiawatha::init()
                 "Hostname       = 127.0.0.1\n"
                 "WebsiteRoot    = WEBROOT_DIR\n"
                 "StartFile      = index.html\n"
-                "PIDfile        = WOKRING_DIR/hiawatha.pid\n"
+                "PIDfile        = /var/run/hiawatha.pid\n"
                 "WorkDirectory  = WOKRING_DIR\n"
                 "ShowIndex      = WEBROOT_DIR/index.html\n"
                 "#UseFastCGI    = WebHandlerFCGI\n"
@@ -204,6 +205,7 @@ bool serviceHiawatha::start()
     command = "hiawatha -c ";
     command += HIAWATHA_CONFIG_DIR;
 
+    mkdir(HIAWATHA_WOKRING_DIR, 0755);
     system(command.c_str());
 
     return true;
