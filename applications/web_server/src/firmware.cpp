@@ -11,11 +11,29 @@
 #include "Field.h"
 #include "Exception.h"
 #include "firmware.h"
+#include "rpcUnixClient.h"
+#include "rpcMessageFirmware.h"
+
+
+static int do_firmware_upgrade(const std::string &filename)
+{
+    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+    app::rpcMessageFirmware msg;
+
+    msg.setFirmwareName(filename);
+
+    if (rpcClient->doRpc(&msg) == false) {
+        syslog(LOG_INFO, "something went wrong: doRpc\n");
+        return -1;
+    }
+
+    return msg.getErrorNo();
+}
 
 /**
  * \return 0 on error
  */
-static int process_file_data(const char *data, const char *contentType, const int len)
+static int parse_and_save_file(const char *data, const char *contentType, const int len, std::string &filename)
 {
     try {
         MPFD::Parser *POSTParser;
@@ -49,6 +67,8 @@ static int process_file_data(const char *data, const char *contentType, const in
                         "Got file field: [ %s ], Filename: [ %s ]\n",
                         it.first.c_str(),
                         fields[it.first]->GetTempFileName().c_str());
+
+                filename = fields[it.first]->GetTempFileName();
 
             }
 
@@ -93,7 +113,15 @@ int handle_firmware_upgrade(FCGX_Request *request)
     }
 
     if (contentType) {
-        process_file_data(data.c_str(), contentType, data.size());
+        std::string filename;
+        if (parse_and_save_file(data.c_str(), contentType, data.size(), filename)) {
+
+            if (do_firmware_upgrade(filename) != 0) {
+                syslog(LOG_ERR, "Failed to set_firmware_path\n");
+                return 0;
+            }
+
+        }
     }
 
     return 1;
