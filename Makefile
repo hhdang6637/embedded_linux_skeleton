@@ -95,7 +95,6 @@ make_disk: compile_apps
 
 	@cp $(SCRIPT_BUILD_DIR)/image.its $(BUILD_DIR)/sdcard_boot/
 	@mkimage -f $(BUILD_DIR)/sdcard_boot/image.its $(BUILD_DIR)/sdcard_boot/firmware
-	@cp $(BUILD_DIR)/sdcard_boot/firmware $(BUILD_DIR)/sdcard_boot/fw_0
 
 	@echo "prepare SD card"
 	@cd $(BUILD_DIR)/sdcard_boot && $(SCRIPT_BUILD_DIR)/sd_card_setup.sh
