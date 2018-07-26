@@ -117,7 +117,7 @@ int handle_firmware_upgrade(FCGX_Request *request)
         if (parse_and_save_file(data.c_str(), contentType, data.size(), filename)) {
 
             if (do_firmware_upgrade(filename) != 0) {
-                syslog(LOG_ERR, "Failed to set_firmware_path\n");
+                syslog(LOG_ERR, "Failed to upgrade firmware\n");
                 return 0;
             }
 

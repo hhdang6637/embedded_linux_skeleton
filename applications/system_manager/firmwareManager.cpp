@@ -7,11 +7,23 @@
 #include <iostream>
 
 #include <syslog.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
 
 #include "firmwareManager.h"
 #include "utilities.h"
 
-#define FIRMWARE_NAME "/boot/firmware_0"
+#define FIRMWARE_NAME               "/boot/firmware_0"
+#define FDT_MAGIC                   0xd00dfeed  /* 4: version, 4: total size */
+#define FDT_SW_MAGIC                (~FDT_MAGIC)
+#define FDT_FIRST_SUPPORTED_VERSION 0x10
+#define FDT_LAST_SUPPORTED_VERSION  0x11
 
 namespace app
 {
@@ -48,9 +60,60 @@ namespace app
         this->firmware_name = filename;
     }
 
-    bool firmwareManager::firmwareValidator()
+    bool firmwareManager::firmwareValidator(const char *filename)
     {
         syslog(LOG_INFO, "Validating firmware....\n");
+
+        struct stat sbuf;
+        firmware_header *header;
+
+        int ifd = ::open(filename, O_RDONLY);
+
+        if (ifd < 0) {
+            syslog(LOG_INFO, "Can't open %s: %s\n", filename, strerror(errno));
+            return false;
+        }
+
+        if (::fstat(ifd, &sbuf) < 0) {
+            syslog(LOG_INFO, "Can't stat %s: %s\n", filename, strerror(errno));
+            return false;
+        }
+
+        header = (firmware_header *) ::mmap(0, sizeof(header), PROT_READ, MAP_SHARED, ifd, 0);
+        if (header == MAP_FAILED) {
+            syslog(LOG_INFO, "Can't read %s: %s\n", filename, strerror(errno));
+            return false;
+        }
+
+        if (be32_to_cpu(header->magic) == FDT_MAGIC) {
+
+            /* Complete tree */
+            if (be32_to_cpu(header->version) < FDT_FIRST_SUPPORTED_VERSION) {
+                syslog(LOG_INFO, "Firmware image invalid: bad version\n");
+                return false; //-FDT_ERR_BADVERSION;
+            }
+
+            if (be32_to_cpu(header->last_comp_version) > FDT_LAST_SUPPORTED_VERSION) {
+                syslog(LOG_INFO, "Firmware image invalid: bad version\n");
+                return false; //-FDT_ERR_BADVERSION;
+            }
+
+        } else if (be32_to_cpu(header->magic) == FDT_SW_MAGIC) {
+            /* Unfinished sequential-write blob */
+            if (be32_to_cpu(header->size_dt_struct) == 0) {
+                syslog(LOG_INFO, "Firmware image invalid: bad state\n");
+                return false; // -FDT_ERR_BADSTATE;
+            }
+
+        } else {
+            syslog(LOG_INFO, "Firmware image invalid: bad magic\n");
+            return false; //-FDT_ERR_BADMAGIC;
+        }
+
+        if (be32_to_cpu(header->totalsize) != (uint32_t) sbuf.st_size) {
+            syslog(LOG_INFO, "Firmware image invalid: bad size\n");
+            return false;
+        }
 
         return true;
     }
@@ -60,7 +123,7 @@ namespace app
      */
     uint16_t firmwareManager::doFirmwareUpgrade()
     {
-        if (this->firmwareValidator() == false)
+        if (this->firmwareValidator(this->firmware_name.c_str()) == false)
             return 1;
 
         syslog(LOG_INFO, "Processing firmware upgrade....\n");
