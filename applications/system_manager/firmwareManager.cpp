@@ -65,24 +65,29 @@ namespace app
         syslog(LOG_INFO, "Validating firmware....\n");
 
         struct stat sbuf;
-        firmware_header *header;
+        firmware_header *header = (firmware_header *)MAP_FAILED;
+
+        bool rc = true;
 
         int ifd = ::open(filename, O_RDONLY);
 
         if (ifd < 0) {
             syslog(LOG_INFO, "Can't open %s: %s\n", filename, strerror(errno));
-            return false;
+            rc = false;
+            goto out;
         }
 
         if (::fstat(ifd, &sbuf) < 0) {
             syslog(LOG_INFO, "Can't stat %s: %s\n", filename, strerror(errno));
-            return false;
+            rc = false;
+            goto out;
         }
 
         header = (firmware_header *) ::mmap(0, sizeof(header), PROT_READ, MAP_SHARED, ifd, 0);
         if (header == MAP_FAILED) {
             syslog(LOG_INFO, "Can't read %s: %s\n", filename, strerror(errno));
-            return false;
+            rc = false;
+            goto out;
         }
 
         if (be32_to_cpu(header->magic) == FDT_MAGIC) {
@@ -90,32 +95,49 @@ namespace app
             /* Complete tree */
             if (be32_to_cpu(header->version) < FDT_FIRST_SUPPORTED_VERSION) {
                 syslog(LOG_INFO, "Firmware image invalid: bad version\n");
-                return false; //-FDT_ERR_BADVERSION;
+                //-FDT_ERR_BADVERSION;
+                rc = false;
+                goto out;
             }
 
             if (be32_to_cpu(header->last_comp_version) > FDT_LAST_SUPPORTED_VERSION) {
                 syslog(LOG_INFO, "Firmware image invalid: bad version\n");
-                return false; //-FDT_ERR_BADVERSION;
+                //-FDT_ERR_BADVERSION;
+                rc = false;
+                goto out;
             }
 
         } else if (be32_to_cpu(header->magic) == FDT_SW_MAGIC) {
             /* Unfinished sequential-write blob */
             if (be32_to_cpu(header->size_dt_struct) == 0) {
                 syslog(LOG_INFO, "Firmware image invalid: bad state\n");
-                return false; // -FDT_ERR_BADSTATE;
+                // -FDT_ERR_BADSTATE;
+                rc = false;
+                goto out;
             }
 
         } else {
             syslog(LOG_INFO, "Firmware image invalid: bad magic\n");
-            return false; //-FDT_ERR_BADMAGIC;
+            //-FDT_ERR_BADMAGIC;
+            rc = false;
+            goto out;
         }
 
         if (be32_to_cpu(header->totalsize) != (uint32_t) sbuf.st_size) {
             syslog(LOG_INFO, "Firmware image invalid: bad size\n");
-            return false;
+            rc = false;
+            goto out;
+        }
+out:
+        if (ifd != -1) {
+            close (ifd);
         }
 
-        return true;
+        if (header != MAP_FAILED) {
+            munmap(header, sizeof(header));
+        }
+
+        return rc;
     }
 
     /**
@@ -128,8 +150,10 @@ namespace app
 
         syslog(LOG_INFO, "Processing firmware upgrade....\n");
 
-        if (::copy_file(this->firmware_name.c_str(), FIRMWARE_NAME) == false)
+        if (::copy_file(this->firmware_name.c_str(), FIRMWARE_NAME) == false) {
+            syslog(LOG_ERR, "cannot copy success %s to %s", this->firmware_name.c_str(), FIRMWARE_NAME);
             return 1;
+        }
 
         return 0;
     }
