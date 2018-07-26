@@ -20,6 +20,7 @@ namespace app
         static firmwareManager* s_instance;
         std::string firmware_name;
 
+        bool firmwareValidator();
 
     public:
         virtual ~firmwareManager();
