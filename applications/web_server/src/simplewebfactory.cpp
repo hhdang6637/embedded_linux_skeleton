@@ -13,7 +13,8 @@
 #include <sstream>
 
 #include "simplewebfactory.h"
-#include "firmware.h"
+
+#include "firmware_manager_js.h"
 
 bool simpleWebFactory::file_to_string(std::string filename, std::string &output)
 {
@@ -75,22 +76,7 @@ simpleWebFactory* simpleWebFactory::getInstance()
 
 void simpleWebFactory::handle_request(FCGX_Request *request)
 {
-    const char *method           = FCGX_GetParam("REQUEST_METHOD", request->envp);
-    const char *request_uri      = FCGX_GetParam("REQUEST_URI", request->envp);
-    const char *response_content = this->get_html_str(request_uri);
-
-    if (method && (strcmp(method, "POST") == 0)) {
-
-        if (strcmp(request_uri, "/firmware_upgrade") == 0) {
-            if (handle_firmware_upgrade(request)) {
-                FCGX_FPrintF(request->out, "HTTP/1.1 200 OK\r\n\r\n");
-            } else {
-                FCGX_FPrintF(request->out, "HTTP/1.1 400 Bad Request\r\n\r\n");
-            }
-
-            return;
-        }
-    }
+    const char *response_content = this->get_html_str(FCGX_GetParam("REQUEST_URI", request->envp));
 
     if (response_content != NULL) {
 

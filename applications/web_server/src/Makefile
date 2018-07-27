@@ -2,7 +2,7 @@ CFLAGS += -g -lfcgi -lapp
 
 BIN=web_handler
 SRCS=main.o simplewebfactory.o fcgi.cpp simplewebfactory_url_html_map.o simplewebfactory_url_js_map.o system_manager_js.o \
-firmware.o
+firmware_manager_js.o
 SRCS += MPFDParser/Exception.o MPFDParser/Field.o MPFDParser/Parser.o
 
 %.o : %.cpp

@@ -4,13 +4,15 @@
  *  Created on: Jul 25, 2018
  *      Author: nmhien
  */
+#include <string>
+
 #include <fcgiapp.h>
 #include <syslog.h>
 
+#include "firmware_manager_js.h"
 #include "MPFDParser/Parser.h"
 #include "MPFDParser/Field.h"
 #include "MPFDParser/Exception.h"
-#include "firmware.h"
 #include "rpcUnixClient.h"
 #include "rpcMessageFirmware.h"
 
@@ -36,37 +38,31 @@ static int do_firmware_upgrade(const std::string &filename)
 static int parse_and_save_file(const char *data, const char *contentType, const int len, std::string &filename)
 {
     try {
-        MPFD::Parser *POSTParser;
+        MPFD::Parser POSTParser;
 
-        POSTParser = new MPFD::Parser();
+        POSTParser.SetTempDirForFileUpload("/tmp");
 
-        POSTParser->SetTempDirForFileUpload("/tmp");
+        POSTParser.SetMaxCollectedDataLength(32 * 1024 * 1024); // 32MB
 
-        POSTParser->SetMaxCollectedDataLength(32 * 1024 * 1024); // 32MB
+        POSTParser.SetContentType(contentType);
 
-        POSTParser->SetContentType(contentType);
-
-        POSTParser->AcceptSomeData(data, len);
+        POSTParser.AcceptSomeData(data, len);
 
         // Now see what we have:
-        std::map<std::string, MPFD::Field *> fields = POSTParser->GetFieldsMap();
+        std::map<std::string, MPFD::Field *> fields = POSTParser.GetFieldsMap();
 
         for (auto const &it : fields) {
             char syslog_message[256];
 
             if (fields[it.first]->GetType() == MPFD::Field::TextType) {
 
-                snprintf(syslog_message, 256,
-                        "Got text field: [ %s ], value: [ %s ]\n",
-                        it.first.c_str(),
-                        fields[it.first]->GetTextTypeContent().c_str());
+                snprintf(syslog_message, 256, "Got text field: [ %s ], value: [ %s ]\n", it.first.c_str(),
+                         fields[it.first]->GetTextTypeContent().c_str());
 
             } else {
 
-                snprintf(syslog_message, 256,
-                        "Got file field: [ %s ], Filename: [ %s ]\n",
-                        it.first.c_str(),
-                        fields[it.first]->GetTempFileName().c_str());
+                snprintf(syslog_message, 256, "Got file field: [ %s ], Filename: [ %s ]\n", it.first.c_str(),
+                         fields[it.first]->GetTempFileName().c_str());
 
                 filename = fields[it.first]->GetTempFileName();
 
@@ -74,6 +70,7 @@ static int parse_and_save_file(const char *data, const char *contentType, const 
 
             syslog(LOG_INFO, syslog_message);
         }
+
     } catch (MPFD::Exception e) {
 
         syslog(LOG_ERR, "%s\n", e.GetError().c_str());
@@ -84,15 +81,9 @@ static int parse_and_save_file(const char *data, const char *contentType, const 
     return 1;
 }
 
-/**
- * \return 0 on error
- */
-int handle_firmware_upgrade(FCGX_Request *request)
+static bool get_post_data(FCGX_Request *request, std::string &data)
 {
     const char *contentLenStr = FCGX_GetParam("CONTENT_LENGTH", request->envp);
-    const char *contentType   = FCGX_GetParam("CONTENT_TYPE", request->envp);
-
-    std::string data;
     int         contentLength = 0;
 
     if (contentLenStr) {
@@ -105,24 +96,41 @@ int handle_firmware_upgrade(FCGX_Request *request)
         if (ch < 0) {
 
             syslog(LOG_ERR, "Failed to get file content\n");
-            return 0;
+            return false;
 
         } else {
             data += ch;
         }
     }
 
-    if (contentType) {
-        std::string filename;
-        if (parse_and_save_file(data.c_str(), contentType, data.size(), filename)) {
+    return true;
+}
 
-            if (do_firmware_upgrade(filename) != 0) {
-                syslog(LOG_ERR, "Failed to upgrade firmware\n");
-                return 0;
+std::string json_handle_firmware_upgrade(FCGX_Request *request)
+{
+    const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
+    const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
+
+    if (method && (strcmp(method, "POST") == 0) && contentType) {
+
+        std::string data;
+
+        if (get_post_data(request, data)) {
+
+            std::string filename;
+
+            if (parse_and_save_file(data.c_str(), contentType, data.size(), filename)) {
+
+                if (do_firmware_upgrade(filename) == 0) {
+                    return "succeeded";
+                }
+
             }
-
         }
     }
 
-    return 1;
+    syslog(LOG_ERR, "Failed to upgrade firmware\n");
+
+    return "failed";
 }
+

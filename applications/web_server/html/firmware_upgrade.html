@@ -36,6 +36,14 @@
     // UPLOAD CLASS DEFINITION
     // ======================
 
+    // function firmwareStatus() {
+
+    //     $.getJSON( "/json/firmware_upgrade", function(data) {
+
+    //         alert("Upload status: " + data.firmware_status);
+    //     });
+    // }
+
     var dropZone = document.getElementById('drop-zone');
     var uploadForm = document.getElementById('js-upload-form');
 
@@ -48,7 +56,7 @@
         formData.append('file', file);
 
         var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/firmware_upgrade');
+        xhr.open('POST', '/json/firmware_upgrade');
         xhr.onload = function () {
             //TODO show the progress
         };
@@ -56,6 +64,8 @@
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
                 //TODO success callback
+                // firmwareStatus();
+                alert("Upload status: " + xhr.responseText);
             }
         };
 
