@@ -119,7 +119,7 @@ const char* simpleWebFactory::get_html_str(const char * url)
 
     ss_html << this->html_menu_str;
 
-    ss_html <<"   <main role=\"main\" class=\"col-md-9 ml-sm-auto col-lg-10 pt-3 px-4\">";
+    ss_html <<"   <main role=\"main\" class=\"col-md-12 ml-sm-auto col-lg-12 pt-3 px-4\">";
     ss_html << main_content;
     ss_html << "   </main>";
 
