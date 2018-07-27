@@ -38,12 +38,19 @@ namespace app
         } firmware_header;
 
         firmwareManager();
-        static firmwareManager* s_instance;
+
         std::string firmware_name;
         app::firmwareStatusType status;
         app::firmwareResultType result;
 
         bool firmwareValidator(const char *filename);
+
+        bool doFirmwareUpgrade();
+
+        static firmwareManager* s_instance;
+
+        pid_t pidChild;
+        static void handler(int sig);
 
     public:
         virtual ~firmwareManager();
@@ -55,8 +62,6 @@ namespace app
 
         app::firmwareStatusType getFirmwareStatus();
         app::firmwareResultType getFirmwareResult();
-
-        void doFirmwareUpgrade();
 
         bool doAsynUpgrade();
     };

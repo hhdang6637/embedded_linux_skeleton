@@ -9,6 +9,7 @@
 #include <syslog.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -27,10 +28,10 @@
 
 namespace app
 {
-
     firmwareManager::firmwareManager() :
             status(app::firmwareStatusType::NONE),
-            result(app::firmwareResultType::NONE)
+            result(app::firmwareResultType::NONE),
+            pidChild(-1)
     {
         // TODO Auto-generated constructor stub
 
@@ -152,55 +153,82 @@ out:
         return rc;
     }
 
-    void firmwareManager::doFirmwareUpgrade()
+    bool firmwareManager::doFirmwareUpgrade()
     {
+        bool rc = true;
         if (this->firmwareValidator(this->firmware_name.c_str()) == false) {
-            syslog(LOG_INFO, "%s:%d --> app::firmwareResultType::FAILED;\n", __FUNCTION__, __LINE__);
-            this->result = app::firmwareResultType::FAILED;
+            syslog(LOG_INFO, "%s is not valid firmware\n", this->firmware_name.c_str());
+            rc = false;
+            goto doFirmwareUpgradeDone;
         }
 
         syslog(LOG_INFO, "Processing firmware upgrade....\n");
 
         if (::copy_file(this->firmware_name.c_str(), FIRMWARE_NAME) == false) {
             syslog(LOG_ERR, "cannot copy success %s to %s", this->firmware_name.c_str(), FIRMWARE_NAME);
-            this->result = app::firmwareResultType::FAILED;
+            rc = false;
+            goto doFirmwareUpgradeDone;
         }
 
-        syslog(LOG_INFO, "%s:%d --> app::firmwareResultType::SUCCEEDED;\n", __FUNCTION__, __LINE__);
-        this->result = app::firmwareResultType::SUCCEEDED;
-
+doFirmwareUpgradeDone:
         ::unlink(this->firmware_name.c_str());
         syslog(LOG_INFO, "Processing firmware Done, removed %s\n", this->firmware_name.c_str());
+
+        return rc;
+    }
+
+    void firmwareManager::handler(int sig)
+    {
+        pid_t pid;
+        int wstatus;
+        pid = wait(&wstatus);
+        if (pid == firmwareManager::getInstance()->pidChild) {
+            firmwareManager::getInstance()->status =  app::firmwareStatusType::DONE;
+            if (wstatus == EXIT_SUCCESS) {
+                firmwareManager::getInstance()->result = app::firmwareResultType::SUCCEEDED;
+            } else {
+                firmwareManager::getInstance()->result = app::firmwareResultType::FAILED;
+            }
+            firmwareManager::getInstance()->pidChild = -1;
+        }
     }
 
     bool firmwareManager::doAsynUpgrade()
     {
-//        switch (fork())
-//        {
-//            case -1:
-//            {
-//                syslog(LOG_ERR, "fork");
-//                return false;
-//            }
-//            case 0:
-//            {
-//                syslog(LOG_INFO, "%s:%d --> app::firmwareStatusType::IN_PROGRESS;\n", __FUNCTION__, __LINE__);
-//                this->status = app::firmwareStatusType::IN_PROGRESS;
-//                doFirmwareUpgrade();
-//                this->status = app::firmwareStatusType::DONE;
-//                syslog(LOG_INFO, "%s:%d --> app::firmwareStatusType::DONE;\n", __FUNCTION__, __LINE__);
-//                break;
-//            }
-//
-//            default:
-//                break;
-//        }
-
-        syslog(LOG_INFO, "%s:%d --> app::firmwareStatusType::IN_PROGRESS;\n", __FUNCTION__, __LINE__);
         this->status = app::firmwareStatusType::IN_PROGRESS;
-        doFirmwareUpgrade();
-        this->status = app::firmwareStatusType::DONE;
-        syslog(LOG_INFO, "%s:%d --> app::firmwareStatusType::DONE;\n", __FUNCTION__, __LINE__);
+        // clear old result
+        this->result = app::firmwareResultType::NONE;
+
+        struct sigaction sa;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = SA_RESTART;
+        sa.sa_handler = firmwareManager::handler;
+        if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+            syslog(LOG_ERR, "cannot register SIGCHLD handler");
+            return false;
+        }
+
+        switch ((this->pidChild = fork())) {
+        case -1: {
+            syslog(LOG_ERR, "cannot fork to upgrade firmware");
+            this->status = app::firmwareStatusType::DONE;
+            this->result = app::firmwareResultType::FAILED;
+            return false;
+        }
+        case 0: {
+            if (firmwareManager::doFirmwareUpgrade() == true) {
+                exit(EXIT_SUCCESS);
+            } else {
+                exit(EXIT_FAILURE);
+            }
+            break;
+        }
+
+        default:
+            break;
+        }
+
+        syslog(LOG_INFO, "the firmware upgrade proccess is handled by process %d\n", this->pidChild);
 
         return true;
     }
