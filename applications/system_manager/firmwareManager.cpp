@@ -28,7 +28,9 @@
 namespace app
 {
 
-    firmwareManager::firmwareManager()
+    firmwareManager::firmwareManager() :
+            status(app::firmwareStatusType::NONE),
+            result(app::firmwareResultType::NONE)
     {
         // TODO Auto-generated constructor stub
 
@@ -58,6 +60,16 @@ namespace app
     void firmwareManager::setFirmwareName(std::string &filename)
     {
         this->firmware_name = filename;
+    }
+
+    app::firmwareStatusType firmwareManager::getFirmwareStatus()
+    {
+        return this->status;
+    }
+
+    app::firmwareResultType firmwareManager::getFirmwareResult()
+    {
+        return this->result;
     }
 
     bool firmwareManager::firmwareValidator(const char *filename)
@@ -143,19 +155,54 @@ out:
     /**
      * return 0 on success, else return a specific code
      */
-    uint16_t firmwareManager::doFirmwareUpgrade()
+    void firmwareManager::doFirmwareUpgrade()
     {
-        if (this->firmwareValidator(this->firmware_name.c_str()) == false)
-            return 1;
+        if (this->firmwareValidator(this->firmware_name.c_str()) == false) {
+            syslog(LOG_INFO, "%s:%d --> app::firmwareResultType::FAILED;\n", __FUNCTION__, __LINE__);
+            this->result = app::firmwareResultType::FAILED;
+        }
 
         syslog(LOG_INFO, "Processing firmware upgrade....\n");
 
         if (::copy_file(this->firmware_name.c_str(), FIRMWARE_NAME) == false) {
             syslog(LOG_ERR, "cannot copy success %s to %s", this->firmware_name.c_str(), FIRMWARE_NAME);
-            return 1;
+            this->result = app::firmwareResultType::FAILED;
         }
 
-        return 0;
+        syslog(LOG_INFO, "%s:%d --> app::firmwareResultType::SUCCEEDED;\n", __FUNCTION__, __LINE__);
+        this->result = app::firmwareResultType::SUCCEEDED;
+    }
+
+    bool firmwareManager::doAsynUpgrade()
+    {
+//        switch (fork())
+//        {
+//            case -1:
+//            {
+//                syslog(LOG_ERR, "fork");
+//                return false;
+//            }
+//            case 0:
+//            {
+//                syslog(LOG_INFO, "%s:%d --> app::firmwareStatusType::IN_PROGRESS;\n", __FUNCTION__, __LINE__);
+//                this->status = app::firmwareStatusType::IN_PROGRESS;
+//                doFirmwareUpgrade();
+//                this->status = app::firmwareStatusType::DONE;
+//                syslog(LOG_INFO, "%s:%d --> app::firmwareStatusType::DONE;\n", __FUNCTION__, __LINE__);
+//                break;
+//            }
+//
+//            default:
+//                break;
+//        }
+
+        syslog(LOG_INFO, "%s:%d --> app::firmwareStatusType::IN_PROGRESS;\n", __FUNCTION__, __LINE__);
+        this->status = app::firmwareStatusType::IN_PROGRESS;
+        doFirmwareUpgrade();
+        this->status = app::firmwareStatusType::DONE;
+        syslog(LOG_INFO, "%s:%d --> app::firmwareStatusType::DONE;\n", __FUNCTION__, __LINE__);
+
+        return true;
     }
 
 } /* namespace app */

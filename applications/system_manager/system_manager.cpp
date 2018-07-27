@@ -78,9 +78,32 @@ static bool firmware_action_handler(int socket_fd)
 
         app::firmwareManager::getInstance()->setFirmwareName(firmware_name);
 
-        uint16_t erroNo = app::firmwareManager::getInstance()->doFirmwareUpgrade();
+        switch (msgFimware.getFirmwareInfo().action)
+        {
+            case app::rpcFirmwareActionType::GET_STATUS:
+            {
+                break;
+            }
 
-        msgFimware.setErrorNo(erroNo);
+            case app::rpcFirmwareActionType::DO_UPGRADE:
+            {
+                if (app::firmwareManager::getInstance()->doAsynUpgrade() == false) {
+                    return false;
+                }
+
+                break;
+            }
+
+            default:
+                break;
+        }
+
+        app::rpcMessageFirmware_t info;
+
+        info.status = app::firmwareManager::getInstance()->getFirmwareStatus();
+        info.result = app::firmwareManager::getInstance()->getFirmwareResult();
+
+        msgFimware.setFirmwareInfo(info);
 
         return msgFimware.serialize(socket_fd);
     }

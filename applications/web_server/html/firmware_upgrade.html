@@ -36,13 +36,14 @@
     // UPLOAD CLASS DEFINITION
     // ======================
 
-    // function firmwareStatus() {
+    function firmwareStatus() {
 
-    //     $.getJSON( "/json/firmware_upgrade", function(data) {
+        $.getJSON( "/json/firmware_status", function(data) {
 
-    //         alert("Upload status: " + data.firmware_status);
-    //     });
-    // }
+            alert("Status: " + data.json_firmware_status.status);
+            alert("Result: " + data.json_firmware_status.result);
+        });
+    }
 
     var dropZone = document.getElementById('drop-zone');
     var uploadForm = document.getElementById('js-upload-form');
@@ -64,8 +65,7 @@
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
                 //TODO success callback
-                // firmwareStatus();
-                alert("Upload status: " + xhr.responseText);
+                firmwareStatus();
             }
         };
 

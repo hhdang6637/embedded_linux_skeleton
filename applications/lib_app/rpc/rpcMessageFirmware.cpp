@@ -13,7 +13,7 @@ namespace app
 {
 
     rpcMessageFirmware::rpcMessageFirmware() :
-            rpcMessage(rpcMessageType::handle_firmware_action), errNo(0)
+            rpcMessage(rpcMessageType::handle_firmware_action), firmware_info()
     {
     }
 
@@ -25,18 +25,15 @@ namespace app
     bool rpcMessageFirmware::serialize(int fd)
     {
         // just write the state
-        int buff_len = sizeof(uint16_t) + sizeof(uint16_t) + this->firmware_name.length();
+        int buff_len = sizeof(rpcMessageFirmware_t) + sizeof(uint16_t) + this->firmware_name.length();
         std::unique_ptr<char> buff_ptr(new char[buff_len]);
 
         int offset = 0;
         uint16_t tmpValue;
-
-        tmpValue = this->errNo;
-        offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmpValue);
-
         tmpValue = this->firmware_name.length();
-        offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmpValue);
 
+        offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->firmware_info);
+        offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmpValue);
         offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->firmware_name);
 
         if (buff_len != offset) {
@@ -58,9 +55,8 @@ namespace app
     bool rpcMessageFirmware::deserialize(int fd)
     {
         uint16_t firmware_name_size;
-        uint16_t errorNo;
 
-        if (rpcMessage::recvInterruptRetry(fd, &errorNo, sizeof(errorNo)) != true) {
+        if (rpcMessage::recvInterruptRetry(fd, &this->firmware_info, sizeof(this->firmware_info)) != true) {
             return false;
         }
 
@@ -78,14 +74,7 @@ namespace app
             this->firmware_name = buff_ptr.get();
         }
 
-        this->errNo = errorNo;
-
         return true;
-    }
-
-    std::string rpcMessageFirmware::getFirmwareName()
-    {
-        return this->firmware_name;
     }
 
     void rpcMessageFirmware::setFirmwareName(const std::string &filename)
@@ -93,14 +82,19 @@ namespace app
         this->firmware_name = filename;
     }
 
-    void rpcMessageFirmware::setErrorNo(const uint16_t errNo)
+    std::string rpcMessageFirmware::getFirmwareName()
     {
-        this->errNo = errNo;
+        return this->firmware_name;
     }
 
-    uint16_t rpcMessageFirmware::getErrorNo()
+    app::rpcMessageFirmware_t rpcMessageFirmware::getFirmwareInfo()
     {
-        return this->errNo;
+        return this->firmware_info;
+    }
+
+    void rpcMessageFirmware::setFirmwareInfo(const rpcMessageFirmware_t &firmware_info)
+    {
+        this->firmware_info = firmware_info;
     }
 
 } /* namespace app */

@@ -10,6 +10,8 @@
 
 #include "string"
 
+#include "rpcMessageFirmware.h"
+
 namespace app
 {
     class firmwareManager
@@ -38,6 +40,8 @@ namespace app
         firmwareManager();
         static firmwareManager* s_instance;
         std::string firmware_name;
+        app::firmwareStatusType status;
+        app::firmwareResultType result;
 
         bool firmwareValidator(const char *filename);
 
@@ -45,11 +49,16 @@ namespace app
         virtual ~firmwareManager();
 
         static firmwareManager* getInstance();
-        std::string getFirmwareName();
 
+        std::string getFirmwareName();
         void setFirmwareName(std::string &filename);
 
-        uint16_t doFirmwareUpgrade();
+        app::firmwareStatusType getFirmwareStatus();
+        app::firmwareResultType getFirmwareResult();
+
+        void doFirmwareUpgrade();
+
+        bool doAsynUpgrade();
     };
 
 } /* namespace app */

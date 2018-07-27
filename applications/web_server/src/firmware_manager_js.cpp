@@ -5,6 +5,7 @@
  *      Author: nmhien
  */
 #include <string>
+#include <sstream>
 
 #include <fcgiapp.h>
 #include <syslog.h>
@@ -22,14 +23,18 @@ static int do_firmware_upgrade(const std::string &filename)
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageFirmware msg;
 
+    app::rpcMessageFirmware_t info;
+    info.action = app::rpcFirmwareActionType::DO_UPGRADE;
+
     msg.setFirmwareName(filename);
+    msg.setFirmwareInfo(info);
 
     if (rpcClient->doRpc(&msg) == false) {
         syslog(LOG_INFO, "something went wrong: doRpc\n");
-        return -1;
+        return 0;
     }
 
-    return msg.getErrorNo();
+    return 1;
 }
 
 /**
@@ -121,7 +126,7 @@ std::string json_handle_firmware_upgrade(FCGX_Request *request)
 
             if (parse_and_save_file(data.c_str(), contentType, data.size(), filename)) {
 
-                if (do_firmware_upgrade(filename) == 0) {
+                if (do_firmware_upgrade(filename)) {
                     return "succeeded";
                 }
 
@@ -132,5 +137,38 @@ std::string json_handle_firmware_upgrade(FCGX_Request *request)
     syslog(LOG_ERR, "Failed to upgrade firmware\n");
 
     return "failed";
+}
+
+std::string json_handle_firmware_status(FCGX_Request *request)
+{
+    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+    app::rpcMessageFirmware msg;
+
+    app::rpcMessageFirmware_t info;
+    info.action = app::rpcFirmwareActionType::GET_STATUS;
+
+    msg.setFirmwareInfo(info);
+
+    if (rpcClient->doRpc(&msg) == false) {
+        syslog(LOG_INFO, "something went wrong: doRpc\n");
+        return "";
+    }
+
+    std::ostringstream ss_json;
+    ss_json << "{\"json_firmware_status\": {";
+
+    ss_json << "\"status\": ";
+    ss_json << "\"";
+    ss_json << std::to_string((uint16_t)msg.getFirmwareInfo().status);
+    ss_json << "\", ";
+
+    ss_json << "\"result\": ";
+    ss_json << "\"";
+    ss_json << std::to_string((uint16_t)msg.getFirmwareInfo().result);
+    ss_json << "\"";
+
+    ss_json << "}}";
+
+    return ss_json.str();
 }
 
