@@ -14,9 +14,11 @@
 #include "serviceHiawatha.h"
 #include "simpleTimerSync.h"
 #include "resourceCollector.h"
+#include "firmwareManager.h"
 #include "rpcUnixServer.h"
 #include "rpcMessageAddr.h"
 #include "rpcMessageCpuHistory.h"
+#include "rpcMessageFirmware.h"
 
 #define CONFIG_DIR "/tmp/configs"
 
@@ -67,12 +69,32 @@ static bool get_cpu_history_handler(int socker_fd) {
     return false;
 }
 
+static bool firmware_action_handler(int socket_fd)
+{
+    app::rpcMessageFirmware msgFimware;
+    if (msgFimware.deserialize(socket_fd)) {
+
+        std::string firmware_name = msgFimware.getFirmwareName();
+
+        app::firmwareManager::getInstance()->setFirmwareName(firmware_name);
+
+        uint16_t erroNo = app::firmwareManager::getInstance()->doFirmwareUpgrade();
+
+        msgFimware.setErrorNo(erroNo);
+
+        return msgFimware.serialize(socket_fd);
+    }
+
+    return false;
+}
+
 void system_manager_service_loop()
 {
     fd_set read_fds;
     app::rpcUnixServer *rpcServer = app::rpcUnixServer::getInstance();
     int server_socket = rpcServer->get_socket();
     rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::get_cpu_history, get_cpu_history_handler);
+    rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::handle_firmware_action, firmware_action_handler);
 
     app::simpleTimerSync *timer = app::simpleTimerSync::getInstance();
     timer->init(1000);

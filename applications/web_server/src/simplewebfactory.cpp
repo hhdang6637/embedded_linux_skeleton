@@ -4,6 +4,7 @@
  *  Created on: Jul 20, 2018
  *      Author: hhdang
  */
+#include <string.h>
 
 #include <iostream>
 #include <vector>
@@ -12,6 +13,8 @@
 #include <sstream>
 
 #include "simplewebfactory.h"
+
+#include "firmware_manager_js.h"
 
 bool simpleWebFactory::file_to_string(std::string filename, std::string &output)
 {
@@ -85,7 +88,7 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
         FCGX_FPrintF(request->out, "Content-Type: application/json; charset=utf-8\r\n\r\n");
         FCGX_FPrintF(request->out, "%s", response_content);
 
-    }else {
+    } else {
         FCGX_FPrintF(request->out, "HTTP/1.1 404 Not Found\r\n\r\n");
     }
 }
