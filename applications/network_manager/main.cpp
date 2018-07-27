@@ -56,9 +56,7 @@ int main(int argc, char const *argv[])
 
     syslog(LOG_NOTICE,"%s init complete\n", SERVICE_NAME);
 
-    while(1) {
-        sleep(1);
-    }
+    network_manager_service_loop();
 
     return 0;
 }

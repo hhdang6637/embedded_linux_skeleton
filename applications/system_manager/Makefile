@@ -1,6 +1,6 @@
 
 BIN=system_manager_daemon
-SRCS=main.o system_manager.o service.o serviceHiawatha.o resourceCollector.o
+SRCS=main.o system_manager.o serviceHiawatha.o resourceCollector.o
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@

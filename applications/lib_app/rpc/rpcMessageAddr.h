@@ -24,7 +24,8 @@ private:
 public:
 
     enum rpcMessageAddrType {
-        system_manager_addr_t
+        system_manager_addr_t,
+        network_manager_addr_t
     };
 
     virtual ~rpcMessageAddr();

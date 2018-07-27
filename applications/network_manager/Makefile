@@ -1,7 +1,7 @@
 CXXFLAGS += -lapp
 
 BIN=network_manager_daemon
-SRCS=main.o network_manager.o
+SRCS=main.o network_manager.o serviceDhcpC.o
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@
