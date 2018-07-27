@@ -7,9 +7,9 @@
 #include <fcgiapp.h>
 #include <syslog.h>
 
-#include "Parser.h"
-#include "Field.h"
-#include "Exception.h"
+#include "MPFDParser/Parser.h"
+#include "MPFDParser/Field.h"
+#include "MPFDParser/Exception.h"
 #include "firmware.h"
 #include "rpcUnixClient.h"
 #include "rpcMessageFirmware.h"
