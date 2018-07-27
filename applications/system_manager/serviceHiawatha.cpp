@@ -74,6 +74,7 @@ bool serviceHiawatha::init()
                 "ShowIndex      = WEBROOT_DIR/index.html\n"
                 "#UseFastCGI    = WebHandlerFCGI\n"
                 "UseToolkit     = WebHandlerToolkit\n"
+                "TimeForCGI     = 15\n"
                 "\n"
                 "FastCGIserver {\n"
                 "        FastCGIid = WebHandlerFCGI\n"
