@@ -12,4 +12,8 @@ FW_NAME=firmware
 
 mcopy -i $SD_P1 $UBOOT_SCRIPT_NAME ::/$UBOOT_SCRIPT_NAME
 mcopy -i $SD_P1 $UBOOT_NAME ::/$UBOOT_NAME
+
+echo "1" > firmware_selected
+mcopy -i $SD_P1 firmware_selected               ::/
 mcopy -i $SD_P1 $FW_NAME ::/firmware_0
+mcopy -i $SD_P1 $FW_NAME ::/firmware_1

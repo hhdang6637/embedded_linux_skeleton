@@ -69,3 +69,18 @@ out:
 
     return rc;
 }
+
+int build_fd_sets(fd_set *read_fds, std::list<int> &fds)
+{
+    int max = 0;
+    FD_ZERO(read_fds);
+
+    for (auto &i : fds) {
+        FD_SET(i, read_fds);
+        if (max < i) {
+            max = i;
+        }
+    }
+
+    return max;
+}

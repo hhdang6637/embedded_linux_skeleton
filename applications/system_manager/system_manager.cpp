@@ -10,6 +10,7 @@
 #include <iostream>
 #include <list>
 
+#include "utilities.h"
 #include "serviceHiawatha.h"
 #include "simpleTimerSync.h"
 #include "resourceCollector.h"
@@ -52,20 +53,6 @@ void system_manager_init()
         syslog(LOG_ERR, "cannot open unix socket server");
         exit(EXIT_FAILURE);
     }
-}
-
-static int build_fd_sets(fd_set *read_fds, std::list<int> &fds)
-{
-    int max = 0;
-    FD_ZERO(read_fds);
-
-    for (auto &i : fds) {
-        FD_SET(i, read_fds);
-        if (max < i) {
-            max = i;
-        }
-    }
-    return max;
 }
 
 static void cpuHistoryCollect() {
