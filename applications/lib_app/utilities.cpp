@@ -46,7 +46,7 @@ bool copy_file(const char *src, const char*dst)
         while ((num_read = ::read(src_fd, buf, BUF_SIZE)) > 0) {
 
             if (::write(dst_fd, buf, num_read) != num_read) {
-                syslog(LOG_INFO, "%s-%d: couldn't write whole buffer\n", __FUNCTION__, __LINE__);
+                syslog(LOG_ERR, "%s-%d: couldn't write whole buffer\n", __FUNCTION__, __LINE__);
                 rc = false;
                 goto out;
             }
@@ -54,7 +54,7 @@ bool copy_file(const char *src, const char*dst)
         }
 
         if (num_read == -1) {
-            syslog(LOG_INFO, "%s-%d: read failed\n", __FUNCTION__, __LINE__);
+            syslog(LOG_ERR, "%s-%d: read failed\n", __FUNCTION__, __LINE__);
             rc = false;
             goto out;
         }
