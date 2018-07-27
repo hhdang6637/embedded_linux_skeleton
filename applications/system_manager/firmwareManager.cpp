@@ -155,6 +155,9 @@ out:
             return 1;
         }
 
+        ::unlink(this->firmware_name.c_str());
+        syslog(LOG_INFO, "Processing firmware Done, removed %s\n", this->firmware_name.c_str());
+
         return 0;
     }
 
