@@ -46,7 +46,7 @@ int main(int argc, char const *argv[])
     parse_arguments(argc, argv);
 
     if (settings.daemon) {
-        if (daemon(1, 0)) {
+        if (daemon(1, 1)) {
             syslog(LOG_ERR, "fork is not scuccess");
             exit(EXIT_FAILURE);
         }
