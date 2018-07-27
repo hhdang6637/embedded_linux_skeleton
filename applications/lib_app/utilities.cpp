@@ -8,11 +8,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/sendfile.h>
+#include <syslog.h>
 
 #include "utilities.h"
+
+#define BUF_SIZE 1024
 
 void write_pid(const char*pidfile, pid_t pid)
 {
@@ -33,20 +33,34 @@ void write_pid(const char*pidfile, pid_t pid)
 
 bool copy_file(const char *src, const char*dst)
 {
-    int src_fd, dst_fd;
-    struct stat statbuf;
-    bool rc = false;
+    int     src_fd, dst_fd;
+    ssize_t num_read;
+    char    buf[BUF_SIZE];
+    bool    rc = true;
 
     src_fd = open(src, O_RDONLY);
 
     dst_fd = creat(dst, S_IRUSR | S_IWUSR);
 
-    if (src_fd != -1 && dst_fd != -1 && fstat(src_fd, &statbuf) == 0) {
-        if (sendfile(dst_fd, src_fd, NULL, statbuf.st_size) == statbuf.st_size) {
-            rc = true;
+    if (src_fd != -1 && dst_fd != -1) {
+        while ((num_read = ::read(src_fd, buf, BUF_SIZE)) > 0) {
+
+            if (::write(dst_fd, buf, num_read) != num_read) {
+                syslog(LOG_INFO, "%s-%d: couldn't write whole buffer\n", __FUNCTION__, __LINE__);
+                rc = false;
+                goto out;
+            }
+
+        }
+
+        if (num_read == -1) {
+            syslog(LOG_INFO, "%s-%d: read failed\n", __FUNCTION__, __LINE__);
+            rc = false;
+            goto out;
         }
     }
 
+out:
     if (src_fd != -1)
         close(src_fd);
 
