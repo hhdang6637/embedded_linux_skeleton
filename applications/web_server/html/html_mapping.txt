@@ -1,4 +1,4 @@
 /,dashboard.html
 /pages/home,dashboard.html
 /pages/dashboard,dashboard.html
-/pages/firmware_upgrade,firmware_upgrade.html
+/pages/firmware,firmware.html

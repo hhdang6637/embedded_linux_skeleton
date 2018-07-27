@@ -51,9 +51,6 @@ simpleWebFactory::simpleWebFactory()
     html_file = INTERNAL_RESOURCE"/navbar.html";
     simpleWebFactory::file_to_string(html_file, this->html_navbar_str);
 
-    html_file = INTERNAL_RESOURCE"/menu.html";
-    simpleWebFactory::file_to_string(html_file, this->html_menu_str);
-
     this->init_url_html_map();
     this->init_url_js_map();
 }
@@ -107,29 +104,28 @@ const char* simpleWebFactory::get_html_str(const char * url)
 
     std::ostringstream ss_html;
 
-    ss_html <<  "<!doctype html>"
-                "<html lang=\"en\">";
+    ss_html <<  "<!doctype html>\n"
+                "<html lang=\"en\">\n";
     ss_html << this->html_header_str;
 
-    ss_html << "<body>";
+    ss_html << "<body>\n";
+
     ss_html << this->html_navbar_str;
 
     // container begin
-    ss_html << "<div class=\"container-fluid\"><div class=\"row\">";
+    ss_html << "<div class=\"container-fluid\"><div class=\"row\">\n";
 
-    ss_html << this->html_menu_str;
-
-    ss_html <<"   <main role=\"main\" class=\"col-md-9 ml-sm-auto col-lg-10 pt-3 px-4\">";
+    ss_html <<"   <main role=\"main\" class=\"col-md-12 ml-sm-auto col-lg-12 pt-3 px-4\">\n";
     ss_html << main_content;
-    ss_html << "   </main>";
+    ss_html << "   </main>\n";
 
     ss_html << "</div";
     // container end
 
     ss_html << this->html_footer_str;
 
-    ss_html << "</body>";
-    ss_html << "</html>";
+    ss_html << "</body>\n";
+    ss_html << "</html>\n";
 
     static std::string html;
 
