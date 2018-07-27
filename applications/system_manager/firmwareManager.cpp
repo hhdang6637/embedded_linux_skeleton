@@ -152,9 +152,6 @@ out:
         return rc;
     }
 
-    /**
-     * return 0 on success, else return a specific code
-     */
     void firmwareManager::doFirmwareUpgrade()
     {
         if (this->firmwareValidator(this->firmware_name.c_str()) == false) {
@@ -171,6 +168,9 @@ out:
 
         syslog(LOG_INFO, "%s:%d --> app::firmwareResultType::SUCCEEDED;\n", __FUNCTION__, __LINE__);
         this->result = app::firmwareResultType::SUCCEEDED;
+
+        ::unlink(this->firmware_name.c_str());
+        syslog(LOG_INFO, "Processing firmware Done, removed %s\n", this->firmware_name.c_str());
     }
 
     bool firmwareManager::doAsynUpgrade()
