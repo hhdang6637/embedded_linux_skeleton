@@ -12,5 +12,6 @@
 #define PID_FILE_NAME   "/var/run/network_manager.pid"
 
 void network_manager_init();
+void network_manager_service_loop();
 
 #endif /* APPLICATIONS_NETWORK_MANAGER_NETWORK_MANAGER_H_ */
