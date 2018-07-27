@@ -29,7 +29,6 @@ private:
     std::string html_header_str;
     std::string html_footer_str;
     std::string html_navbar_str;
-    std::string html_menu_str;
 
     std::map<std::string,std::string>   url_html_map;
     std::map<std::string,jsCallback> url_js_map;
