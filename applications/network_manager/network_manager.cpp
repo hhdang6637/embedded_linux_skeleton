@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "utilities.h"
+#include "serviceDhcpC.h"
 #include "rpcUnixServer.h"
 #include "rpcMessageAddr.h"
 
@@ -49,7 +50,9 @@ void network_manager_init()
     // start network interface eth0
     if (_network_manager_wake_up("eth0")) {
         // start udhcp
-        system("udhcpc eth0");
+        app::serviceDhcpC::getInstance()->init();
+        app::serviceDhcpC::getInstance()->addManagedInterfaces("eth0");
+        app::serviceDhcpC::getInstance()->start();
     }
 
     app::rpcMessageAddr addr = app::rpcMessageAddr::getRpcMessageAddrbyType(
