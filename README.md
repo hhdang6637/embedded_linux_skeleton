@@ -48,3 +48,7 @@ Login with `root` and no password.
 Access Web Gui: http://127.0.0.1:2080
 
 To be continued...
+
+![](https://raw.githubusercontent.com/wiki/hhdang6637/embedded_linux_skeleton/resource_history_page.png)
+
+![](https://raw.githubusercontent.com/wiki/hhdang6637/embedded_linux_skeleton/firmware_upgrade.png)
