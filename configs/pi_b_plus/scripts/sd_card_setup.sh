@@ -15,7 +15,7 @@ mcopy -i $SD_P1 $PI_BOOT_DIR/LICENSE.oracle     ::/
 mcopy -i $SD_P1 $UBOOT_SCRIPT_NAME              ::/
 mcopy -i $SD_P1 $UBOOT_NAME                     ::/
 
-echo "1" > firmware_selected
+echo "0" > firmware_selected
 mcopy -i $SD_P1 firmware_selected               ::/
 mcopy -i $SD_P1 firmware                        ::/firmware_0
 mcopy -i $SD_P1 firmware                        ::/firmware_1
