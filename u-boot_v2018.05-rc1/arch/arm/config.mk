@@ -13,6 +13,8 @@ CONFIG_STANDALONE_LOAD_ADDR = 0xc100000
 endif
 endif
 
+PLATFORM_CPPFLAGS += -D$(MODEL)
+
 CFLAGS_NON_EFI := -fno-pic -ffixed-r9 -ffunction-sections -fdata-sections
 CFLAGS_EFI := -fpic -fshort-wchar
 

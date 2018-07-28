@@ -53,6 +53,56 @@ U_BOOT_CMD(
 	"      be printed and performance will suffer for the load."
 );
 
+int do_firmware_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	__u8 number __aligned(ARCH_DMA_MINALIGN);
+	char number_addr_str[32];
+	char *argv_internal[5];
+
+	if (argv[1] == NULL) {
+		printf("miss addr\n");
+		return 1;
+	}
+
+	argv_internal[1] = "mmc";
+
+#ifdef arm_vexpress_a9
+	argv_internal[2] = "0:0";
+#else
+	argv_internal[2] = "0";
+#endif
+
+	snprintf(number_addr_str, 32, "%p" , &number);
+	argv_internal[3] = number_addr_str;
+
+	argv_internal[4] = "firmware_selected";
+
+	printf("fatload %s %s %s %s\n", argv_internal[1], argv_internal[2], argv_internal[3], argv_internal[4]);
+
+	if (do_load(cmdtp, flag, 5, argv_internal, FS_TYPE_FAT) == 0) {
+
+		snprintf(number_addr_str, 32, "%p" , &number);
+
+		argv_internal[3] = argv[1];
+
+		 if (number == '1') {
+		    argv_internal[4] = "firmware_1";
+		} else {
+		    argv_internal[4] = "firmware_0";
+		}
+
+		printf("fatload %s %s %s %s\n", argv_internal[1], argv_internal[2], argv_internal[3], argv_internal[4]);
+
+		return do_load(cmdtp, flag, 5, argv_internal, FS_TYPE_FAT);
+	}
+}
+
+U_BOOT_CMD(
+	firmwareload,	7,	0,	do_firmware_load,
+	"load firmware file from a dos filesystem",
+	"[<addr>]\n"
+);
+
 static int do_fat_ls(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	return do_ls(cmdtp, flag, argc, argv, FS_TYPE_FAT);
