@@ -98,7 +98,7 @@ int do_firmware_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 }
 
 U_BOOT_CMD(
-	firmwareload,	7,	0,	do_firmware_load,
+	firmwareload,	2,	0,	do_firmware_load,
 	"load firmware file from a dos filesystem",
 	"[<addr>]\n"
 );
