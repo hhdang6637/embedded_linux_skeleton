@@ -159,12 +159,12 @@ std::string json_handle_firmware_status(FCGX_Request *request)
 
     ss_json << "\"status\": ";
     ss_json << "\"";
-    ss_json << std::to_string((uint16_t)msg.getFirmwareInfo().status);
+    ss_json << msg.statusToString(msg.getFirmwareInfo().status);
     ss_json << "\", ";
 
     ss_json << "\"result\": ";
     ss_json << "\"";
-    ss_json << std::to_string((uint16_t)msg.getFirmwareInfo().result);
+    ss_json << msg.resultToString(msg.getFirmwareInfo().result);
     ss_json << "\"";
 
     ss_json << "}}";

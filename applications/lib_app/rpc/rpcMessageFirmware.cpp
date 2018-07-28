@@ -97,4 +97,48 @@ namespace app
         this->firmware_info = firmware_info;
     }
 
+    std::string rpcMessageFirmware::statusToString(const app::firmwareStatusType &status)
+    {
+        std::string outStr;
+
+        switch(status)
+        {
+            case app::firmwareStatusType::NONE:
+                outStr = "None";
+                break;
+
+            case app::firmwareStatusType::IN_PROGRESS:
+                outStr = "In-progress";
+                break;
+
+            case app::firmwareStatusType::DONE:
+                outStr = "Done";
+                break;
+        }
+
+        return outStr;
+    }
+
+    std::string rpcMessageFirmware::resultToString(const app::firmwareResultType &result)
+    {
+        std::string outStr;
+
+        switch(result)
+        {
+            case app::firmwareResultType::NONE:
+                outStr = "None";
+                break;
+
+            case app::firmwareResultType::FAILED:
+                outStr = "Failed";
+                break;
+
+            case app::firmwareResultType::SUCCEEDED:
+                outStr = "Succeeded";
+                break;
+        }
+
+        return outStr;
+    }
+
 } /* namespace app */
