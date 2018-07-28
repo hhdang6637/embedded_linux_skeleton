@@ -50,6 +50,10 @@
 
         $.getJSON( "/json/firmware_status", function(data) {
 
+            if (data.json_firmware_status.status === "In-progress") {
+              setTimeout(showFirmwareStatus, 2000);
+            }
+
             if (data.json_firmware_status.result ===  "Succeeded") {
 
               $('#firmware-result-success').html("<strong>Upgrade result:</strong> " + data.json_firmware_status.result).css("display", "block");
@@ -93,8 +97,6 @@
         };
 
         xhr.upload.onprogress = function (event) {
-            // show the progress
-            showFirmwareStatus();
 
             if (event.lengthComputable)
             {
