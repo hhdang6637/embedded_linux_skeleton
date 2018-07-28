@@ -53,8 +53,8 @@ namespace app
         rpcMessageFirmware_t getFirmwareInfo();
         void setFirmwareInfo(const rpcMessageFirmware_t &filename);
 
-        std::string statusToString(const app::firmwareStatusType &status);
-        std::string resultToString(const app::firmwareResultType &result);
+        static std::string statusToString(const app::firmwareStatusType &status);
+        static std::string resultToString(const app::firmwareResultType &result);
 
     private:
         std::string          firmware_name;

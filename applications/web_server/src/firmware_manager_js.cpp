@@ -150,7 +150,7 @@ std::string json_handle_firmware_status(FCGX_Request *request)
     msg.setFirmwareInfo(info);
 
     if (rpcClient->doRpc(&msg) == false) {
-        syslog(LOG_INFO, "something went wrong: doRpc\n");
+        syslog(LOG_ERR, "something went wrong: doRpc\n");
         return "";
     }
 
@@ -159,12 +159,12 @@ std::string json_handle_firmware_status(FCGX_Request *request)
 
     ss_json << "\"status\": ";
     ss_json << "\"";
-    ss_json << msg.statusToString(msg.getFirmwareInfo().status);
+    ss_json << app::rpcMessageFirmware::statusToString(msg.getFirmwareInfo().status);
     ss_json << "\", ";
 
     ss_json << "\"result\": ";
     ss_json << "\"";
-    ss_json << msg.resultToString(msg.getFirmwareInfo().result);
+    ss_json << app::rpcMessageFirmware::resultToString(msg.getFirmwareInfo().result);
     ss_json << "\"";
 
     ss_json << "}}";
