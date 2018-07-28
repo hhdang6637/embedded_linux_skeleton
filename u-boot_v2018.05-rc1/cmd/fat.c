@@ -81,8 +81,6 @@ int do_firmware_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	if (do_load(cmdtp, flag, 5, argv_internal, FS_TYPE_FAT) == 0) {
 
-		snprintf(number_addr_str, 32, "%p" , &number);
-
 		argv_internal[3] = argv[1];
 
 		 if (number == '1') {
