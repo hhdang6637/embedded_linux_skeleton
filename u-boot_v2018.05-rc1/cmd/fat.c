@@ -83,10 +83,10 @@ int do_firmware_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		argv_internal[3] = argv[1];
 
-		 if (number == '1') {
-		    argv_internal[4] = "firmware_1";
+		if (number == '1') {
+			argv_internal[4] = "firmware_1";
 		} else {
-		    argv_internal[4] = "firmware_0";
+			argv_internal[4] = "firmware_0";
 		}
 
 		printf("fatload %s %s %s %s\n", argv_internal[1], argv_internal[2], argv_internal[3], argv_internal[4]);
