@@ -95,6 +95,8 @@ int do_firmware_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		return do_load(cmdtp, flag, 5, argv_internal, FS_TYPE_FAT);
 	}
+
+	return 1;
 }
 
 U_BOOT_CMD(
