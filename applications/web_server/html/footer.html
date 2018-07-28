@@ -4,3 +4,14 @@
     
     <script>window.jQuery || document.write('<script src="/js/jquery-slim.min.js"><\/script>')</script>
     <script src="/js/bootstrap.min.js"></script>
+<!-- For menu responsive in the mobile browser -->
+    <script>
+        function loadNavbar() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+    </script>
