@@ -23,6 +23,7 @@ git clone https://github.com/hhdang6637/embedded_linux_skeleton.git
 To compile and run the example project, run the following commands:
 
 ```
+export MODEL=arm_vexpress_a9
 cd embedded_linux_skeleton
 make
 ```
@@ -32,12 +33,7 @@ After that, we have the `uboot`, `kernel`, and `rootfs` image files at `build/bi
 ## Test with QEMU
 - Install QEMU:
 ```
-sudo apt install qemu-system-i386
-```
-
-- Run QEMU with uboot image:
-```
-./qemu_scripts/qemu_uboot_start.sh
+sudo apt install qemu-system-arm
 ```
 
 - Run QEMU with Kernel and Rootfs:
@@ -47,10 +43,12 @@ First, run the following command:
 ./qemu_scripts/qemu_kernel_roofs_start.sh
 ```
 
-And then, telnet to QEMU machine:
-```
-telnet 127.0.0.1 4444
-```
 Login with `root` and no password.
 
+Access Web Gui: http://127.0.0.1:2080
+
 To be continued...
+
+![](https://raw.githubusercontent.com/wiki/hhdang6637/embedded_linux_skeleton/resource_history_page.png)
+
+![](https://raw.githubusercontent.com/wiki/hhdang6637/embedded_linux_skeleton/firmware_upgrade.png)

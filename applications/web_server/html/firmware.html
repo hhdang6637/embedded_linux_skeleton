@@ -1,0 +1,132 @@
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Firmware Upload</h1>
+</div>
+<div class="container">
+  <div class="panel panel-default">
+    <div class="panel-body">
+
+      <!-- Standar Form -->
+      <h4>Select the fimware from your computer</h4>
+      <form action="" method="post" enctype="multipart/form-data" id="js-upload-form">
+        <div class="form-inline">
+          <div class="form-group">
+            <input type="file" name="files[]" id="js-upload-files">
+          </div>
+          <button type="submit" class="btn btn-sm btn-primary" id="js-upload-submit">Upload</button>
+        </div>
+      </form>
+
+      <br/>
+      <div class="status" onload="showFirmwareStatus()">
+        <div class="alert alert-info" id="firmware-status">
+        </div>
+
+        <div class="alert alert-success" id="firmware-result-success" style="display:none">
+        </div>
+
+        <div class="alert alert-danger" id="firmware-result-fail" style="display:none">
+        </div>
+      </div>
+      <br/>
+      <!-- Progress Bar -->
+      <div class="progress" style="display:none;">
+        <div class="progress-bar" role="progressbar" aria-valuenow="00" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+      </div>
+    </div>
+  </div>
+</div> <!-- /container -->
+<script>
++ function($) {
+    'use strict';
+
+    // UPLOAD CLASS DEFINITION
+    // ======================
+
+    $(document).ready(function(){
+        showFirmwareStatus();
+    });
+
+    function showFirmwareStatus() {
+
+        $.getJSON( "/json/firmware_status", function(data) {
+
+            if (data.json_firmware_status.status === "In-progress") {
+              setTimeout(showFirmwareStatus, 2000);
+            }
+
+            if (data.json_firmware_status.result ===  "Succeeded") {
+
+              $('#firmware-result-success').html("<strong>Upgrade result:</strong> " + data.json_firmware_status.result).css("display", "block");
+
+              $('#firmware-result-fail').css("display", "none");
+
+            } else {
+
+              $('#firmware-result-success').css("display", "none");
+
+              $('#firmware-result-fail').html("<strong>Upgrade result:</strong> " + data.json_firmware_status.result).css("display", "block");
+
+            }
+
+            $('#firmware-status').html("<strong>Upgrade status:</strong> " + data.json_firmware_status.status).css("display", "block");
+        });
+    }
+
+    var dropZone = document.getElementById('drop-zone');
+    var uploadForm = document.getElementById('js-upload-form');
+
+    var sendFile = function(file) {
+        // var bar = $('.progress-bar');
+        // var percent = $('.progress-bar');
+        // var status = $('#file-info');
+
+        var formData = new FormData();
+        formData.append('file', file);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/json/firmware_upgrade');
+        xhr.onload = function () {
+            //TODO show the progress
+        };
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                //TODO success callback
+                showFirmwareStatus();
+            }
+        };
+
+        xhr.upload.onprogress = function (event) {
+
+            if (event.lengthComputable)
+            {
+                var percentComplete = (event.loaded / event.total) * 100;
+                percentComplete = Math.round(percentComplete);
+                $('.progress-bar').attr('aria-valuenow', percentComplete).css('width',percentComplete + '%').text(percentComplete + '%' + " Completed");
+            }
+        };
+
+        xhr.send(formData);
+    }
+
+    var startUpload = function(files) {
+        // reset the process bar
+        $('.progress').css("display", "block");
+        $('.progress-bar').attr('aria-valuenow', 0).css('width',0 + '%');
+
+        var href = "";
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            sendFile(file);
+        }
+    }
+
+    uploadForm.addEventListener('submit', function(e) {
+        var uploadFiles = document.getElementById('js-upload-files').files;
+        e.preventDefault()
+
+        startUpload(uploadFiles)
+    })
+
+}(jQuery);
+</script>

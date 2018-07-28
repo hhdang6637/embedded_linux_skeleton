@@ -4,6 +4,7 @@
  *  Created on: Jul 20, 2018
  *      Author: hhdang
  */
+#include <string.h>
 
 #include <iostream>
 #include <vector>
@@ -12,6 +13,8 @@
 #include <sstream>
 
 #include "simplewebfactory.h"
+
+#include "firmware_manager_js.h"
 
 bool simpleWebFactory::file_to_string(std::string filename, std::string &output)
 {
@@ -48,9 +51,6 @@ simpleWebFactory::simpleWebFactory()
     html_file = INTERNAL_RESOURCE"/navbar.html";
     simpleWebFactory::file_to_string(html_file, this->html_navbar_str);
 
-    html_file = INTERNAL_RESOURCE"/menu.html";
-    simpleWebFactory::file_to_string(html_file, this->html_menu_str);
-
     this->init_url_html_map();
     this->init_url_js_map();
 }
@@ -85,7 +85,7 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
         FCGX_FPrintF(request->out, "Content-Type: application/json; charset=utf-8\r\n\r\n");
         FCGX_FPrintF(request->out, "%s", response_content);
 
-    }else {
+    } else {
         FCGX_FPrintF(request->out, "HTTP/1.1 404 Not Found\r\n\r\n");
     }
 }
@@ -104,29 +104,28 @@ const char* simpleWebFactory::get_html_str(const char * url)
 
     std::ostringstream ss_html;
 
-    ss_html <<  "<!doctype html>"
-                "<html lang=\"en\">";
+    ss_html <<  "<!doctype html>\n"
+                "<html lang=\"en\">\n";
     ss_html << this->html_header_str;
 
-    ss_html << "<body>";
+    ss_html << "<body>\n";
+
     ss_html << this->html_navbar_str;
 
     // container begin
-    ss_html << "<div class=\"container-fluid\"><div class=\"row\">";
+    ss_html << "<div class=\"container-fluid\"><div class=\"row\">\n";
 
-    ss_html << this->html_menu_str;
-
-    ss_html <<"   <main role=\"main\" class=\"col-md-9 ml-sm-auto col-lg-10 pt-3 px-4\">";
+    ss_html <<"   <main role=\"main\" class=\"col-md-12 ml-sm-auto col-lg-12 pt-3 px-4\">\n";
     ss_html << main_content;
-    ss_html << "   </main>";
+    ss_html << "   </main>\n";
 
     ss_html << "</div";
     // container end
 
     ss_html << this->html_footer_str;
 
-    ss_html << "</body>";
-    ss_html << "</html>";
+    ss_html << "</body>\n";
+    ss_html << "</html>\n";
 
     static std::string html;
 

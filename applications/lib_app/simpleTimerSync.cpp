@@ -60,7 +60,7 @@ void simpleTimerSync::actual_start()
     struct itimerval itv;
     struct sigaction sa;
     sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
+    sa.sa_flags = SA_RESTART;
     sa.sa_handler = this->signal_handler;
     if (sigaction(SIGALRM, &sa, NULL) == -1) {
         // TODO

@@ -28,8 +28,7 @@ bool rpcMessage::send(int fd)
         return false;
     }
 
-    this->serialize(fd);
-    return true;
+    return this->serialize(fd);
 }
 
 bool rpcMessage::receive(int fd)

@@ -10,8 +10,8 @@
 #include <fcgiapp.h>
 
 #include <iostream>
-#include "simplewebfactory.h"
 
+#include "simplewebfactory.h"
 #include "fcgi.h"
 
 static int fcgi_sock = -1;
