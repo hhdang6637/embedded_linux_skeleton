@@ -21,6 +21,7 @@
 
 #include "firmwareManager.h"
 #include "utilities.h"
+#include "fdt.h"
 
 #define FIRMWARE_NAME_F             "/boot/firmware_%d"
 #define FIRMWARE_SELECTED_PATH      "/boot/firmware_selected"
@@ -52,7 +53,7 @@ namespace app
         if (s_instance == 0) {
             s_instance = new firmwareManager();
 
-            s_instance->loadCurrentFwNumber();
+            s_instance->loadCurrentFwinfo();
         }
 
         return s_instance;
@@ -78,7 +79,7 @@ namespace app
         return this->result;
     }
 
-    void firmwareManager::loadCurrentFwNumber()
+    void firmwareManager::loadCurrentFwinfo()
     {
         std::ifstream file(FIRMWARE_SELECTED_PATH);
 
@@ -106,6 +107,15 @@ namespace app
 
         long int size;
         firmware_header *header = (firmware_header*)::file_to_addr(fw_name, &size);
+
+        char *desc;
+        if (fit_get_desc((const fdt32_t *)header, 0, &desc) == 0) {
+            syslog(LOG_NOTICE, "Fw desc: %s", desc);
+        }
+        time_t timestamp;
+        if (fit_get_timestamp((const fdt32_t *)header, 0, &timestamp) == 0) {
+            syslog(LOG_NOTICE,"Fw created:%s", ctime(&timestamp));
+        }
 
         if (header != NULL) {
             munmap(header, size);

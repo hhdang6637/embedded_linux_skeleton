@@ -48,7 +48,7 @@ namespace app
         bool doFirmwareUpgrade();
 
         int currentFwNumber;
-        void loadCurrentFwNumber();
+        void loadCurrentFwinfo();
 
         static firmwareManager* s_instance;
 
