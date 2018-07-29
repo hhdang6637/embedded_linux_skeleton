@@ -6,6 +6,7 @@ SRCS=simpleTimerSync.o
 SRCS += cpu_stat.o utilities.o service.o
 SRCS += rpc/rpcMessage.o rpc/rpcMessageAddr.o rpc/rpcUnixClient.o rpc/rpcUnixServer.o
 SRCS += rpc/rpcMessageCpuHistory.o rpc/rpcMessageFirmware.o
+SRCS += libfdt/fdt_ro.o
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@
@@ -21,6 +22,7 @@ clean:
 install:
 	cp *.h       $(ROOTFS_DIR)/usr/include
 	cp rpc/*.h       $(ROOTFS_DIR)/usr/include
+	cp libfdt/*.h       $(ROOTFS_DIR)/usr/include
 	cp $(SHARED) $(ROOTFS_DIR)/usr/lib
 
 all: $(SHARED) install
