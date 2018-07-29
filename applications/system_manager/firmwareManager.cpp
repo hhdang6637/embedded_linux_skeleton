@@ -17,10 +17,13 @@
 #include <errno.h>
 #include <string.h>
 
+#include <fstream>
+
 #include "firmwareManager.h"
 #include "utilities.h"
 
-#define FIRMWARE_NAME               "/boot/firmware_0"
+#define FIRMWARE_NAME_F             "/boot/firmware_%d"
+#define FIRMWARE_SELECTED_PATH      "/boot/firmware_selected"
 #define FDT_MAGIC                   0xd00dfeed  /* 4: version, 4: total size */
 #define FDT_SW_MAGIC                (~FDT_MAGIC)
 #define FDT_FIRST_SUPPORTED_VERSION 0x10
@@ -31,10 +34,10 @@ namespace app
     firmwareManager::firmwareManager() :
             status(app::firmwareStatusType::NONE),
             result(app::firmwareResultType::NONE),
+            currentFwNumber(0),
             pidChild(-1)
     {
         // TODO Auto-generated constructor stub
-
     }
 
     firmwareManager::~firmwareManager()
@@ -48,6 +51,8 @@ namespace app
     {
         if (s_instance == 0) {
             s_instance = new firmwareManager();
+
+            s_instance->loadCurrentFwNumber();
         }
 
         return s_instance;
@@ -73,31 +78,51 @@ namespace app
         return this->result;
     }
 
+    void firmwareManager::loadCurrentFwNumber()
+    {
+        std::ifstream file(FIRMWARE_SELECTED_PATH);
+
+        if (file.is_open()) {
+            std::string line;
+            while (getline(file, line)) {
+
+                this->currentFwNumber = 0;
+
+                if (line.length() > 0 && line[0] == '1') {
+                    this->currentFwNumber = 1;
+                }
+
+            }
+            file.close();
+        } else {
+            syslog(LOG_ERR, "cannot open file %s", FIRMWARE_SELECTED_PATH);
+            return;
+        }
+
+        syslog(LOG_NOTICE, "We're using FwNumber : %d", this->currentFwNumber);
+
+        char fw_name[32];
+        snprintf(fw_name, sizeof(fw_name), FIRMWARE_NAME_F, this->currentFwNumber);
+
+        long int size;
+        firmware_header *header = (firmware_header*)::file_to_addr(fw_name, &size);
+
+        if (header != NULL) {
+            munmap(header, size);
+        }
+    }
+
     bool firmwareManager::firmwareValidator(const char *filename)
     {
         syslog(LOG_INFO, "Validating firmware....\n");
 
-        struct stat sbuf;
-        firmware_header *header = (firmware_header *)MAP_FAILED;
+        long int size;
+
+        firmware_header *header = (fdt_header*)::file_to_addr(filename, &size);
 
         bool rc = true;
 
-        int ifd = ::open(filename, O_RDONLY);
-
-        if (ifd < 0) {
-            syslog(LOG_INFO, "Can't open %s: %s\n", filename, strerror(errno));
-            rc = false;
-            goto out;
-        }
-
-        if (::fstat(ifd, &sbuf) < 0) {
-            syslog(LOG_INFO, "Can't stat %s: %s\n", filename, strerror(errno));
-            rc = false;
-            goto out;
-        }
-
-        header = (firmware_header *) ::mmap(0, sizeof(header), PROT_READ, MAP_SHARED, ifd, 0);
-        if (header == MAP_FAILED) {
+        if (header == NULL) {
             syslog(LOG_INFO, "Can't read %s: %s\n", filename, strerror(errno));
             rc = false;
             goto out;
@@ -136,18 +161,15 @@ namespace app
             goto out;
         }
 
-        if (be32_to_cpu(header->totalsize) != (uint32_t) sbuf.st_size) {
+        if ((long int)be32_to_cpu(header->totalsize) != size) {
             syslog(LOG_INFO, "Firmware image invalid: bad size\n");
             rc = false;
             goto out;
         }
 out:
-        if (ifd != -1) {
-            close (ifd);
-        }
 
-        if (header != MAP_FAILED) {
-            munmap(header, sizeof(header));
+        if (header != NULL) {
+            munmap(header, size);
         }
 
         return rc;
@@ -155,7 +177,9 @@ out:
 
     bool firmwareManager::doFirmwareUpgrade()
     {
+        std::ofstream file;
         bool rc = true;
+
         if (this->firmwareValidator(this->firmware_name.c_str()) == false) {
             syslog(LOG_INFO, "%s is not valid firmware\n", this->firmware_name.c_str());
             rc = false;
@@ -164,10 +188,20 @@ out:
 
         syslog(LOG_INFO, "Processing firmware upgrade....\n");
 
-        if (::copy_file(this->firmware_name.c_str(), FIRMWARE_NAME) == false) {
-            syslog(LOG_ERR, "cannot copy success %s to %s", this->firmware_name.c_str(), FIRMWARE_NAME);
+        char fw_name[32];
+        snprintf(fw_name, sizeof(fw_name), FIRMWARE_NAME_F, this->currentFwNumber == 0 ? 1 : 0);
+
+        if (::copy_file(this->firmware_name.c_str(), fw_name) == false) {
+            syslog(LOG_ERR, "cannot copy success %s to %s", this->firmware_name.c_str(), fw_name);
             rc = false;
             goto doFirmwareUpgradeDone;
+        }
+
+        file.open(FIRMWARE_SELECTED_PATH, std::fstream::out | std::fstream::trunc);
+
+        if (file.is_open()) {
+            file << (this->currentFwNumber == 0 ? 1 : 0);
+            file.close();
         }
 
 doFirmwareUpgradeDone:

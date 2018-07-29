@@ -47,6 +47,9 @@ namespace app
 
         bool doFirmwareUpgrade();
 
+        int currentFwNumber;
+        void loadCurrentFwNumber();
+
         static firmwareManager* s_instance;
 
         pid_t pidChild;

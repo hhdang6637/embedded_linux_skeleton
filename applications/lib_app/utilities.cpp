@@ -89,7 +89,7 @@ int build_fd_sets(fd_set *read_fds, std::list<int> &fds)
     return max;
 }
 
-void *file_to_addr(const char*file_name)
+void *file_to_addr(const char*file_name, long int *st_size)
 {
     struct stat sbuf;
     void *addr = NULL;
@@ -111,6 +111,8 @@ void *file_to_addr(const char*file_name)
         addr = NULL;
         goto out;
     }
+
+    *st_size = sbuf.st_size;
 
 out:
     if (ifd != -1) {
