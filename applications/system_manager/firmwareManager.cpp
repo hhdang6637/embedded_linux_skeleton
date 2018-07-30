@@ -117,7 +117,12 @@ namespace app
         time_t timestamp;
         if (fit_get_timestamp((const fdt32_t *)header, 0, &timestamp) == 0) {
             syslog(LOG_NOTICE,"Fw created:%s", ctime(&timestamp));
-            this->fwInfo.created_date = ctime(&timestamp);
+
+            struct tm * p = localtime(&timestamp);
+            char str[32];
+            strftime(str, 32, "%A, %B %d %Y", p);
+            this->fwInfo.created_date = str;
+
         }
 
         if (header != NULL) {
