@@ -25,10 +25,6 @@
 
 #define FIRMWARE_NAME_F             "/boot/firmware_%d"
 #define FIRMWARE_SELECTED_PATH      "/boot/firmware_selected"
-#define FDT_MAGIC                   0xd00dfeed  /* 4: version, 4: total size */
-#define FDT_SW_MAGIC                (~FDT_MAGIC)
-#define FDT_FIRST_SUPPORTED_VERSION 0x10
-#define FDT_LAST_SUPPORTED_VERSION  0x11
 
 namespace app
 {
@@ -106,7 +102,7 @@ namespace app
         snprintf(fw_name, sizeof(fw_name), FIRMWARE_NAME_F, this->currentFwNumber);
 
         long int size;
-        firmware_header *header = (firmware_header*)::file_to_addr(fw_name, &size);
+        struct fdt_header *header = (struct fdt_header*)::file_to_addr(fw_name, &size);
 
         char *desc;
         if (fit_get_desc((const fdt32_t *)header, 0, &desc) == 0) {
@@ -128,7 +124,7 @@ namespace app
 
         long int size;
 
-        firmware_header *header = (fdt_header*)::file_to_addr(filename, &size);
+        struct fdt_header *header = (struct fdt_header*)::file_to_addr(filename, &size);
 
         bool rc = true;
 
@@ -138,35 +134,8 @@ namespace app
             goto out;
         }
 
-        if (be32_to_cpu(header->magic) == FDT_MAGIC) {
-
-            /* Complete tree */
-            if (be32_to_cpu(header->version) < FDT_FIRST_SUPPORTED_VERSION) {
-                syslog(LOG_INFO, "Firmware image invalid: bad version\n");
-                //-FDT_ERR_BADVERSION;
-                rc = false;
-                goto out;
-            }
-
-            if (be32_to_cpu(header->last_comp_version) > FDT_LAST_SUPPORTED_VERSION) {
-                syslog(LOG_INFO, "Firmware image invalid: bad version\n");
-                //-FDT_ERR_BADVERSION;
-                rc = false;
-                goto out;
-            }
-
-        } else if (be32_to_cpu(header->magic) == FDT_SW_MAGIC) {
-            /* Unfinished sequential-write blob */
-            if (be32_to_cpu(header->size_dt_struct) == 0) {
-                syslog(LOG_INFO, "Firmware image invalid: bad state\n");
-                // -FDT_ERR_BADSTATE;
-                rc = false;
-                goto out;
-            }
-
-        } else {
-            syslog(LOG_INFO, "Firmware image invalid: bad magic\n");
-            //-FDT_ERR_BADMAGIC;
+        if (fdt_check_header(header) != 0) {
+            syslog(LOG_INFO, "Firmware image invalid: bad firmware header\n");
             rc = false;
             goto out;
         }

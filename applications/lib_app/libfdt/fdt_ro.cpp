@@ -22,8 +22,11 @@
 
 #define fdt32_to_cpu(x) be32_to_cpu(x)
 
-#define FDT_MAGIC   0xd00dfeed  /* 4: version, 4: total size */
-#define FDT_TAGSIZE sizeof(fdt32_t)
+#define FDT_MAGIC                   0xd00dfeed  /* 4: version, 4: total size */
+#define FDT_SW_MAGIC                (~FDT_MAGIC)
+#define FDT_FIRST_SUPPORTED_VERSION 0x10
+#define FDT_LAST_SUPPORTED_VERSION  0x11
+#define FDT_TAGSIZE                 sizeof(fdt32_t)
 
 #define FDT_BEGIN_NODE  0x1     /* Start node: full name */
 #define FDT_END_NODE    0x2     /* End node */
@@ -38,9 +41,26 @@
     /* FDT_ERR_EXISTS: Attempted to create a node or property which
      * already exists */
 #define FDT_ERR_BADOFFSET   4
+    /* FDT_ERR_BADOFFSET: Function was passed a structure block
+     * offset which is out-of-bounds, or which points to an
+     * unsuitable part of the structure for the operation. */
+#define FDT_ERR_BADSTATE        7
+    /* FDT_ERR_BADSTATE: Function was passed an incomplete device
+     * tree created by the sequential-write functions, which is
+     * not sufficiently complete for the requested operation. */
 #define FDT_ERR_TRUNCATED   8
     /* FDT_ERR_TRUNCATED: Structure block of the given device tree
      * ends without an FDT_END tag. */
+
+#define FDT_ERR_BADMAGIC        9
+    /* FDT_ERR_BADMAGIC: Given "device tree" appears not to be a
+     * device tree at all - it is missing the flattened device
+     * tree magic number. */
+#define FDT_ERR_BADVERSION      10
+    /* FDT_ERR_BADVERSION: Given device tree has a version which
+     * can't be handled by the requested operation.  For
+     * read-write functions, this may mean that fdt_open_into() is
+     * required to convert the tree to the expected version. */
 #define FDT_ERR_BADSTRUCTURE    11
     /* FDT_ERR_BADSTRUCTURE: Given device tree has a corrupt
      * structure block or other serious error (e.g. misnested
@@ -304,6 +324,25 @@ int fit_get_timestamp(const fdt32_t *fit, int noffset, time_t *timestamp)
     }
 
     *timestamp = uimage_to_cpu(*((uint32_t *)data));
+    return 0;
+}
+
+int fdt_check_header(const void *fdt)
+{
+    if (fdt_magic(fdt) == FDT_MAGIC) {
+        /* Complete tree */
+        if (fdt_version(fdt) < FDT_FIRST_SUPPORTED_VERSION)
+            return -FDT_ERR_BADVERSION;
+        if (fdt_last_comp_version(fdt) > FDT_LAST_SUPPORTED_VERSION)
+            return -FDT_ERR_BADVERSION;
+    } else if (fdt_magic(fdt) == FDT_SW_MAGIC) {
+        /* Unfinished sequential-write blob */
+        if (fdt_size_dt_struct(fdt) == 0)
+            return -FDT_ERR_BADSTATE;
+    } else {
+        return -FDT_ERR_BADMAGIC;
+    }
+
     return 0;
 }
 

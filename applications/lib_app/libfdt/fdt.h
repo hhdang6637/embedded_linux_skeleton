@@ -59,5 +59,6 @@ struct fdt_property {
 
 int fit_get_desc(const fdt32_t *fit, int noffset, char **desc);
 int fit_get_timestamp(const fdt32_t *fit, int noffset, time_t *timestamp);
+int fdt_check_header(const void *fdt);
 
 #endif /* APPLICATIONS_LIB_APP_LIBFDT_FDT_H_ */
