@@ -57,12 +57,12 @@ namespace app
 
     std::string firmwareManager::getFirmwareName()
     {
-        return this->firmware_name;
+        return this->fwName;
     }
 
     void firmwareManager::setFirmwareName(std::string &filename)
     {
-        this->firmware_name = filename;
+        this->fwName = filename;
     }
 
     app::firmwareStatusType firmwareManager::getFirmwareStatus()
@@ -75,9 +75,14 @@ namespace app
         return this->result;
     }
 
-    app::firmwareInfo_t firmwareManager::getFirmwareInfo()
+    std::string firmwareManager::getFirmwareDesc()
     {
-        return this->fwInfo;
+        return this->fwDesc;
+    }
+
+    std::string firmwareManager::getFirmwareDate()
+    {
+        return this->fwDate;
     }
 
     void firmwareManager::loadCurrentFwinfo()
@@ -112,7 +117,7 @@ namespace app
         char *desc;
         if (fit_get_desc((const fdt32_t *)header, 0, &desc) == 0) {
             syslog(LOG_NOTICE, "Fw desc: %s", desc);
-            this->fwInfo.description = desc;
+            this->fwDesc = desc;
         }
         time_t timestamp;
         if (fit_get_timestamp((const fdt32_t *)header, 0, &timestamp) == 0) {
@@ -121,7 +126,7 @@ namespace app
             struct tm * p = localtime(&timestamp);
             char str[32];
             strftime(str, 32, "%A, %B %d %H:%M:%S %Y", p);
-            this->fwInfo.created_date = str;
+            this->fwDate = str;
         }
 
         if (header != NULL) {
@@ -170,8 +175,8 @@ out:
         std::ofstream file;
         bool rc = true;
 
-        if (this->firmwareValidator(this->firmware_name.c_str()) == false) {
-            syslog(LOG_INFO, "%s is not valid firmware\n", this->firmware_name.c_str());
+        if (this->firmwareValidator(this->fwName.c_str()) == false) {
+            syslog(LOG_INFO, "%s is not valid firmware\n", this->fwName.c_str());
             rc = false;
             goto doFirmwareUpgradeDone;
         }
@@ -181,8 +186,8 @@ out:
         char fw_name[32];
         snprintf(fw_name, sizeof(fw_name), FIRMWARE_NAME_F, this->currentFwNumber == 0 ? 1 : 0);
 
-        if (::copy_file(this->firmware_name.c_str(), fw_name) == false) {
-            syslog(LOG_ERR, "cannot copy success %s to %s", this->firmware_name.c_str(), fw_name);
+        if (::copy_file(this->fwName.c_str(), fw_name) == false) {
+            syslog(LOG_ERR, "cannot copy success %s to %s", this->fwName.c_str(), fw_name);
             rc = false;
             goto doFirmwareUpgradeDone;
         }
@@ -195,8 +200,8 @@ out:
         }
 
 doFirmwareUpgradeDone:
-        ::unlink(this->firmware_name.c_str());
-        syslog(LOG_INFO, "Processing firmware Done, removed %s\n", this->firmware_name.c_str());
+        ::unlink(this->fwName.c_str());
+        syslog(LOG_INFO, "Processing firmware Done, removed %s\n", this->fwName.c_str());
 
         return rc;
     }

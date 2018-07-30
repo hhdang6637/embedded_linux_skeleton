@@ -23,11 +23,11 @@ static int do_firmware_upgrade(const std::string &filename)
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageFirmware msg;
 
-    app::rpcMessageFirmware_t info = app::rpcMessageFirmware_t();
-    info.action = app::rpcFirmwareActionType::DO_UPGRADE;
+    app::rpcMessageFirmwareData_t info = app::rpcMessageFirmwareData_t();
+
+    msg.setFirmwareMsgAction(app::rpcFirmwareActionType::DO_UPGRADE);
 
     msg.setFirmwareName(filename);
-    msg.setFirmwareRpcInfo(info);
 
     if (rpcClient->doRpc(&msg) == false) {
         syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
@@ -144,10 +144,7 @@ std::string json_handle_firmware_status(FCGX_Request *request)
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageFirmware msg;
 
-    app::rpcMessageFirmware_t info = app::rpcMessageFirmware_t();
-    info.action = app::rpcFirmwareActionType::GET_STATUS;
-
-    msg.setFirmwareRpcInfo(info);
+    msg.setFirmwareMsgAction(app::rpcFirmwareActionType::GET_STATUS);
 
     if (rpcClient->doRpc(&msg) == false) {
         syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
@@ -159,12 +156,12 @@ std::string json_handle_firmware_status(FCGX_Request *request)
 
     ss_json << "\"status\": ";
     ss_json << "\"";
-    ss_json << app::rpcMessageFirmware::statusToString(msg.getFirmwareRpcInfo().status);
+    ss_json << app::rpcMessageFirmware::statusToString(msg.getFirmwareMsgData().status);
     ss_json << "\", ";
 
     ss_json << "\"result\": ";
     ss_json << "\"";
-    ss_json << app::rpcMessageFirmware::resultToString(msg.getFirmwareRpcInfo().result);
+    ss_json << app::rpcMessageFirmware::resultToString(msg.getFirmwareMsgData().result);
     ss_json << "\"";
 
     ss_json << "}}";
@@ -177,29 +174,24 @@ std::string json_handle_firmware_info(FCGX_Request *request)
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageFirmware msg;
 
-    app::rpcMessageFirmware_t info = app::rpcMessageFirmware_t();
-    info.action = app::rpcFirmwareActionType::GET_INFO;
-
-    msg.setFirmwareRpcInfo(info);
+    msg.setFirmwareMsgAction(app::rpcFirmwareActionType::GET_INFO);
 
     if (rpcClient->doRpc(&msg) == false) {
         syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
         return "";
     }
 
-    info = msg.getFirmwareRpcInfo();
-
     std::ostringstream ss_json;
     ss_json << "{\"json_firmware_info\": {";
 
     ss_json << "\"desc\": ";
     ss_json << "\"";
-    ss_json << info.fwInfo.description;
+    ss_json << msg.getFirmwareMsgData().fwDesc;
     ss_json << "\", ";
 
     ss_json << "\"date\": ";
     ss_json << "\"";
-    ss_json << info.fwInfo.created_date;
+    ss_json << msg.getFirmwareMsgData().fwDate;
     ss_json << "\"";
 
     ss_json << "}}";

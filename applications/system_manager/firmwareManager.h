@@ -19,36 +19,32 @@ namespace app
     private:
         firmwareManager();
 
-        std::string firmware_name;
+        static firmwareManager* s_instance;
         app::firmwareStatusType status;
         app::firmwareResultType result;
-        app::firmwareInfo_t     fwInfo;
+        std::string             fwName;
+        std::string             fwDesc;
+        std::string             fwDate;
+        int                     currentFwNumber;
+        pid_t                   pidChild;
 
         bool firmwareValidator(const char *filename);
-
         bool doFirmwareUpgrade();
-
-        int currentFwNumber;
         void loadCurrentFwinfo();
 
-        static firmwareManager* s_instance;
-
-        pid_t pidChild;
         static void handler(int sig);
 
     public:
-        virtual ~firmwareManager();
+        virtual                 ~firmwareManager();
 
         static firmwareManager* getInstance();
-
-        std::string getFirmwareName();
-        void setFirmwareName(std::string &filename);
-
+        void                    setFirmwareName(std::string &filename);
+        std::string             getFirmwareName();
         app::firmwareStatusType getFirmwareStatus();
         app::firmwareResultType getFirmwareResult();
-        app::firmwareInfo_t     getFirmwareInfo();
-
-        bool doAsynUpgrade();
+        std::string             getFirmwareDesc();
+        std::string             getFirmwareDate();
+        bool                    doAsynUpgrade();
     };
 
 } /* namespace app */

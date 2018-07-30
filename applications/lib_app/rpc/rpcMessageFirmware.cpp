@@ -13,7 +13,9 @@ namespace app
 {
 
     rpcMessageFirmware::rpcMessageFirmware() :
-            rpcMessage(rpcMessageType::handle_firmware_action), rpc_info()
+            rpcMessage(rpcMessageType::handle_firmware_action),
+            msgAction(app::rpcFirmwareActionType::GET_INFO),
+            msgData()
     {
     }
 
@@ -28,12 +30,12 @@ namespace app
         int offset = 0;
         uint16_t tmpValue;
 
-        tmpValue = (int)this->getFirmwareRpcInfo().action;
+        tmpValue = (uint16_t)this->msgAction;
         if (rpcMessage::sendInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
             return false;
         }
 
-        switch (this->getFirmwareRpcInfo().action)
+        switch (this->msgAction)
         {
             case app::rpcFirmwareActionType::GET_STATUS:
             {
@@ -42,8 +44,8 @@ namespace app
 
                 std::unique_ptr<char> buff_ptr(new char[buff_len]());
 
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->rpc_info.result);
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->rpc_info.status);
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgData.result);
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgData.status);
 
                 if (buff_len != offset) {
 
@@ -64,15 +66,15 @@ namespace app
                 buff_len += sizeof(app::firmwareResultType);
                 buff_len += sizeof(app::firmwareStatusType);
                 buff_len += sizeof(uint16_t);
-                buff_len += this->firmware_name.length();
+                buff_len += this->msgData.fwName.length();
 
                 std::unique_ptr<char> buff_ptr(new char[buff_len]());
 
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->rpc_info.result);
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->rpc_info.status);
-                tmpValue = this->firmware_name.length();
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgData.result);
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgData.status);
+                tmpValue = this->msgData.fwName.length();
                 offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmpValue);
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->firmware_name);
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgData.fwName);
 
                 if (buff_len != offset) {
 
@@ -91,18 +93,18 @@ namespace app
             case app::rpcFirmwareActionType::GET_INFO:
             {
                 buff_len += sizeof(uint16_t);
-                buff_len += this->rpc_info.fwInfo.created_date.length();
+                buff_len += this->msgData.fwDate.length();
                 buff_len += sizeof(uint16_t);
-                buff_len += this->rpc_info.fwInfo.description.length();
+                buff_len += this->msgData.fwDesc.length();
 
                 std::unique_ptr<char> buff_ptr(new char[buff_len]());
 
-                tmpValue = this->rpc_info.fwInfo.created_date.length();
+                tmpValue = this->msgData.fwDate.length();
                 offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmpValue);
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->rpc_info.fwInfo.created_date);
-                tmpValue = this->rpc_info.fwInfo.description.length();
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgData.fwDate);
+                tmpValue = this->msgData.fwDesc.length();
                 offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmpValue);
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->rpc_info.fwInfo.description);
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgData.fwDesc);
 
                 if (buff_len != offset) {
 
@@ -132,16 +134,16 @@ namespace app
             return false;
         }
 
-        this->rpc_info.action = app::rpcFirmwareActionType(tmpValue);
+        this->msgAction = app::rpcFirmwareActionType(tmpValue);
 
-        switch (this->getFirmwareRpcInfo().action)
+        switch (this->msgAction)
         {
             case app::rpcFirmwareActionType::GET_STATUS:
             {
-                if (rpcMessage::recvInterruptRetry(fd, &this->rpc_info.result, sizeof(app::firmwareResultType)) != true) {
+                if (rpcMessage::recvInterruptRetry(fd, &this->msgData.result, sizeof(app::firmwareResultType)) != true) {
                     return false;
                 }
-                if (rpcMessage::recvInterruptRetry(fd, &this->rpc_info.status, sizeof(app::firmwareStatusType)) != true) {
+                if (rpcMessage::recvInterruptRetry(fd, &this->msgData.status, sizeof(app::firmwareStatusType)) != true) {
                     return false;
                 }
 
@@ -151,10 +153,10 @@ namespace app
             {
                 uint16_t firmware_name_size;
 
-                if (rpcMessage::recvInterruptRetry(fd, &this->rpc_info.result, sizeof(app::firmwareResultType)) != true) {
+                if (rpcMessage::recvInterruptRetry(fd, &this->msgData.result, sizeof(app::firmwareResultType)) != true) {
                     return false;
                 }
-                if (rpcMessage::recvInterruptRetry(fd, &this->rpc_info.status, sizeof(app::firmwareStatusType)) != true) {
+                if (rpcMessage::recvInterruptRetry(fd, &this->msgData.status, sizeof(app::firmwareStatusType)) != true) {
                     return false;
                 }
 
@@ -169,7 +171,7 @@ namespace app
                         return false;
                     }
 
-                    this->firmware_name = buff_ptr.get();
+                    this->msgData.fwName = buff_ptr.get();
                 }
                 break;
             }
@@ -187,7 +189,7 @@ namespace app
                         return false;
                     }
 
-                    this->rpc_info.fwInfo.created_date = buff_ptr.get();
+                    this->msgData.fwDate = buff_ptr.get();
                 }
 
                 tmpValue = 0;
@@ -203,7 +205,7 @@ namespace app
                         return false;
                     }
 
-                    this->rpc_info.fwInfo.description = buff_ptr.get();
+                    this->msgData.fwDesc = buff_ptr.get();
                 }
                 break;
             }
@@ -216,22 +218,32 @@ namespace app
 
     void rpcMessageFirmware::setFirmwareName(const std::string &filename)
     {
-        this->firmware_name = filename;
+        this->msgData.fwName = filename;
     }
 
     std::string rpcMessageFirmware::getFirmwareName()
     {
-        return this->firmware_name;
+        return this->msgData.fwName;
     }
 
-    app::rpcMessageFirmware_t rpcMessageFirmware::getFirmwareRpcInfo()
+    app::rpcMessageFirmwareData_t rpcMessageFirmware::getFirmwareMsgData()
     {
-        return this->rpc_info;
+        return this->msgData;
     }
 
-    void rpcMessageFirmware::setFirmwareRpcInfo(const rpcMessageFirmware_t &firmware_info)
+    void rpcMessageFirmware::setFirmwareMsgData(const app::rpcMessageFirmwareData_t &msgData)
     {
-        this->rpc_info = firmware_info;
+        this->msgData = msgData;
+    }
+
+    app::rpcFirmwareActionType rpcMessageFirmware::getFirmwareMsgAction()
+    {
+        return this->msgAction;
+    }
+
+    void rpcMessageFirmware::setFirmwareMsgAction(const app::rpcFirmwareActionType &msgAction)
+    {
+        this->msgAction = msgAction;
     }
 
     std::string rpcMessageFirmware::statusToString(const app::firmwareStatusType &status)

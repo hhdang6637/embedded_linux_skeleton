@@ -74,16 +74,16 @@ static bool firmware_action_handler(int socket_fd)
     app::rpcMessageFirmware msgFimware;
     if (msgFimware.deserialize(socket_fd)) {
 
-        app::rpcMessageFirmware_t info = msgFimware.getFirmwareRpcInfo();
+        app::rpcMessageFirmwareData_t msgData = msgFimware.getFirmwareMsgData();
 
-        switch (msgFimware.getFirmwareRpcInfo().action)
+        switch (msgFimware.getFirmwareMsgAction())
         {
             case app::rpcFirmwareActionType::GET_STATUS:
             {
-                info.status = app::firmwareManager::getInstance()->getFirmwareStatus();
-                info.result = app::firmwareManager::getInstance()->getFirmwareResult();
+                msgData.status = app::firmwareManager::getInstance()->getFirmwareStatus();
+                msgData.result = app::firmwareManager::getInstance()->getFirmwareResult();
 
-                msgFimware.setFirmwareRpcInfo(info);
+                msgFimware.setFirmwareMsgData(msgData);
                 break;
             }
 
@@ -96,16 +96,17 @@ static bool firmware_action_handler(int socket_fd)
                     return false;
                 }
 
-                info.status = app::firmwareManager::getInstance()->getFirmwareStatus();
-                info.result = app::firmwareManager::getInstance()->getFirmwareResult();
-                msgFimware.setFirmwareRpcInfo(info);
+                msgData.status = app::firmwareManager::getInstance()->getFirmwareStatus();
+                msgData.result = app::firmwareManager::getInstance()->getFirmwareResult();
+                msgFimware.setFirmwareMsgData(msgData);
 
                 break;
             }
             case app::rpcFirmwareActionType::GET_INFO:
             {
-                info.fwInfo = app::firmwareManager::getInstance()->getFirmwareInfo();
-                msgFimware.setFirmwareRpcInfo(info);
+                msgData.fwDate = app::firmwareManager::getInstance()->getFirmwareDate();
+                msgData.fwDesc = app::firmwareManager::getInstance()->getFirmwareDesc();
+                msgFimware.setFirmwareMsgData(msgData);
 
                 break;
             }

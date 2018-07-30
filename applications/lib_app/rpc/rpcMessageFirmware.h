@@ -34,16 +34,12 @@ namespace app
     };
 
     typedef struct {
-        std::string description;
-        std::string created_date;
-    } firmwareInfo_t;
-
-    typedef struct {
-        app::rpcFirmwareActionType action;
-        app::firmwareStatusType    status;
-        app::firmwareResultType    result;
-        app::firmwareInfo_t        fwInfo;
-    } rpcMessageFirmware_t;
+        app::firmwareStatusType status;
+        app::firmwareResultType result;
+        std::string             fwName;
+        std::string             fwDesc;
+        std::string             fwDate;
+    } rpcMessageFirmwareData_t;
 
     class rpcMessageFirmware: public app::rpcMessage
     {
@@ -55,17 +51,20 @@ namespace app
         virtual ~rpcMessageFirmware();
 
         std::string getFirmwareName();
-        void setFirmwareName(const std::string &filename);
+        void        setFirmwareName(const std::string &filename);
 
-        rpcMessageFirmware_t getFirmwareRpcInfo();
-        void setFirmwareRpcInfo(const rpcMessageFirmware_t &filename);
+        app::rpcMessageFirmwareData_t getFirmwareMsgData();
+        void                          setFirmwareMsgData(const app::rpcMessageFirmwareData_t &msgData);
+
+        app::rpcFirmwareActionType getFirmwareMsgAction();
+        void                       setFirmwareMsgAction(const app::rpcFirmwareActionType &msgAction);
 
         static std::string statusToString(const app::firmwareStatusType &status);
         static std::string resultToString(const app::firmwareResultType &result);
 
     private:
-        std::string          firmware_name;
-        rpcMessageFirmware_t rpc_info;
+        app::rpcFirmwareActionType msgAction;
+        rpcMessageFirmwareData_t   msgData;
     };
 
 } /* namespace app */
