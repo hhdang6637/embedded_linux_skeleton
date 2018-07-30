@@ -120,9 +120,8 @@ namespace app
 
             struct tm * p = localtime(&timestamp);
             char str[32];
-            strftime(str, 32, "%A, %B %d %Y", p);
+            strftime(str, 32, "%A, %B %d %H:%M:%S %Y", p);
             this->fwInfo.created_date = str;
-
         }
 
         if (header != NULL) {
