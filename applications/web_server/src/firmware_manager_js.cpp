@@ -172,3 +172,32 @@ std::string json_handle_firmware_status(FCGX_Request *request)
     return ss_json.str();
 }
 
+std::string json_handle_firmware_info(FCGX_Request *request)
+{
+// TODO:
+//    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+//     app::rpcMessageFirmware msg;
+//
+//     if (rpcClient->doRpc(&msg) == false) {
+//         syslog(LOG_ERR, "something went wrong: doRpc\n");
+//         return "";
+//     }
+
+//    app::firmwareInfo_t info = app::firmwareManager::getInstance()->getFirmwareInfo();
+    std::ostringstream ss_json;
+    ss_json << "{\"json_firmware_info\": {";
+
+    ss_json << "\"desc\": ";
+    ss_json << "\"";
+    ss_json << "Simple image with single Linux kernel and FDT blob";
+    ss_json << "\", ";
+
+    ss_json << "\"date\": ";
+    ss_json << "\"";
+    ss_json << "Sat Jul 28 14:26:44 2018";
+    ss_json << "\"";
+
+    ss_json << "}}";
+
+    return ss_json.str();
+}
