@@ -22,6 +22,7 @@ namespace app
         std::string firmware_name;
         app::firmwareStatusType status;
         app::firmwareResultType result;
+        app::firmwareInfo_t     fwInfo;
 
         bool firmwareValidator(const char *filename);
 
@@ -45,6 +46,7 @@ namespace app
 
         app::firmwareStatusType getFirmwareStatus();
         app::firmwareResultType getFirmwareResult();
+        app::firmwareInfo_t     getFirmwareInfo();
 
         bool doAsynUpgrade();
     };

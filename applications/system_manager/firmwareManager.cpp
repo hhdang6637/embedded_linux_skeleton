@@ -75,6 +75,11 @@ namespace app
         return this->result;
     }
 
+    app::firmwareInfo_t firmwareManager::getFirmwareInfo()
+    {
+        return this->fwInfo;
+    }
+
     void firmwareManager::loadCurrentFwinfo()
     {
         std::ifstream file(FIRMWARE_SELECTED_PATH);
@@ -107,10 +112,12 @@ namespace app
         char *desc;
         if (fit_get_desc((const fdt32_t *)header, 0, &desc) == 0) {
             syslog(LOG_NOTICE, "Fw desc: %s", desc);
+            this->fwInfo.description = desc;
         }
         time_t timestamp;
         if (fit_get_timestamp((const fdt32_t *)header, 0, &timestamp) == 0) {
             syslog(LOG_NOTICE,"Fw created:%s", ctime(&timestamp));
+            this->fwInfo.created_date = ctime(&timestamp);
         }
 
         if (header != NULL) {

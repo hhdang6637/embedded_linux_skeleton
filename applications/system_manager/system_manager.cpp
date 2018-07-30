@@ -74,22 +74,38 @@ static bool firmware_action_handler(int socket_fd)
     app::rpcMessageFirmware msgFimware;
     if (msgFimware.deserialize(socket_fd)) {
 
-        std::string firmware_name = msgFimware.getFirmwareName();
+        app::rpcMessageFirmware_t info = msgFimware.getFirmwareRpcInfo();
 
-        app::firmwareManager::getInstance()->setFirmwareName(firmware_name);
-
-        switch (msgFimware.getFirmwareInfo().action)
+        switch (msgFimware.getFirmwareRpcInfo().action)
         {
             case app::rpcFirmwareActionType::GET_STATUS:
             {
+                info.status = app::firmwareManager::getInstance()->getFirmwareStatus();
+                info.result = app::firmwareManager::getInstance()->getFirmwareResult();
+
+                msgFimware.setFirmwareRpcInfo(info);
                 break;
             }
 
             case app::rpcFirmwareActionType::DO_UPGRADE:
             {
+                std::string firmware_name = msgFimware.getFirmwareName();
+                app::firmwareManager::getInstance()->setFirmwareName(firmware_name);
+
                 if (app::firmwareManager::getInstance()->doAsynUpgrade() == false) {
                     return false;
                 }
+
+                info.status = app::firmwareManager::getInstance()->getFirmwareStatus();
+                info.result = app::firmwareManager::getInstance()->getFirmwareResult();
+                msgFimware.setFirmwareRpcInfo(info);
+
+                break;
+            }
+            case app::rpcFirmwareActionType::GET_INFO:
+            {
+                info.fwInfo = app::firmwareManager::getInstance()->getFirmwareInfo();
+                msgFimware.setFirmwareRpcInfo(info);
 
                 break;
             }
@@ -97,13 +113,6 @@ static bool firmware_action_handler(int socket_fd)
             default:
                 break;
         }
-
-        app::rpcMessageFirmware_t info;
-
-        info.status = app::firmwareManager::getInstance()->getFirmwareStatus();
-        info.result = app::firmwareManager::getInstance()->getFirmwareResult();
-
-        msgFimware.setFirmwareInfo(info);
 
         return msgFimware.serialize(socket_fd);
     }

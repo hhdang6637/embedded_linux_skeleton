@@ -13,7 +13,7 @@ namespace app
 {
 
     rpcMessageFirmware::rpcMessageFirmware() :
-            rpcMessage(rpcMessageType::handle_firmware_action), firmware_info()
+            rpcMessage(rpcMessageType::handle_firmware_action), rpc_info()
     {
     }
 
@@ -24,29 +24,98 @@ namespace app
 
     bool rpcMessageFirmware::serialize(int fd)
     {
-        // just write the state
-        int buff_len = sizeof(rpcMessageFirmware_t) + sizeof(uint16_t) + this->firmware_name.length();
-        std::unique_ptr<char> buff_ptr(new char[buff_len]);
-
+        int buff_len = 0;
         int offset = 0;
-        uint16_t tmpValue;
-        tmpValue = this->firmware_name.length();
 
-        offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->firmware_info);
-        offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmpValue);
-        offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->firmware_name);
+        switch (this->getFirmwareRpcInfo().action)
+        {
+            case app::rpcFirmwareActionType::GET_STATUS:
+            {
+                buff_len += sizeof(app::firmwareResultType);
+                buff_len += sizeof(app::firmwareStatusType);
 
-        if (buff_len != offset) {
+                std::unique_ptr<char> buff_ptr(new char[buff_len]());
 
-            char buff[256];
-            snprintf(buff, sizeof(buff), "%s-%u something wrong happened", __FUNCTION__, __LINE__);
-            syslog(LOG_ERR, buff);
-            return false;
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->rpc_info.result);
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->rpc_info.status);
 
-        }
+                if (buff_len != offset) {
 
-        if (rpcMessage::sendInterruptRetry(fd, buff_ptr.get(), offset) != true) {
-            return false;
+                    char buff[256];
+                    snprintf(buff, sizeof(buff), "%s-%u something wrong happened", __FUNCTION__, __LINE__);
+                    syslog(LOG_ERR, buff);
+                    return false;
+
+                }
+
+                if (rpcMessage::sendInterruptRetry(fd, buff_ptr.get(), offset) != true) {
+                    return false;
+                }
+                break;
+            }
+            case app::rpcFirmwareActionType::DO_UPGRADE:
+            {
+                buff_len += sizeof(app::firmwareResultType);
+                buff_len += sizeof(app::firmwareStatusType);
+                buff_len += sizeof(uint16_t);
+                buff_len += this->firmware_name.length();
+
+                std::unique_ptr<char> buff_ptr(new char[buff_len]());
+                uint16_t tmpValue;
+
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->rpc_info.result);
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->rpc_info.status);
+                tmpValue = this->firmware_name.length();
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmpValue);
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->firmware_name);
+
+                if (buff_len != offset) {
+
+                    char buff[256];
+                    snprintf(buff, sizeof(buff), "%s-%u something wrong happened", __FUNCTION__, __LINE__);
+                    syslog(LOG_ERR, buff);
+                    return false;
+
+                }
+
+                if (rpcMessage::sendInterruptRetry(fd, buff_ptr.get(), offset) != true) {
+                    return false;
+                }
+                break;
+            }
+            case app::rpcFirmwareActionType::GET_INFO:
+            {
+                buff_len += sizeof(uint16_t);
+                buff_len += this->rpc_info.fwInfo.created_date.length();
+                buff_len += sizeof(uint16_t);
+                buff_len += this->rpc_info.fwInfo.description.length();
+
+                std::unique_ptr<char> buff_ptr(new char[buff_len]());
+                uint16_t tmpValue;
+
+                tmpValue = this->rpc_info.fwInfo.created_date.length();
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmpValue);
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->rpc_info.fwInfo.created_date);
+                tmpValue = this->rpc_info.fwInfo.description.length();
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmpValue);
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->rpc_info.fwInfo.description);
+
+                if (buff_len != offset) {
+
+                    char buff[256];
+                    snprintf(buff, sizeof(buff), "%s-%u something wrong happened", __FUNCTION__, __LINE__);
+                    syslog(LOG_ERR, buff);
+                    return false;
+
+                }
+
+                if (rpcMessage::sendInterruptRetry(fd, buff_ptr.get(), offset) != true) {
+                    return false;
+                }
+                break;
+            }
+            default:
+                break;
         }
 
         return true;
@@ -54,24 +123,81 @@ namespace app
 
     bool rpcMessageFirmware::deserialize(int fd)
     {
-        uint16_t firmware_name_size;
+        switch (this->getFirmwareRpcInfo().action)
+        {
+            case app::rpcFirmwareActionType::GET_STATUS:
+            {
+                if (rpcMessage::recvInterruptRetry(fd, &this->rpc_info.result, sizeof(app::firmwareResultType)) != true) {
+                    return false;
+                }
+                if (rpcMessage::recvInterruptRetry(fd, &this->rpc_info.status, sizeof(app::firmwareStatusType)) != true) {
+                    return false;
+                }
 
-        if (rpcMessage::recvInterruptRetry(fd, &this->firmware_info, sizeof(this->firmware_info)) != true) {
-            return false;
-        }
-
-        if (rpcMessage::recvInterruptRetry(fd, &firmware_name_size, sizeof(firmware_name_size)) != true) {
-            return false;
-        }
-
-        if (firmware_name_size > 0) {
-            std::unique_ptr<char> buff_ptr(new char[firmware_name_size + 1]());
-
-            if (rpcMessage::recvInterruptRetry(fd, buff_ptr.get(), firmware_name_size) != true) {
-                return false;
+                break;
             }
+            case app::rpcFirmwareActionType::DO_UPGRADE:
+            {
+                uint16_t firmware_name_size;
 
-            this->firmware_name = buff_ptr.get();
+                if (rpcMessage::recvInterruptRetry(fd, &this->rpc_info.result, sizeof(app::firmwareResultType)) != true) {
+                    return false;
+                }
+                if (rpcMessage::recvInterruptRetry(fd, &this->rpc_info.status, sizeof(app::firmwareStatusType)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &firmware_name_size, sizeof(firmware_name_size)) != true) {
+                    return false;
+                }
+
+                if (firmware_name_size > 0) {
+                    std::unique_ptr<char> buff_ptr(new char[firmware_name_size + 1]());
+
+                    if (rpcMessage::recvInterruptRetry(fd, buff_ptr.get(), firmware_name_size) != true) {
+                        return false;
+                    }
+
+                    this->firmware_name = buff_ptr.get();
+                }
+                break;
+            }
+            case app::rpcFirmwareActionType::GET_INFO:
+            {
+                uint16_t tmpValue;
+                if (rpcMessage::recvInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+                    return false;
+                }
+
+                if (tmpValue > 0) {
+                    std::unique_ptr<char> buff_ptr(new char[tmpValue + 1]());
+
+                    if (rpcMessage::recvInterruptRetry(fd, buff_ptr.get(), tmpValue) != true) {
+                        return false;
+                    }
+
+                    this->rpc_info.fwInfo.created_date = buff_ptr.get();
+                }
+
+                tmpValue = 0;
+
+                if (rpcMessage::recvInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+                    return false;
+                }
+
+                if (tmpValue > 0) {
+                    std::unique_ptr<char> buff_ptr(new char[tmpValue + 1]());
+
+                    if (rpcMessage::recvInterruptRetry(fd, buff_ptr.get(), tmpValue) != true) {
+                        return false;
+                    }
+
+                    this->rpc_info.fwInfo.description = buff_ptr.get();
+                }
+                break;
+            }
+            default:
+                break;
         }
 
         return true;
@@ -87,14 +213,14 @@ namespace app
         return this->firmware_name;
     }
 
-    app::rpcMessageFirmware_t rpcMessageFirmware::getFirmwareInfo()
+    app::rpcMessageFirmware_t rpcMessageFirmware::getFirmwareRpcInfo()
     {
-        return this->firmware_info;
+        return this->rpc_info;
     }
 
-    void rpcMessageFirmware::setFirmwareInfo(const rpcMessageFirmware_t &firmware_info)
+    void rpcMessageFirmware::setFirmwareRpcInfo(const rpcMessageFirmware_t &firmware_info)
     {
-        this->firmware_info = firmware_info;
+        this->rpc_info = firmware_info;
     }
 
     std::string rpcMessageFirmware::statusToString(const app::firmwareStatusType &status)
