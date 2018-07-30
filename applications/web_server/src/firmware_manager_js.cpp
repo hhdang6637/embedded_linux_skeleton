@@ -187,6 +187,8 @@ std::string json_handle_firmware_info(FCGX_Request *request)
         return "";
     }
 
+    info = msg.getFirmwareRpcInfo();
+
     std::ostringstream ss_json;
     ss_json << "{\"json_firmware_info\": {";
 
