@@ -45,21 +45,24 @@ public:
     bool send(int fd);
     bool receive(int fd);
 
-    template<typename T> static int bufferAppend(void*dst, T const &src)
+    static int bufferAppendU16(void*dst, uint16_t t)
     {
-        memcpy(dst, &src, sizeof(src));
-        return sizeof(src);
+        memcpy(dst, &t, sizeof(t));
+        return sizeof(t);
     }
 
-    static int bufferAppend(void*dst, std::string &str)
+    static int bufferAppendStr(void*dst, std::string &str)
     {
-        memcpy(dst, str.c_str(), str.length());
-        return str.length();
+        int len = 0;
+        len += rpcMessage::bufferAppendU16(dst, (uint16_t)str.length());
+        memcpy((char*) dst + len, str.c_str(), str.length());
+        return len + str.length();
     }
 
     template<typename T> static int bufferAppendList(char*dst, T const &list)
     {
         int len = 0;
+        len += rpcMessage::bufferAppendU16(dst, (uint16_t)list.size());
         for (auto &i : list) {
             memcpy(dst + len, &i, sizeof(i));
             len += sizeof(i);

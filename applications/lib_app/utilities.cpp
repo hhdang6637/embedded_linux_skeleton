@@ -9,6 +9,10 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <syslog.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
 
 #include "utilities.h"
 
@@ -83,4 +87,37 @@ int build_fd_sets(fd_set *read_fds, std::list<int> &fds)
     }
 
     return max;
+}
+
+void *file_to_addr(const char*file_name, long int *st_size)
+{
+    struct stat sbuf;
+    void *addr = NULL;
+    int ifd = ::open(file_name, O_RDONLY);
+
+    if (ifd < 0) {
+        syslog(LOG_INFO, "Can't open %s: %s\n", file_name, strerror(errno));
+        goto out;
+    }
+
+    if (::fstat(ifd, &sbuf) < 0) {
+        syslog(LOG_INFO, "Can't stat %s: %s\n", file_name, strerror(errno));
+        goto out;
+    }
+
+    addr = ::mmap(0, sbuf.st_size, PROT_READ, MAP_SHARED, ifd, 0);
+    if (addr == MAP_FAILED) {
+        syslog(LOG_INFO, "Can't read %s: %s\n", file_name, strerror(errno));
+        addr = NULL;
+        goto out;
+    }
+
+    *st_size = sbuf.st_size;
+
+out:
+    if (ifd != -1) {
+        close (ifd);
+    }
+
+    return addr;
 }

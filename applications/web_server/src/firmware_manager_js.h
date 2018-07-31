@@ -12,5 +12,6 @@
 
 std::string json_handle_firmware_upgrade(FCGX_Request *request);
 std::string json_handle_firmware_status(FCGX_Request *request);
+std::string json_handle_firmware_info(FCGX_Request *request);
 
 #endif /* _FIRMWARE_MAMAGER_JS_H_ */

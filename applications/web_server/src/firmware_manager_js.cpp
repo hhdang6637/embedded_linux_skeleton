@@ -23,14 +23,14 @@ static int do_firmware_upgrade(const std::string &filename)
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageFirmware msg;
 
-    app::rpcMessageFirmware_t info;
-    info.action = app::rpcFirmwareActionType::DO_UPGRADE;
+    app::rpcMessageFirmwareData_t info = app::rpcMessageFirmwareData_t();
+
+    msg.setFirmwareMsgAction(app::rpcFirmwareActionType::DO_UPGRADE);
 
     msg.setFirmwareName(filename);
-    msg.setFirmwareInfo(info);
 
     if (rpcClient->doRpc(&msg) == false) {
-        syslog(LOG_INFO, "something went wrong: doRpc\n");
+        syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
         return 0;
     }
 
@@ -54,7 +54,7 @@ static int parse_and_save_file(const char *data, const char *contentType, const 
         POSTParser.AcceptSomeData(data, len);
 
         // Now see what we have:
-        std::map<std::string, MPFD::Field *> fields = POSTParser.GetFieldsMap();
+        std::unordered_map<std::string, MPFD::Field *> fields = POSTParser.GetFieldsMap();
 
         for (auto const &it : fields) {
             char syslog_message[256];
@@ -76,7 +76,7 @@ static int parse_and_save_file(const char *data, const char *contentType, const 
             syslog(LOG_INFO, syslog_message);
         }
 
-    } catch (MPFD::Exception e) {
+    } catch (MPFD::Exception &e) {
 
         syslog(LOG_ERR, "%s\n", e.GetError().c_str());
         return 0;
@@ -144,13 +144,10 @@ std::string json_handle_firmware_status(FCGX_Request *request)
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageFirmware msg;
 
-    app::rpcMessageFirmware_t info;
-    info.action = app::rpcFirmwareActionType::GET_STATUS;
-
-    msg.setFirmwareInfo(info);
+    msg.setFirmwareMsgAction(app::rpcFirmwareActionType::GET_STATUS);
 
     if (rpcClient->doRpc(&msg) == false) {
-        syslog(LOG_ERR, "something went wrong: doRpc\n");
+        syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
         return "";
     }
 
@@ -159,12 +156,12 @@ std::string json_handle_firmware_status(FCGX_Request *request)
 
     ss_json << "\"status\": ";
     ss_json << "\"";
-    ss_json << app::rpcMessageFirmware::statusToString(msg.getFirmwareInfo().status);
+    ss_json << app::rpcMessageFirmware::statusToString(msg.getFirmwareMsgData().status);
     ss_json << "\", ";
 
     ss_json << "\"result\": ";
     ss_json << "\"";
-    ss_json << app::rpcMessageFirmware::resultToString(msg.getFirmwareInfo().result);
+    ss_json << app::rpcMessageFirmware::resultToString(msg.getFirmwareMsgData().result);
     ss_json << "\"";
 
     ss_json << "}}";
@@ -172,3 +169,32 @@ std::string json_handle_firmware_status(FCGX_Request *request)
     return ss_json.str();
 }
 
+std::string json_handle_firmware_info(FCGX_Request *request)
+{
+    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+    app::rpcMessageFirmware msg;
+
+    msg.setFirmwareMsgAction(app::rpcFirmwareActionType::GET_INFO);
+
+    if (rpcClient->doRpc(&msg) == false) {
+        syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+        return "";
+    }
+
+    std::ostringstream ss_json;
+    ss_json << "{\"json_firmware_info\": {";
+
+    ss_json << "\"desc\": ";
+    ss_json << "\"";
+    ss_json << msg.getFirmwareMsgData().fwDesc;
+    ss_json << "\", ";
+
+    ss_json << "\"date\": ";
+    ss_json << "\"";
+    ss_json << msg.getFirmwareMsgData().fwDate;
+    ss_json << "\"";
+
+    ss_json << "}}";
+
+    return ss_json.str();
+}
