@@ -1,8 +1,8 @@
 # export CROSS_COMPILE=arm-linux-
 # export ARCH=arm
 
-export CC      = ccache $(CROSS_COMPILE)gcc
-export CXX     = ccache $(CROSS_COMPILE)g++
+export CC      = $(CROSS_COMPILE)gcc
+export CXX     = $(CROSS_COMPILE)g++
 export LD      = $(CROSS_COMPILE)ld
 export INCLUDE = $(ROOTFS_DIR)/usr/include
 export LIB     = $(ROOTFS_DIR)/usr/lib
