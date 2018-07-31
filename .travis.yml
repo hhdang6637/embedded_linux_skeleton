@@ -8,6 +8,7 @@ cache:
     - ./build/pi_b_plus/buildroot
 before_script:
   - sudo apt-get remove autoconf
+  - sudo apt-get install u-boot-tools device-tree-compiler
 script:
   - while sleep 5; do tail -n 5 build/pi_b_plus/current.log; done &
   - make compile_buildroot
