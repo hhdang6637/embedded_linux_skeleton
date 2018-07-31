@@ -5,13 +5,13 @@
 #include <stdlib.h>
 
 #include "rpcUnixClient.h"
-#include "rpcMessageCpuHistory.h"
+#include "rpcMessageResourceHistory.h"
 
 int main(void) {
 
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
 
-    app::rpcMessageCpuHistory msg;
+    app::rpcMessageResourceHistory msg;
 
     if (rpcClient->doRpc(&msg)) {
         for(auto &i : msg.get_cpu_history()) {

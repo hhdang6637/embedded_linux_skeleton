@@ -11,7 +11,7 @@
 
 #include "simplewebfactory.h"
 #include "rpcUnixClient.h"
-#include "rpcMessageCpuHistory.h"
+#include "rpcMessageResourceHistory.h"
 
 std::string json_cpu_usage_history(FCGX_Request *request)
 {
@@ -19,7 +19,7 @@ std::string json_cpu_usage_history(FCGX_Request *request)
     ss_json << "{\"json_cpu_usage_history\":[";
 
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
-    app::rpcMessageCpuHistory msg;
+    app::rpcMessageResourceHistory msg;
     if (rpcClient->doRpc(&msg)) {
 
         cpu_stat_t pre, cur;
