@@ -44,8 +44,8 @@ namespace app
 
                 std::unique_ptr<char> buff_ptr(new char[buff_len]());
 
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgData.result);
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgData.status);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, (uint16_t)this->msgData.result);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, (uint16_t)this->msgData.status);
 
                 if (buff_len != offset) {
 
@@ -70,11 +70,9 @@ namespace app
 
                 std::unique_ptr<char> buff_ptr(new char[buff_len]());
 
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgData.result);
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgData.status);
-                tmpValue = this->msgData.fwName.length();
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmpValue);
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgData.fwName);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, (uint16_t)this->msgData.result);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, (uint16_t)this->msgData.status);
+                offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, this->msgData.fwName);
 
                 if (buff_len != offset) {
 
@@ -99,12 +97,8 @@ namespace app
 
                 std::unique_ptr<char> buff_ptr(new char[buff_len]());
 
-                tmpValue = this->msgData.fwDate.length();
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmpValue);
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgData.fwDate);
-                tmpValue = this->msgData.fwDesc.length();
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmpValue);
-                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgData.fwDesc);
+                offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, this->msgData.fwDate);
+                offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, this->msgData.fwDesc);
 
                 if (buff_len != offset) {
 
