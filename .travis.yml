@@ -5,6 +5,6 @@ cache:
     - buildroot-2017.02.10/dl
 before_script:
 script:
-  - while sleep 30; do tail -n 5 build/pi_b_plus/current.log; done &
+  - while sleep 5; do tail -n 1 build/pi_b_plus/current.log; done &
   - make
   - kill %1
