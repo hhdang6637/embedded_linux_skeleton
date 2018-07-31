@@ -25,10 +25,12 @@ namespace app
         std::string             fwName;
         std::string             fwDesc;
         std::string             fwDate;
+        bool                    reboot;
         int                     currentFwNumber;
         pid_t                   pidChild;
 
         bool firmwareValidator(const char *filename);
+        void doSystemReboot();
         bool doFirmwareUpgrade();
         void loadCurrentFwinfo();
 
@@ -38,7 +40,8 @@ namespace app
         virtual                 ~firmwareManager();
 
         static firmwareManager* getInstance();
-        void                    setFirmwareName(std::string &filename);
+        void                    setFirmwareName(const std::string &filename);
+        void                    setFirmwareReboot(const bool &reboot);
         std::string             getFirmwareName();
         app::firmwareStatusType getFirmwareStatus();
         app::firmwareResultType getFirmwareResult();
