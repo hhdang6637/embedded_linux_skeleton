@@ -2,10 +2,13 @@ language: c
 cache:
   ccache: true
   directories:
-    - /home/travis/.buildroot-ccache
-    - buildroot-2017.02.10/dl
+    - ~/.buildroot-ccache
+    - ~/.ccache
+    - ./buildroot-2017.02.10/dl
+    - ./build/pi_b_plus/buildroot
 before_script:
+  - sudo apt-get remove autoconf
 script:
-  - while sleep 5; do tail -n 1 build/pi_b_plus/current.log; done &
-  - make
+  - while sleep 5; do tail -n 5 build/pi_b_plus/current.log; done &
+  - make compile_buildroot
   - kill %1
