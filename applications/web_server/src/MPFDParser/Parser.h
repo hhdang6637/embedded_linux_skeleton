@@ -6,11 +6,11 @@
 
 
 #ifndef _PARSER_H
-#define	_PARSER_H
+#define _PARSER_H
 
 #include <iostream>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include "Exception.h"
 #include "Field.h"
 #include <string.h>
@@ -26,21 +26,23 @@ namespace MPFD {
         Parser();
         ~Parser();
 
-        void SetContentType(const std::string type);
+        void SetContentType(const std::string& type);
 
-        void AcceptSomeData(const char *data, const long length);
+        void AcceptSomeData(const char *data, long length);
+
+
 
         void SetMaxCollectedDataLength(long max);
-        void SetTempDirForFileUpload(std::string dir);
+        void SetTempDirForFileUpload(const std::string& dir);
         void SetUploadedFilesStorage(int where);
 
-        std::map<std::string, Field *> GetFieldsMap();
-        Field * GetField(std::string Name);
+        const std::unordered_map<std::string, Field *>& GetFieldsMap()const;
+        Field * GetField(const std::string& Name);
 
     private:
         int WhereToStoreUploadedFiles;
 
-        std::map<std::string, Field *> Fields;
+        std::unordered_map<std::string, Field *> Fields;
 
         std::string TempDirForFileUpload;
         int CurrentStatus;
@@ -54,11 +56,11 @@ namespace MPFD {
         std::string ProcessingFieldName;
         bool _HeadersOfTheFieldAreProcessed;
         long ContentLength;
-        char *DataCollector;
-        long DataCollectorLength, MaxDataCollectorLength;
+        std::string DataCollector;
+        size_t MaxDataCollectorLength;
         bool FindStartingBoundaryAndTruncData();
         void _ProcessData();
-        void _ParseHeaders(std::string headers);
+        void _ParseHeaders(const std::string& headers);
         bool WaitForHeadersEndAndParseThem();
         void TruncateDataCollectorFromTheBeginning(long n);
         long BoundaryPositionInDataCollector();
@@ -66,5 +68,5 @@ namespace MPFD {
     };
 }
 
-#endif	/* _PARSER_H */
+#endif /* _PARSER_H */
 

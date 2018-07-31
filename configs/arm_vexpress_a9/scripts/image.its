@@ -5,7 +5,7 @@
 /dts-v1/;
 
 / {
-    description = "Simple image with single Linux kernel and FDT blob";
+    description = "U-Boot fitImage for qemu-arm_vexpress_a9";
     #address-cells = <1>;
 
     images {

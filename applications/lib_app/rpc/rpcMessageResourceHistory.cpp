@@ -32,13 +32,10 @@ bool rpcMessageResourceHistory::serialize(int fd)
     std::unique_ptr<char> buff_ptr(new char[buff_len]);
 
     int offset = 0;
-    uint16_t tmp_cpu, tmp_ram;
-    tmp_cpu = this->cpu_history.size();
-    tmp_ram = this->ram_history.size();
-    offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmp_cpu);
+    offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->cpu_history.size());
     offset += rpcMessage::bufferAppendList(buff_ptr.get() + offset, this->cpu_history);
 
-    offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmp_ram);
+    offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->ram_history.size());
     offset += rpcMessage::bufferAppendList(buff_ptr.get() + offset, this->ram_history);
 
     if (buff_len != offset) {

@@ -31,9 +31,6 @@ bool rpcMessageCpuHistory::serialize(int fd)
     std::unique_ptr<char> buff_ptr(new char[buff_len]);
 
     int offset = 0;
-    uint16_t tmp;
-    tmp = this->cpu_history.size();
-    offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, tmp);
     offset += rpcMessage::bufferAppendList(buff_ptr.get() + offset, this->cpu_history);
 
     if (buff_len != offset) {

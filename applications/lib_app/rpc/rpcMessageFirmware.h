@@ -29,14 +29,17 @@ namespace app
     enum class rpcFirmwareActionType : uint16_t
     {
         GET_STATUS,
-        DO_UPGRADE
+        DO_UPGRADE,
+        GET_INFO
     };
 
     typedef struct {
-        app::rpcFirmwareActionType action;
-        app::firmwareStatusType    status;
-        app::firmwareResultType    result;
-    }__attribute__((packed)) rpcMessageFirmware_t;
+        app::firmwareStatusType status;
+        app::firmwareResultType result;
+        std::string             fwName;
+        std::string             fwDesc;
+        std::string             fwDate;
+    } rpcMessageFirmwareData_t;
 
     class rpcMessageFirmware: public app::rpcMessage
     {
@@ -48,17 +51,20 @@ namespace app
         virtual ~rpcMessageFirmware();
 
         std::string getFirmwareName();
-        void setFirmwareName(const std::string &filename);
+        void        setFirmwareName(const std::string &filename);
 
-        rpcMessageFirmware_t getFirmwareInfo();
-        void setFirmwareInfo(const rpcMessageFirmware_t &filename);
+        app::rpcMessageFirmwareData_t getFirmwareMsgData();
+        void                          setFirmwareMsgData(const app::rpcMessageFirmwareData_t &msgData);
+
+        app::rpcFirmwareActionType getFirmwareMsgAction();
+        void                       setFirmwareMsgAction(const app::rpcFirmwareActionType &msgAction);
 
         static std::string statusToString(const app::firmwareStatusType &status);
         static std::string resultToString(const app::firmwareResultType &result);
 
     private:
-        std::string          firmware_name;
-        rpcMessageFirmware_t firmware_info;
+        app::rpcFirmwareActionType msgAction;
+        rpcMessageFirmwareData_t   msgData;
     };
 
 } /* namespace app */

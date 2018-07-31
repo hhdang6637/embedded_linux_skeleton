@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sstream>
+#include <string>
 
 namespace MPFD {
 
@@ -26,20 +27,20 @@ namespace MPFD {
         void SetType(int type);
         int GetType();
 
-        void AcceptSomeData(char *data, long length, const char *filename);
+        void AcceptSomeData(const char *data, long length, const char *filename);
 
 
         // File functions
         void SetUploadedFilesStorage(int where);
-        void SetTempDir(std::string dir);
+        void SetTempDir(const std::string& dir);
 
-        void SetFileName(std::string name);
+        void SetFileName(const std::string& name);
         std::string GetFileName();
 
-        void SetFileContentType(std::string type);
+        void SetFileContentType(const std::string& type);
         std::string GetFileMimeType();
 
-        char * GetFileContent();
+        const std::string& GetFileContent()const;
         unsigned long GetFileContentSize();
 
         std::string GetTempFileName();
@@ -48,8 +49,9 @@ namespace MPFD {
         std::string GetTextTypeContent();
 
 
+
+
     private:
-        unsigned long FieldContentLength;
 
         int WhereToStoreUploadedFiles;
 
@@ -57,7 +59,7 @@ namespace MPFD {
         std::string FileContentType, FileName;
 
         int type;
-        char * FieldContent;
+        std::string FieldContent;
         std::ofstream file;
 
     };

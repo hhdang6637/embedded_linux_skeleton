@@ -1,10 +1,19 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
-    <h1 class="h2">Firmware Upload</h1>
+    <h1 class="h2">Firmware</h1>
 </div>
 <div class="container">
   <div class="panel panel-default">
     <div class="panel-body">
 
+      <h3>Firmware infomation</h3>
+      <div class="alert alert-info" id="firmware-info">
+        <a id="firmware-desc"></a>
+        <br/>
+        <a id="firmware-date"></a>
+      </div>
+      <br/>
+
+      <h3>Firmware upgrade</h3>
       <!-- Standar Form -->
       <h4>Select the fimware from your computer</h4>
       <form action="" method="post" enctype="multipart/form-data" id="js-upload-form">
@@ -12,7 +21,7 @@
           <div class="form-group">
             <input type="file" name="files[]" id="js-upload-files">
           </div>
-          <button type="submit" class="btn btn-sm btn-primary" id="js-upload-submit">Upload</button>
+          <button type="submit" class="btn btn-sm btn-primary" id="js-upload-submit">Upgrade</button>
         </div>
       </form>
 
@@ -36,6 +45,11 @@
   </div>
 </div> <!-- /container -->
 <script>
+
+$(function () {
+    $("#myTopnav").find("a[href='/pages/firmware']").addClass("active")
+});
+
 + function($) {
     'use strict';
 
@@ -44,7 +58,16 @@
 
     $(document).ready(function(){
         showFirmwareStatus();
+        showFirmwareInfo();
     });
+
+    function showFirmwareInfo() {
+
+        $.getJSON( "/json/firmware_info", function(data) {
+            $('#firmware-desc').html("<strong>Description:</strong> " + data.json_firmware_info.desc);
+            $('#firmware-date').html("<strong>Created date:</strong> " + data.json_firmware_info.date);
+        });
+    }
 
     function showFirmwareStatus() {
 
