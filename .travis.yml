@@ -2,6 +2,7 @@ language: c
 cache:
   ccache: true
   directories:
+    - /home/travis/.buildroot-ccache
     - buildroot-2017.02.10/dl
 before_script:
 script:
