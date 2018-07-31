@@ -28,20 +28,17 @@ rpcMessageResourceHistory::~rpcMessageResourceHistory()
 bool rpcMessageResourceHistory::serialize(int fd)
 {
     // just write the state
-    int buff_len = sizeof(uint16_t) + this->cpu_history.size() * sizeof(cpu_stat_t) + sizeof(uint16_t) + this->ram_history.size() * sizeof(struct sysinfo);
+    int buff_len = sizeof(uint16_t) + this->cpu_history.size() * sizeof(cpu_stat_t) +
+            sizeof(uint16_t) + this->ram_history.size() * sizeof(struct sysinfo);
     std::unique_ptr<char> buff_ptr(new char[buff_len]);
 
     int offset = 0;
-    offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->cpu_history.size());
     offset += rpcMessage::bufferAppendList(buff_ptr.get() + offset, this->cpu_history);
-
-    offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->ram_history.size());
     offset += rpcMessage::bufferAppendList(buff_ptr.get() + offset, this->ram_history);
 
     if (buff_len != offset) {
-        char buff[256];
-        snprintf(buff, sizeof(buff), "%s-%u something wrong happened", __FUNCTION__, __LINE__);
-        syslog(LOG_ERR, buff);
+        syslog(LOG_ERR, "%s:%u:%s something wrong happened", __FILE__, __LINE__,__FUNCTION__);
+        return false;
     }
 
     if(rpcMessage::sendInterruptRetry(fd, buff_ptr.get(), offset) != true) {
