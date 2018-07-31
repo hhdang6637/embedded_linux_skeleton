@@ -54,7 +54,7 @@ static int parse_and_save_file(const char *data, const char *contentType, const 
         POSTParser.AcceptSomeData(data, len);
 
         // Now see what we have:
-        std::map<std::string, MPFD::Field *> fields = POSTParser.GetFieldsMap();
+        std::unordered_map<std::string, MPFD::Field *> fields = POSTParser.GetFieldsMap();
 
         for (auto const &it : fields) {
             char syslog_message[256];
@@ -76,7 +76,7 @@ static int parse_and_save_file(const char *data, const char *contentType, const 
             syslog(LOG_INFO, syslog_message);
         }
 
-    } catch (MPFD::Exception e) {
+    } catch (MPFD::Exception &e) {
 
         syslog(LOG_ERR, "%s\n", e.GetError().c_str());
         return 0;
