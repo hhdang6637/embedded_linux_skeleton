@@ -1,5 +1,7 @@
 # Building U-Boot, Linux kernel, and Rootfs from scratch for the embedded system
 
+![](https://travis-ci.org/hhdang6637/embedded_linux_skeleton.svg?branch=master)
+
 ## Purpose
 This repository is a "simple" guide on how to build U-Boot, Linux kernel, and Rootfs from scratch for the linux embedded system.
 
