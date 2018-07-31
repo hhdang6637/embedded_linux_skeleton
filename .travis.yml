@@ -1,2 +1,2 @@
 language: c
-script: make
+script: travis_wait 60 make
