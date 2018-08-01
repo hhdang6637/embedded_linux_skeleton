@@ -18,16 +18,19 @@
 #include "rpcMessageFirmware.h"
 
 
-static int do_firmware_upgrade(const std::string &filename)
+static int do_firmware_upgrade(const std::string &filename, const bool &reboot)
 {
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageFirmware msg;
 
-    app::rpcMessageFirmwareData_t info = app::rpcMessageFirmwareData_t();
+    app::rpcMessageFirmwareData_t msgData = app::rpcMessageFirmwareData_t();
+
+    msgData.reboot = reboot;
+    msgData.fwName = filename;
 
     msg.setFirmwareMsgAction(app::rpcFirmwareActionType::DO_UPGRADE);
 
-    msg.setFirmwareName(filename);
+    msg.setFirmwareMsgData(msgData);
 
     if (rpcClient->doRpc(&msg) == false) {
         syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
@@ -40,7 +43,7 @@ static int do_firmware_upgrade(const std::string &filename)
 /**
  * \return 0 on error
  */
-static int parse_and_save_file(const char *data, const char *contentType, const int len, std::string &filename)
+static int parse_and_save_file(const char *data, const char *contentType, const int len, std::string &filename, bool &reboot)
 {
     try {
         MPFD::Parser POSTParser;
@@ -53,29 +56,9 @@ static int parse_and_save_file(const char *data, const char *contentType, const 
 
         POSTParser.AcceptSomeData(data, len);
 
-        // Now see what we have:
-        std::unordered_map<std::string, MPFD::Field *> fields = POSTParser.GetFieldsMap();
+        reboot = (POSTParser.GetField("reboot")->GetTextTypeContent() == "true" ? true : false);
 
-        for (auto const &it : fields) {
-            char syslog_message[256];
-
-            if (fields[it.first]->GetType() == MPFD::Field::TextType) {
-
-                snprintf(syslog_message, 256, "Got text field: [ %s ], value: [ %s ]\n", it.first.c_str(),
-                         fields[it.first]->GetTextTypeContent().c_str());
-
-            } else {
-
-                snprintf(syslog_message, 256, "Got file field: [ %s ], Filename: [ %s ]\n", it.first.c_str(),
-                         fields[it.first]->GetTempFileName().c_str());
-
-                filename = fields[it.first]->GetTempFileName();
-
-            }
-
-            syslog(LOG_INFO, syslog_message);
-        }
-
+        filename = POSTParser.GetField("filename")->GetTempFileName();
     } catch (MPFD::Exception &e) {
 
         syslog(LOG_ERR, "%s\n", e.GetError().c_str());
@@ -123,10 +106,11 @@ std::string json_handle_firmware_upgrade(FCGX_Request *request)
         if (get_post_data(request, data)) {
 
             std::string filename;
+            bool reboot;
 
-            if (parse_and_save_file(data.c_str(), contentType, data.size(), filename)) {
+            if (parse_and_save_file(data.c_str(), contentType, data.size(), filename, reboot)) {
 
-                if (do_firmware_upgrade(filename)) {
+                if (do_firmware_upgrade(filename, reboot)) {
                     return "succeeded";
                 }
 

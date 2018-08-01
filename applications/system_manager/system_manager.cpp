@@ -71,26 +71,26 @@ static bool get_cpu_history_handler(int socker_fd) {
 
 static bool firmware_action_handler(int socket_fd)
 {
-    app::rpcMessageFirmware msgFimware;
-    if (msgFimware.deserialize(socket_fd)) {
+    app::rpcMessageFirmware msgFirmware;
+    if (msgFirmware.deserialize(socket_fd)) {
 
-        app::rpcMessageFirmwareData_t msgData = msgFimware.getFirmwareMsgData();
+        app::rpcMessageFirmwareData_t msgData = msgFirmware.getFirmwareMsgData();
 
-        switch (msgFimware.getFirmwareMsgAction())
+        switch (msgFirmware.getFirmwareMsgAction())
         {
             case app::rpcFirmwareActionType::GET_STATUS:
             {
                 msgData.status = app::firmwareManager::getInstance()->getFirmwareStatus();
                 msgData.result = app::firmwareManager::getInstance()->getFirmwareResult();
 
-                msgFimware.setFirmwareMsgData(msgData);
+                msgFirmware.setFirmwareMsgData(msgData);
                 break;
             }
 
             case app::rpcFirmwareActionType::DO_UPGRADE:
             {
-                std::string firmware_name = msgFimware.getFirmwareName();
-                app::firmwareManager::getInstance()->setFirmwareName(firmware_name);
+                app::firmwareManager::getInstance()->setFirmwareName(msgFirmware.getFirmwareMsgData().fwName);
+                app::firmwareManager::getInstance()->setFirmwareReboot(msgFirmware.getFirmwareMsgData().reboot);
 
                 if (app::firmwareManager::getInstance()->doAsynUpgrade() == false) {
                     return false;
@@ -98,7 +98,7 @@ static bool firmware_action_handler(int socket_fd)
 
                 msgData.status = app::firmwareManager::getInstance()->getFirmwareStatus();
                 msgData.result = app::firmwareManager::getInstance()->getFirmwareResult();
-                msgFimware.setFirmwareMsgData(msgData);
+                msgFirmware.setFirmwareMsgData(msgData);
 
                 break;
             }
@@ -106,7 +106,7 @@ static bool firmware_action_handler(int socket_fd)
             {
                 msgData.fwDate = app::firmwareManager::getInstance()->getFirmwareDate();
                 msgData.fwDesc = app::firmwareManager::getInstance()->getFirmwareDesc();
-                msgFimware.setFirmwareMsgData(msgData);
+                msgFirmware.setFirmwareMsgData(msgData);
 
                 break;
             }
@@ -115,7 +115,7 @@ static bool firmware_action_handler(int socket_fd)
                 break;
         }
 
-        return msgFimware.serialize(socket_fd);
+        return msgFirmware.serialize(socket_fd);
     }
 
     return false;

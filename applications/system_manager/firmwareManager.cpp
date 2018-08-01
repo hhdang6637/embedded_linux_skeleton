@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/reboot.h>
 
 #include <fstream>
 
@@ -60,9 +61,14 @@ namespace app
         return this->fwName;
     }
 
-    void firmwareManager::setFirmwareName(std::string &filename)
+    void firmwareManager::setFirmwareName(const std::string &filename)
     {
         this->fwName = filename;
+    }
+
+    void firmwareManager::setFirmwareReboot(const bool &reboot)
+    {
+        this->reboot = reboot;
     }
 
     app::firmwareStatusType firmwareManager::getFirmwareStatus()
@@ -170,6 +176,12 @@ out:
         return rc;
     }
 
+    void firmwareManager::doSystemReboot()
+    {
+        ::sync();
+        ::reboot(RB_AUTOBOOT);
+    }
+
     bool firmwareManager::doFirmwareUpgrade()
     {
         std::ofstream file;
@@ -215,6 +227,10 @@ doFirmwareUpgradeDone:
             firmwareManager::getInstance()->status =  app::firmwareStatusType::DONE;
             if (wstatus == EXIT_SUCCESS) {
                 firmwareManager::getInstance()->result = app::firmwareResultType::SUCCEEDED;
+                if (firmwareManager::getInstance()->reboot) {
+                    syslog(LOG_INFO, "Rebooting...");
+                    firmwareManager::getInstance()->doSystemReboot();
+                }
             } else {
                 firmwareManager::getInstance()->result = app::firmwareResultType::FAILED;
             }

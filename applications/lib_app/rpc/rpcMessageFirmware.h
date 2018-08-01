@@ -39,6 +39,7 @@ namespace app
         std::string             fwName;
         std::string             fwDesc;
         std::string             fwDate;
+        bool                    reboot;
     } rpcMessageFirmwareData_t;
 
     class rpcMessageFirmware: public app::rpcMessage
@@ -49,9 +50,6 @@ namespace app
 
         rpcMessageFirmware();
         virtual ~rpcMessageFirmware();
-
-        std::string getFirmwareName();
-        void        setFirmwareName(const std::string &filename);
 
         app::rpcMessageFirmwareData_t getFirmwareMsgData();
         void                          setFirmwareMsgData(const app::rpcMessageFirmwareData_t &msgData);

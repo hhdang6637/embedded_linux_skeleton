@@ -109,8 +109,7 @@ bool MPFD::Parser::ProcessContentOfTheField() {
     }
 
     if (DataLengthToSendToField > 0) {
-        Fields[ProcessingFieldName]->AcceptSomeData(DataCollector.c_str(), DataLengthToSendToField,
-                                                    Fields[ProcessingFieldName]->GetFileName().c_str());
+        Fields[ProcessingFieldName]->AcceptSomeData(DataCollector.c_str(), DataLengthToSendToField);
         TruncateDataCollectorFromTheBeginning(DataLengthToSendToField);
     }
 
