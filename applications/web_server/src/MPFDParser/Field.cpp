@@ -40,7 +40,7 @@ int MPFD::Field::GetType() {
     }
 }
 
-void MPFD::Field::AcceptSomeData(const char *data, long length, const char *filename) {
+void MPFD::Field::AcceptSomeData(const char *data, long length) {
     if (type == TextType) {
         FieldContent.assign(data, length);
     } else if (type == FileType) {
@@ -48,7 +48,7 @@ void MPFD::Field::AcceptSomeData(const char *data, long length, const char *file
             if (TempDir.length() > 0) {
                 if (!file.is_open()) {
                     std::string tempfile;
-                    TempFile = filename;
+                    TempFile = this->GetFileName();
                     tempfile = TempDir + "/" + TempFile;
 
                     file.open(tempfile.c_str(), std::ios::out | std::ios::binary | std::ios_base::trunc);

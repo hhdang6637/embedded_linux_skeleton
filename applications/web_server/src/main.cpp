@@ -6,6 +6,7 @@
 
 #include "utilities.h"
 #include "fcgi.h"
+#include "backtrace_signal.h"
 
 #define SERVICE_NAME    "web_handler"
 #define PID_FILE_NAME   "/var/run/web_handler.pid"
@@ -45,6 +46,8 @@ void parse_arguments(int argc, char const *argv[]) {
 int main(int argc, char const *argv[])
 {
     openlog(SERVICE_NAME, 0, LOG_USER);
+
+    backtrace_init_signal();
 
     parse_arguments(argc, argv);
 
