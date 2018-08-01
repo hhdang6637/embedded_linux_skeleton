@@ -130,8 +130,8 @@ namespace app
             syslog(LOG_NOTICE,"Fw created:%s", ctime(&timestamp));
 
             struct tm * p = localtime(&timestamp);
-            char str[32];
-            strftime(str, 32, "%A, %B %d %H:%M:%S %Y", p);
+            char str[48];
+            strftime(str, 48, "%A, %B %d %H:%M:%S %Y", p);
             this->fwDate = str;
         }
 
