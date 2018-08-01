@@ -43,7 +43,7 @@ $(BIN_BUILD_DIR):
 compile_buildroot: $(BIN_BUILD_DIR)
 	@echo "**********compile_buildroot**********"
 	@cp $(CONFIGS_DIR)/buildroot/config $(BUILDROOT_BUILD_DIR)/.config
-	@$(CACHE_DIR)/get_buildroot_cache_name.sh > $(CURRENT_LOG) 2>&1 || \
+	@$(CACHE_DIR)/get_buildroot_$(MODEL)_cache.sh > $(CURRENT_LOG) 2>&1 || \
 		$(MAKE) -C buildroot-2017.02.10 O=$(BUILDROOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
 	@cp $(BUILDROOT_BUILD_DIR)/images/rootfs.cpio $(BIN_BUILD_DIR)
 	@echo "**********done**********"
