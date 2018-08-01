@@ -1,11 +1,10 @@
+os: linux
+dist: trusty
 language: c
 cache:
   ccache: true
   directories:
-    - ~/.buildroot-ccache
     - ~/.ccache
-    - ./buildroot-2017.02.10/dl
-    - ./build/pi_b_plus/buildroot
 before_script:
   - sudo apt-get remove autoconf
   - sudo apt-get install u-boot-tools device-tree-compiler mtools
