@@ -7,6 +7,7 @@
 
 #include "utilities.h"
 #include "network_manager.h"
+#include "backtrace_signal.h"
 
 typedef struct {
     bool daemon;
@@ -40,6 +41,8 @@ void parse_arguments(int argc, char const *argv[]) {
 int main(int argc, char const *argv[])
 {
     openlog(SERVICE_NAME, 0, LOG_USER);
+
+    backtrace_init_signal();
 
     parse_arguments(argc, argv);
 

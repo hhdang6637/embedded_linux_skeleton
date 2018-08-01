@@ -1,4 +1,3 @@
-
 BIN=system_manager_daemon
 SRCS=main.o system_manager.o serviceHiawatha.o resourceCollector.o firmwareManager.o
 
