@@ -9,6 +9,12 @@ export LIB     = $(ROOTFS_DIR)/usr/lib
 export CFLAGS  = -Wall -Werror -D$(MODEL) -I$(INCLUDE) -L$(LIB)
 export CXXFLAGS= -Wall -Werror -D$(MODEL) -I$(INCLUDE) -L$(LIB)
 
+ifeq ($(BUILD_TYPE),NORMAL)
+# CFLAGS += -Os
+else ifeq ($(BUILD_TYPE),DEBUG)
+CFLAGS += -g -rdynamic
+endif
+
 $(ROOTFS_DIR):
 	@mkdir    $(ROOTFS_DIR)
 	@mkdir    $(ROOTFS_DIR)/data
