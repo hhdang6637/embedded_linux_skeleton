@@ -13,5 +13,7 @@ script:
   - du --block-size=M --max-depth=1 .
   - while sleep 5; do tail -n 5 build/pi_b_plus/current.log; done &
   - MODEL=pi_b_plus       make
+  - kill %1
+  - while sleep 5; do tail -n 5 build/arm_vexpress_a9/current.log; done &
   - MODEL=arm_vexpress_a9 make
   - kill %1
