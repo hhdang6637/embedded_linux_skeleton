@@ -23,6 +23,10 @@
           </div>
           <button type="submit" class="btn btn-sm btn-primary" id="js-upload-submit">Upgrade</button>
         </div>
+        <br/>
+        <div class="checkbox">
+          <label><input type="checkbox" value="" id="cb-reboot"> Reboot after successful upgrade</label>
+        </div>
       </form>
 
       <br/>
@@ -104,7 +108,8 @@ $(function () {
         // var status = $('#file-info');
 
         var formData = new FormData();
-        formData.append('file', file);
+        formData.append('filename', file);
+        formData.append('reboot', $('#cb-reboot').is(":checked"));
 
         var xhr = new XMLHttpRequest();
         xhr.open('POST', '/json/firmware_upgrade');

@@ -51,6 +51,12 @@ public:
         return sizeof(t);
     }
 
+    static int bufferAppendBool(void*dst, bool t)
+    {
+        memcpy(dst, &t, sizeof(t));
+        return sizeof(t);
+    }
+
     static int bufferAppendStr(void*dst, std::string &str)
     {
         int len = 0;

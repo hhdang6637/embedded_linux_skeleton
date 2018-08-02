@@ -1,7 +1,9 @@
 export MODEL ?= pi_b_plus
+export BUILD_TYPE ?= NORMAL
 export PI_BOOT_DIR          := $(PWD)/pi-boot
 export BUILD_DIR            := $(PWD)/build/$(MODEL)
 export CONFIGS_DIR          := $(PWD)/configs/$(MODEL)
+export CACHE_DIR            := $(PWD)/build_cache
 export BUILDROOT_BUILD_DIR  := $(BUILD_DIR)/buildroot
 export LINUX_BUILD_DIR      := $(BUILD_DIR)/linux
 export LINUX_MOD_BUILD_DIR  := $(BUILD_DIR)/linux_mod
@@ -41,7 +43,8 @@ $(BIN_BUILD_DIR):
 compile_buildroot: $(BIN_BUILD_DIR)
 	@echo "**********compile_buildroot**********"
 	@cp $(CONFIGS_DIR)/buildroot/config $(BUILDROOT_BUILD_DIR)/.config
-	@$(MAKE) -C buildroot-2017.02.10 O=$(BUILDROOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
+	@$(CACHE_DIR)/get_buildroot_$(MODEL)_cache.sh > $(CURRENT_LOG) 2>&1 || \
+		$(MAKE) -C buildroot-2017.02.10 O=$(BUILDROOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
 	@cp $(BUILDROOT_BUILD_DIR)/images/rootfs.cpio $(BIN_BUILD_DIR)
 	@echo "**********done**********"
 
