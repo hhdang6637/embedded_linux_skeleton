@@ -21,6 +21,7 @@ include $(CONFIGS_DIR)/Makefile.variable
 # follow https://elinux.org/RPi_U-Boot
 # sudo apt-get install binutils-arm-linux-gnueabi gcc-arm-linux-gnueabi
 export PATH := $(BUILDROOT_BUILD_DIR)/host/usr/bin:$(PATH)
+export LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(BUILDROOT_BUILD_DIR)/host/usr/lib
 export CROSS_COMPILE=ccache arm-linux-
 export ARCH=arm
 #export USE_PRIVATE_LIBGCC=yes
