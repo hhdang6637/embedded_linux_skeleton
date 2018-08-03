@@ -15,7 +15,7 @@
 namespace app
 {
 
-rpcMessageCpuHistory::rpcMessageCpuHistory() : rpcMessage(rpcMessageType::get_cpu_history)
+rpcMessageCpuHistory::rpcMessageCpuHistory() : rpcMessage(rpcMessageType::get_resource_history)
 {
 }
 
