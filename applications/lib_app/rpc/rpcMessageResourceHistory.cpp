@@ -1,5 +1,5 @@
 /*
- * rpcMessageCpuHistory.cpp
+ * rpcMessageResourceHistory.cpp
  *
  *  Created on: Jul 24, 2018
  *      Author: hhdang
