@@ -1,13 +1,21 @@
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+<!-- <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
     <h1 class="h2">CPU USAGE (%)</h1>
-</div>
+</div> -->
+
+<hr>
 <style>
     canvas{
         -moz-user-select: none;
         -webkit-user-select: none;
         -ms-user-select: none;
     }
-    .chart-container {
+    .cpu-chart-container {
+        width: 500px;
+        margin-left: 40px;
+        margin-right: 40px;
+        margin-bottom: 40px;
+    }
+    .ram-chart-container {
         width: 500px;
         margin-left: 40px;
         margin-right: 40px;
@@ -19,9 +27,21 @@
         flex-wrap: wrap;
         justify-content: center;
     }
+    .ram_chart_canvas {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
 </style>
-<div id="chart-container" style="padding-left: 5%; padding-right: 5%;">
-    <canvas id="cpu_chart_canvas"></canvas>
+<div class="row">
+    <div id="cpu-chart-container" style="padding-left: 5%; padding-right: 5%;" class="col-lg-6 col-md-12">
+        <canvas id="cpu_chart_canvas"></canvas>
+    </div>
+
+    <div id="ram-chart-container" style="padding-left: 5%; padding-right: 5%;" class="col-lg-6 col-md-12">
+        <canvas id="ram_chart_canvas"></canvas>
+    </div>
 </div>
 <!-- ChartJs -->
 <script src="/js/plugins/chartjs/Chart.bundle.js"></script>
@@ -41,14 +61,17 @@ for(i = 60; i >= 0; i--) {
 }
 
 var cpu_percents = [];
+var ram_usage = [];
 
-var config = {
+
+
+var cpu_config = {
     type: 'line',
     data: {
         labels: second_datas,
         datasets: [{
             label: 'CPU Percents',
-            backgroundColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgb(255, 110, 0)',
             borderColor: 'rgb(255, 99, 132)',
             data: cpu_percents,
             fill: true,
@@ -56,7 +79,7 @@ var config = {
     },
     options: {
         responsive: true,
-        title: { display: false, text: 'CPU USAGE (%)'},
+        title: { display: true, text: 'CPU USAGE (%)'},
         tooltips: { mode: 'index', intersect: false, },
         hover: { mode: 'nearest', intersect: true },
         scales: {
@@ -68,7 +91,44 @@ var config = {
             yAxes: [{
                 display: true,
                 scaleLabel: { display: false, labelString: 'Percents' },
-                ticks: { min: 0, max: 100, stepSize: 10, reverse: false, },
+                ticks: { min: 0, max: 100, stepSize: 20, reverse: false, },
+            }]
+        },
+        animation: {
+            duration: 0
+        }
+    }
+};
+
+// RAM chart setup
+
+var ram_config = {
+    type: 'line',
+    data: {
+        labels: second_datas,
+        datasets: [{
+            label: 'MEMORY Percents',
+            backgroundColor: 'rgb(171, 23, 83)',
+            borderColor: 'rgb(255, 255, 255)',
+            data: ram_usage,
+            fill: true,
+        }]
+    },
+    options: {
+        responsive: true,
+        title: { display: true, text: 'MEMORY USAGE (%)'},
+        tooltips: { mode: 'index', intersect: false, },
+        hover: { mode: 'nearest', intersect: true },
+        scales: {
+            xAxes: [{
+                display: false,
+                scaleLabel: { display: false, labelString: 'Seconds' },
+                // ticks: { min: 0, max: 40, stepSize: 5, reverse: false, },
+            }],
+            yAxes: [{
+                display: true,
+                scaleLabel: { display: false, labelString: 'Percents' },
+                ticks: { min: 0, max: 100, stepSize: 20, reverse: false, },
             }]
         },
         animation: {
@@ -82,10 +142,14 @@ var realtime = 'on';
 function updateRealTime() {
 
     $.getJSON( "/json/resource_usage_history", function( data ) {
-        config.data.datasets.forEach(function(dataset) {
+        cpu_config.data.datasets.forEach(function(dataset) {
             dataset.data = data.json_cpu_usage_history;
         });
-        window.myLine.update();
+        ram_config.data.datasets.forEach(function(dataset) {
+            dataset.data = data.json_ram_history;
+        });
+        window.cpuLine.update();
+        window.ramLine.update();
     });
 
     var timeout;
@@ -97,8 +161,10 @@ function updateRealTime() {
 }
 
 window.onload = function() {
-    var ctx = document.getElementById('cpu_chart_canvas').getContext('2d');
-    window.myLine = new Chart(ctx, config);
+    var cpu_ctx = document.getElementById('cpu_chart_canvas').getContext('2d');
+    var ram_ctx = document.getElementById('ram_chart_canvas').getContext('2d');
+    window.cpuLine = new Chart(cpu_ctx, cpu_config);
+    window.ramLine = new Chart(ram_ctx, ram_config);
     updateRealTime();
 };
 
