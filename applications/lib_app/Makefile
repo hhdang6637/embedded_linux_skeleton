@@ -6,7 +6,7 @@ SRCS=simpleTimerSync.o
 SRCS += cpu_stat.o utilities.o service.o
 SRCS += rpc/rpcMessage.o rpc/rpcMessageAddr.o rpc/rpcUnixClient.o rpc/rpcUnixServer.o
 SRCS += rpc/rpcMessageResourceHistory.o rpc/rpcMessageFirmware.o
-SRCS += rpc/rpcMessageCpuHistory.o rpc/rpcMessageFirmware.o
+SRCS += rpc/rpcMessageCpuHistory.o
 SRCS += libfdt/fdt_ro.o backtrace_signal.o
 
 %.o : %.cpp
