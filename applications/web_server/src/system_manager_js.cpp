@@ -63,7 +63,7 @@ std::string json_resource_usage_history(FCGX_Request *request)
 
             counter++;
 
-            ss_json << "{ \"totalram\" : " << it->totalram << ", \"freeram\" : " << it->freeram << "}";
+            ss_json << (long)(it->totalram - it->freeram)*100/it->totalram;
 
             if (counter < ram_history.size()) {
                 ss_json << ",";
