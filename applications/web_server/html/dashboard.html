@@ -81,8 +81,7 @@ var realtime = 'on';
 
 function updateRealTime() {
 
-    $.getJSON( "/json/cpu_usage_history", function( data ) {
-        // config.data.datasets = data.cpu_usage_history;
+    $.getJSON( "/json/resource_usage_history", function( data ) {
         config.data.datasets.forEach(function(dataset) {
             dataset.data = data.json_cpu_usage_history;
         });
