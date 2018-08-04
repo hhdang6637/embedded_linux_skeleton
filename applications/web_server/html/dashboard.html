@@ -35,11 +35,11 @@
     }
 </style>
 <div class="row">
-    <div id="cpu-chart-container" style="padding-left: 5%; padding-right: 5%;" class="col-lg-6 col-md-12">
+    <div id="cpu-chart-container" style="padding-left: 2%; padding-right: 2%;" class="col-lg-6 col-md-12">
         <canvas id="cpu_chart_canvas"></canvas>
     </div>
 
-    <div id="ram-chart-container" style="padding-left: 5%; padding-right: 5%;" class="col-lg-6 col-md-12">
+    <div id="ram-chart-container" style="padding-left: 2%; padding-right: 2%;" class="col-lg-6 col-md-12">
         <canvas id="ram_chart_canvas"></canvas>
     </div>
 </div>
@@ -142,6 +142,10 @@ var realtime = 'on';
 function updateRealTime() {
 
     $.getJSON( "/json/resource_usage_history", function( data ) {
+
+        window.cpuLine.options.title.text = 'CPU USAGE ( ' + data.json_cpu_usage_history[data.json_cpu_usage_history.length - 1] + '%)';
+        window.ramLine.options.title.text = 'MEMORY USAGE ( ' + data.json_ram_history[data.json_ram_history.length - 1] + '%)';
+
         cpu_config.data.datasets.forEach(function(dataset) {
             dataset.data = data.json_cpu_usage_history;
         });
