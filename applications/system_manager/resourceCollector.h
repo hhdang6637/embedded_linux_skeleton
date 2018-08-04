@@ -9,6 +9,7 @@
 #define APPLICATIONS_SYSTEM_MANAGER_RESOURCECOLLECTOR_H_
 
 #include <list>
+#include <sys/sysinfo.h>
 
 #include "cpu_stat.h"
 
@@ -20,14 +21,17 @@ private:
     static resourceCollector* s_instance;
 
     std::list<cpu_stat_t> cpu_history;
+    std::list<struct sysinfo> ram_history;
 public:
     virtual ~resourceCollector();
 
     std::list<cpu_stat_t> get_cpu_history();
+    std::list<struct sysinfo> get_ram_history();
     void cpu_do_collect();
+    void ram_do_collect();
 
     static resourceCollector* getInstance();
-    static const int cpu_history_max_sample = 61;
+    static const int resource_history_max_sample = 61;
 };
 
 } /* namespace app */

@@ -42,11 +42,30 @@ void resourceCollector::cpu_do_collect()
 
     if (::get_cpu_stat(&stat) == true) {
 
-        if (this->cpu_history.size() >= resourceCollector::cpu_history_max_sample) {
+        if (this->cpu_history.size() >= resourceCollector::resource_history_max_sample) {
             this->cpu_history.pop_front();
         }
 
         this->cpu_history.push_back(stat);
+    }
+}
+
+std::list<struct sysinfo> resourceCollector::get_ram_history()
+{
+    return this->ram_history;
+}
+
+void resourceCollector::ram_do_collect()
+{
+    struct sysinfo ram_stat = { 0 };
+
+    if (::sysinfo(&ram_stat) == 0) {
+
+        if (this->ram_history.size() >= resourceCollector::resource_history_max_sample) {
+            this->ram_history.pop_front();
+        }
+
+        this->ram_history.push_back(ram_stat);
     }
 }
 

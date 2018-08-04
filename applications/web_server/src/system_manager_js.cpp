@@ -11,19 +11,21 @@
 
 #include "simplewebfactory.h"
 #include "rpcUnixClient.h"
-#include "rpcMessageCpuHistory.h"
+#include "rpcMessageResourceHistory.h"
 
-std::string json_cpu_usage_history(FCGX_Request *request)
+std::string json_resource_usage_history(FCGX_Request *request)
 {
     std::ostringstream ss_json;
-    ss_json << "{\"json_cpu_usage_history\":[";
+    ss_json << "{";
 
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
-    app::rpcMessageCpuHistory msg;
+    app::rpcMessageResourceHistory msg;
     if (rpcClient->doRpc(&msg)) {
 
         cpu_stat_t pre, cur;
         std::list<cpu_stat_t> cpu_usage_history = msg.get_cpu_history();
+
+        ss_json << "\"json_cpu_usage_history\":[";
 
         size_t counter = 0;
         for(std::list<cpu_stat_t>::iterator it = cpu_usage_history.begin();
@@ -49,9 +51,28 @@ std::string json_cpu_usage_history(FCGX_Request *request)
 
             pre = cur;
         }
+
+        ss_json << "]";
+
+        std::list<struct sysinfo> ram_history = msg.get_ram_history();
+        ss_json << ",\"json_ram_history\":[";
+
+        counter = 0;
+        for (std::list<struct sysinfo>::iterator it = ram_history.begin();
+                it != ram_history.end(); ++it) {
+
+            counter++;
+
+            ss_json << (long)(it->totalram - it->freeram)*100/it->totalram;
+
+            if (counter < ram_history.size()) {
+                ss_json << ",";
+            }
+        }
+        ss_json << "]";
     }
 
-    ss_json << "]}";
+    ss_json << "}";
 
     return ss_json.str();
 }

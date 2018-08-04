@@ -9,8 +9,8 @@
 namespace app
 {
 
-rpcMessage::rpcMessage(rpcMessageType msgType) :
-        msgType(msgType),
+rpcMessage::rpcMessage(rpcMessageType msgType_resource) :
+        msgType(msgType_resource),
         msgAddrType(rpcMessageAddr::system_manager_addr_t)
 {
 }

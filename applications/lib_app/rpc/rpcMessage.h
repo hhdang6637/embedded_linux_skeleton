@@ -28,7 +28,7 @@ class rpcMessage
 public:
     enum rpcMessageType : uint16_t
     {
-        get_cpu_history,
+        get_resource_history,
         handle_firmware_action
     };
 protected:

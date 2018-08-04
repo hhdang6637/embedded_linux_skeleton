@@ -17,7 +17,7 @@
 #include "firmwareManager.h"
 #include "rpcUnixServer.h"
 #include "rpcMessageAddr.h"
-#include "rpcMessageCpuHistory.h"
+#include "rpcMessageResourceHistory.h"
 #include "rpcMessageFirmware.h"
 
 #define CONFIG_DIR "/tmp/configs"
@@ -55,16 +55,19 @@ void system_manager_init()
     }
 }
 
-static void cpuHistoryCollect() {
+static void resourceHistoryCollect() {
     app::resourceCollector::getInstance()->cpu_do_collect();
+    app::resourceCollector::getInstance()->ram_do_collect();
 }
 
-static bool get_cpu_history_handler(int socker_fd) {
-    app::rpcMessageCpuHistory msgCpuHistory;
-    if (msgCpuHistory.deserialize(socker_fd)) {
+static bool get_resource_history_handler(int socker_fd) {
+    app::rpcMessageResourceHistory msgResourceHistory;
+    if (msgResourceHistory.deserialize(socker_fd)) {
         std::list<cpu_stat_t> cpu_history = app::resourceCollector::getInstance()->get_cpu_history();
-        msgCpuHistory.set_cpu_history(cpu_history);
-        return msgCpuHistory.serialize(socker_fd);
+        std::list<struct sysinfo> ram_history = app::resourceCollector::getInstance()->get_ram_history();
+        msgResourceHistory.set_cpu_history(cpu_history);
+        msgResourceHistory.set_ram_history(ram_history);
+        return msgResourceHistory.serialize(socker_fd);
     }
     return false;
 }
@@ -126,12 +129,12 @@ void system_manager_service_loop()
     fd_set read_fds;
     app::rpcUnixServer *rpcServer = app::rpcUnixServer::getInstance();
     int server_socket = rpcServer->get_socket();
-    rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::get_cpu_history, get_cpu_history_handler);
+    rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::get_resource_history, get_resource_history_handler);
     rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::handle_firmware_action, firmware_action_handler);
 
     app::simpleTimerSync *timer = app::simpleTimerSync::getInstance();
     timer->init(1000);
-    timer->addCallback(1000, cpuHistoryCollect);
+    timer->addCallback(1000, resourceHistoryCollect);
     timer->start();
 
     std::list<int> listReadFd;
