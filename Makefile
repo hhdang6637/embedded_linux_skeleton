@@ -44,8 +44,9 @@ $(BIN_BUILD_DIR):
 compile_buildroot: $(BIN_BUILD_DIR)
 	@echo "**********compile_buildroot**********"
 	@cp $(CONFIGS_DIR)/buildroot/config $(BUILDROOT_BUILD_DIR)/.config
-	@$(CACHE_DIR)/get_buildroot_$(MODEL)_cache.sh > $(CURRENT_LOG) 2>&1 || \
-		$(MAKE) -C buildroot-2017.02.10 O=$(BUILDROOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
+	@if  ! $(CACHE_DIR)/get_buildroot_$(MODEL)_cache.sh > $(CURRENT_LOG) 2>&1 ; then \
+		$(MAKE) -C buildroot-2017.02.10 O=$(BUILDROOT_BUILD_DIR) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG); \
+	fi
 	@cp $(BUILDROOT_BUILD_DIR)/images/rootfs.cpio $(BIN_BUILD_DIR)
 	@echo "**********done**********"
 
@@ -55,8 +56,10 @@ clean_buildroot:
 compile_linux_kernel: $(BIN_BUILD_DIR)
 	@echo "**********compile_linux_kernel**********"
 	@cp $(CONFIGS_DIR)/linux/config $(LINUX_BUILD_DIR)/.config
-	@$(MAKE) -j3 -C linux-4.14.22 O=$(LINUX_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
-	@$(MAKE) -j3 -C linux-4.14.22 O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install >> $(BUILD_DIR)/linux_kernel.log 2>&1
+	@if  ! $(CACHE_DIR)/get_linux_$(MODEL)_cache.sh > $(CURRENT_LOG) 2>&1 ; then \
+		$(MAKE) -j3 -C linux-4.14.22 O=$(LINUX_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ; \
+		$(MAKE) -j3 -C linux-4.14.22 O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install >> $(BUILD_DIR)/linux_kernel.log 2>&1 ; \
+	fi
 	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/zImage                      $(BIN_BUILD_DIR)
 	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/dts/*.dtb  $(BIN_BUILD_DIR)
 	@echo "**********done**********"
