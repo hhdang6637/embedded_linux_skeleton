@@ -38,6 +38,8 @@ struct net_device_stats
     unsigned long tx_compressed;
 };
 
+int open_nl_socket();
+
 int bind_nl_socket(int fd, struct sockaddr_nl *sa, int size);
 
 int send_nl_get_request(int fd, int ifi_index, const struct sockaddr_nl *sa, int size, int seq);

@@ -58,6 +58,7 @@ void system_manager_init()
 static void resourceHistoryCollect() {
     app::resourceCollector::getInstance()->cpu_do_collect();
     app::resourceCollector::getInstance()->ram_do_collect();
+    app::resourceCollector::getInstance()->network_do_collect();
 }
 
 static bool get_resource_history_handler(int socker_fd) {
@@ -65,8 +66,11 @@ static bool get_resource_history_handler(int socker_fd) {
     if (msgResourceHistory.deserialize(socker_fd)) {
         std::list<cpu_stat_t> cpu_history = app::resourceCollector::getInstance()->get_cpu_history();
         std::list<struct sysinfo> ram_history = app::resourceCollector::getInstance()->get_ram_history();
+        std::list<struct net_device_stats> network_history = app::resourceCollector::getInstance()->get_network_history();
+
         msgResourceHistory.set_cpu_history(cpu_history);
         msgResourceHistory.set_ram_history(ram_history);
+        msgResourceHistory.set_network_history(network_history);
         return msgResourceHistory.serialize(socker_fd);
     }
     return false;

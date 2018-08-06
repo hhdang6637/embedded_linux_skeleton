@@ -13,6 +13,7 @@
 
 #include "cpu_stat.h"
 #include "rpcMessage.h"
+#include "netlink_socket.h"
 
 namespace app
 {
@@ -21,6 +22,7 @@ class rpcMessageResourceHistory: public rpcMessage
 {
 	std::list<cpu_stat_t> cpu_history;
 	std::list<struct sysinfo> ram_history;
+	std::list<struct net_device_stats> network_history;
 public:
 	virtual bool serialize(int fd);
 	virtual bool deserialize(int);
@@ -29,8 +31,11 @@ public:
     virtual ~rpcMessageResourceHistory();
     std::list<cpu_stat_t> get_cpu_history(){return this->cpu_history;};
     std::list<struct sysinfo> get_ram_history() { return this->ram_history;};
-	void set_cpu_history(std::list<cpu_stat_t> &cpu_history) { this->cpu_history = cpu_history; };
-	void set_ram_history(std::list<struct sysinfo> &ram_history) { this->ram_history = ram_history; };
+    std::list<struct net_device_stats> get_network_history() {return this->network_history;}
+
+    void set_cpu_history(std::list<cpu_stat_t> &cpu_history) { this->cpu_history = cpu_history; };
+    void set_ram_history(std::list<struct sysinfo> &ram_history) { this->ram_history = ram_history; };
+    void set_network_history(std::list<struct net_device_stats> &network_history) { this->network_history = network_history; };
 };
 
 } /* namespace app */

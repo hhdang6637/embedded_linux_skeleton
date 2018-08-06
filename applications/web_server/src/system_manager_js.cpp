@@ -70,6 +70,12 @@ std::string json_resource_usage_history(FCGX_Request *request)
             }
         }
         ss_json << "]";
+
+//        std::list<struct net_device_stats> network_history = msg.get_network_history();
+//
+//        for (auto const& stats : network_history) {
+//            //TODO
+//        }
     }
 
     ss_json << "}";

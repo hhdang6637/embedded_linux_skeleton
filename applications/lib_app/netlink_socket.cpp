@@ -96,11 +96,10 @@ int recv_nl_response(int fd, char *buffer, int size)
 
 void parse_nl_data(char *buffer, int len, struct net_device_stats *stats)
 {
-    struct nlmsghdr *nl_header;
+    struct nlmsghdr  *nl_header;
     struct ifinfomsg *if_info;
-    struct rtattr *attr;
-    struct ether_addr *ether;
-    int attr_len;
+    struct rtattr    *attr;
+    int              attr_len;
 
     nl_header = (struct nlmsghdr *) buffer;
 
@@ -115,9 +114,11 @@ void parse_nl_data(char *buffer, int len, struct net_device_stats *stats)
         /* Check for error */
         if (nl_header->nlmsg_type == NLMSG_ERROR) {
             /* This is a netlink error msg */
+#ifdef DEBUG_NETLINK
             struct nlmsgerr *pstruError;
             pstruError = (struct nlmsgerr *) NLMSG_DATA(nl_header);
             NL_DEBUG_PRINT(stderr, "netlink msg error: %s\n", strerror(pstruError->error));
+#endif
             break;
         }
 
@@ -210,17 +211,27 @@ void parse_nl_data(char *buffer, int len, struct net_device_stats *stats)
                     NL_DEBUG_PRINT(stderr, "\tdevice Queueing discipline: %s\n", (char *)RTA_DATA(attr));
                     break;
                 case IFLA_ADDRESS:
+                {
+#ifdef DEBUG_NETLINNK
+                    struct ether_addr *ether;
                     if (if_info->ifi_type == ARPHRD_ETHER) {
                         ether = (struct ether_addr *) RTA_DATA(attr);
                         NL_DEBUG_PRINT(stderr, "\tMAC address: %s\n", ether_ntoa(ether));
                     }
+#endif
                     break;
+                }
                 case IFLA_BROADCAST:
+                {
+#ifdef DEBUG_NETLINK
+                    struct ether_addr *ether;
                     if (if_info->ifi_type == ARPHRD_ETHER) {
                         ether = (struct ether_addr *) RTA_DATA(attr);
                         NL_DEBUG_PRINT(stderr, "\tBROADCAST address: %s\n", ether_ntoa(ether));
                     }
+#endif
                     break;
+                }
                 case IFLA_STATS:
                     struct net_device_stats *temp_stats;
                     temp_stats = (struct net_device_stats *) RTA_DATA(attr);
