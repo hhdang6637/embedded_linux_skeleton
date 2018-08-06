@@ -77,7 +77,10 @@ compile_uboot: $(BIN_BUILD_DIR)
 compile_apps: $(BIN_BUILD_DIR)
 	@echo "**********compile_apps**********"
 	@cp -asf $(PWD)/applications $(BUILD_DIR)
-	@$(MAKE) -C $(BUILD_DIR)/applications all > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
+	@if ! $(MAKE) -C $(BUILD_DIR)/applications all > $(CURRENT_LOG) 2>&1 ; then \
+		cat $(CURRENT_LOG); exit 1; \
+	fi
+	@cat $(CURRENT_LOG) >> $(ALL_LOG)
 	@echo "**********done**********"
 
 clean_apps:
