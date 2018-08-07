@@ -32,7 +32,7 @@
 #define NL_DEBUG_PRINT( msg, args... ) do { } while (0)
 #endif
 
-#define BUF_SIZE 4096
+#define BUF_SIZE 1024*6
 
 /* Create the netlink socket with netlink_route */
 int open_netlink_socket()
@@ -47,9 +47,9 @@ int open_netlink_socket()
 }
 
 // bind netlink socket to kernerl space
-int bind_netlink_socket(int fd, struct sockaddr_nl *sa, int size)
+int bind_netlink_socket(int fd, struct sockaddr_nl *sa, int sa_size)
 {
-    if (bind(fd, (struct sockaddr *) sa, size) < 0) {
+    if (bind(fd, (struct sockaddr *) sa, sa_size) < 0) {
         syslog(LOG_ERR, "Bind socket error: %s\n", strerror(errno));
         return -1;
     }
@@ -57,25 +57,32 @@ int bind_netlink_socket(int fd, struct sockaddr_nl *sa, int size)
     return 0;
 }
 
-int send_netlink_get_request(int fd, int ifi_index, const struct sockaddr_nl *sa, int size, int seq)
+/*
+ * send the netlink get request to kernel
+ */
+int send_netlink_get_request(int fd, int ifi_index, int seq)
 {
-    struct
-    {
-        struct nlmsghdr nh;
-        struct ifinfomsg ifi;
-    } req;
+    struct nlmsghdr    nh;
+    struct iovec       iov;
+    struct sockaddr_nl sa;
+    struct msghdr      msg;
 
     /* Construct the request sending to the kernel */
-    memset(&req, 0, sizeof(req));
-    req.nh.nlmsg_len = NLMSG_LENGTH(sizeof(req));
-    req.nh.nlmsg_type = RTM_GETLINK;
-    req.nh.nlmsg_seq = seq;
-    req.nh.nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
-    req.ifi.ifi_family = AF_UNSPEC;
-    req.ifi.ifi_type = ARPHRD_NETROM;
-    req.ifi.ifi_index = ifi_index;
+    memset(&nh, 0, sizeof(nh));
+    nh.nlmsg_len   = NLMSG_LENGTH(sizeof(nh));
+    nh.nlmsg_type  = RTM_GETLINK;
+    nh.nlmsg_seq   = seq;
+    nh.nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
 
-    if (sendto(fd, &req, req.nh.nlmsg_len, 0, (struct sockaddr *) sa, size) < 0) {
+    memset(&sa, 0, sizeof(sa));
+    sa.nl_family = AF_NETLINK;
+    sa.nl_pid    = 0;
+    sa.nl_groups = 0;
+
+    iov = {(void*)&nh, nh.nlmsg_len};
+    msg = {&sa, sizeof(sa), &iov, 1, NULL, 0, 0};
+
+    if (sendmsg(fd, &msg, 0) < 0) {
         syslog(LOG_ERR, "Send msg error: %s\n", strerror(errno));
         return -1;
     }
@@ -83,10 +90,16 @@ int send_netlink_get_request(int fd, int ifi_index, const struct sockaddr_nl *sa
     return 0;
 }
 
-int recv_netlink_response(int fd, char *buffer, int size)
+int recv_netlink_response(int fd, char *buffer, size_t buf_size)
 {
-    int nbytes;
-    if ((nbytes = recv(fd, buffer, size, 0)) < 0) {
+    struct iovec       iov = { buffer, buf_size };
+    struct sockaddr_nl sa;
+    struct msghdr      msg;
+    int                nbytes;
+
+    msg = {&sa, sizeof(sa), &iov, 1, NULL, 0, 0};
+
+    if ((nbytes = recvmsg(fd, &msg, 0)) < 0) {
         syslog(LOG_ERR, "Recv msg error: %s\n", strerror(errno));
         return -1;
     }
@@ -104,18 +117,12 @@ bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> 
     struct ifinfomsg      *if_info;
     struct rtattr         *attr;
     int                   attr_len;
-    bool                  rc = false;
+    bool                  rc = true;
     struct interface_info tmp_info;
 
     nl_header = (struct nlmsghdr *) buffer;
 
     while (NLMSG_OK(nl_header, len)) {
-        /* Got the complete response now */
-        if (nl_header->nlmsg_type == NLMSG_DONE) {
-            /* Ending of msg - no need to handle */
-            break;
-        }
-
         /* Check for error */
         if (nl_header->nlmsg_type == NLMSG_ERROR) {
             /* This is a netlink error msg */
@@ -123,7 +130,6 @@ bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> 
             if (error->error != 0) {
                 syslog(LOG_ERR, "netlink msg error: %s\n", strerror(error->error));
                 rc = false;
-                goto out;
             }
             break;
         }
@@ -171,7 +177,6 @@ bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> 
                                    temp_stats->tx_aborted_errors, temp_stats->tx_carrier_errors,
                                    temp_stats->tx_fifo_errors, temp_stats->tx_heartbeat_errors,
                                    temp_stats->tx_window_errors);
-                    rc = true;
                     break;
                 }
                 default:
@@ -188,7 +193,6 @@ bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> 
         info.push_back(tmp_info);
     }
 
-out:
     return rc;
 }
 
@@ -197,40 +201,54 @@ out:
  */
 bool get_network_stats(std::list<struct interface_info> &info)
 {
-    int fd;
+    int                fd;
     struct sockaddr_nl sa;
-    char buffer[BUF_SIZE];
-    int nbytes;
-    static int seq_number = 0;
+    struct nlmsghdr    *nl_header;
+    char               buffer[BUF_SIZE];
+    int                nbytes;
+    static int         seq_number = 0;\
+    int                rc = true;
 
     if ((fd = open_netlink_socket()) == -1) {
         syslog(LOG_ERR, "open_nl_socket failed\n");
+        rc = false;
         goto error_exit;
     }
 
     memset(&sa, 0, sizeof(sa));
     sa.nl_family = AF_NETLINK;
-    sa.nl_pid = 0;
+    sa.nl_pid    = 0;
     sa.nl_groups = 0;
 
     if (bind_netlink_socket(fd, &sa, sizeof(sa)) == -1) {
         syslog(LOG_ERR, "bind_nl_socket failed\n");
+        rc = false;
         goto error_exit;
     }
 
-    if (send_netlink_get_request(fd, 0, &sa, sizeof(sa), ++seq_number) == -1) {
+    if (send_netlink_get_request(fd, 0, ++seq_number) == -1) {
         syslog(LOG_ERR, "send_nl_get_request failed\n");
+        rc = false;
         goto error_exit;
     }
 
-    if ((nbytes = recv_netlink_response(fd, buffer, sizeof(buffer))) == -1) {
-        syslog(LOG_ERR, "recv_nl_response failed\n");
-        goto error_exit;
-    }
+    while ((nbytes = recv_netlink_response(fd, buffer, sizeof(buffer))) > 0) {
+        nl_header = (struct nlmsghdr *) buffer;
 
-    if (parse_netlink_data(buffer, nbytes, info))
-    {
-        return true;
+        /* Got the complete response now */
+        if (nl_header->nlmsg_type == NLMSG_DONE) {
+            /* Ending of msg - no need to handle */
+            break;
+        }
+
+        if (parse_netlink_data(buffer, nbytes, info) == false) {
+            syslog(LOG_ERR, "parse_netlink_data failed\n");
+            rc = false;
+            goto error_exit;
+        }
+
+        /* Clear the buffer before next recv */
+        memset(buffer, 0, sizeof(buffer));
     }
 
 error_exit:
@@ -239,6 +257,6 @@ error_exit:
         close(fd);
     }
 
-    return false;
+    return rc;
 }
 

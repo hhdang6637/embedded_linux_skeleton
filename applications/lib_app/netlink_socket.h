@@ -54,11 +54,11 @@ struct interface_info {
 
 int open_netlink_socket();
 
-int bind_netlink_socket(int fd, struct sockaddr_nl *sa, int size);
+int bind_netlink_socket(int fd, struct sockaddr_nl *sa, int sa_size);
 
-int send_netlink_get_request(int fd, int ifi_index, const struct sockaddr_nl *sa, int size, int seq);
+int send_netlink_get_request(int fd, int ifi_index, int seq);
 
-int recv_netlink_response(int fd, char *buffer, int size);
+int recv_netlink_response(int fd, char *buffer, size_t buf_size);
 
 bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> &info);
 
