@@ -13,6 +13,7 @@
 
 #include "cpu_stat.h"
 #include "netlink_socket.h"
+#include "rpcMessageResourceHistory.h"
 
 namespace app {
 
@@ -23,13 +24,13 @@ private:
 
     std::list<cpu_stat_t> cpu_history;
     std::list<struct sysinfo> ram_history;
-    std::list<struct interface_info> network_history;
+    std::list<app::total_network_statistics_t> network_history;
 public:
     virtual ~resourceCollector();
 
     std::list<cpu_stat_t> get_cpu_history();
     std::list<struct sysinfo> get_ram_history();
-    std::list<struct interface_info> get_network_history();
+    std::list<app::total_network_statistics_t> get_network_history();
 
     void cpu_do_collect();
     void ram_do_collect();

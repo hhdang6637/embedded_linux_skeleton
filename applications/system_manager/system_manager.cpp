@@ -66,7 +66,7 @@ static bool get_resource_history_handler(int socker_fd) {
     if (msgResourceHistory.deserialize(socker_fd)) {
         std::list<cpu_stat_t> cpu_history = app::resourceCollector::getInstance()->get_cpu_history();
         std::list<struct sysinfo> ram_history = app::resourceCollector::getInstance()->get_ram_history();
-        std::list<struct interface_info> network_history = app::resourceCollector::getInstance()->get_network_history();
+        std::list<app::total_network_statistics_t> network_history = app::resourceCollector::getInstance()->get_network_history();
 
         msgResourceHistory.set_cpu_history(cpu_history);
         msgResourceHistory.set_ram_history(ram_history);
