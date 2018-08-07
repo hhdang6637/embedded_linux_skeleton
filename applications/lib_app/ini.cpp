@@ -180,16 +180,16 @@ bool ini::set_string(const char *section, const char *key, std::string &value)
     char key_tmp[512];
     char val_tmp[512];
 
-    std::<str::string, ini::section>::iterator it = this->sections.find(section);
+    std::map<std::string, ini::section>::iterator it = this->sections.find(section);
     if (it == this->sections.end()) {
         ini::section s;
-        this->sections.insert(std::pair<str::string, ini::section>(section, s));
+        this->sections.insert(std::pair<std::string, ini::section>(section, s));
     }
 
     it = this->sections.find(section);
 
     snprintf(key_tmp, sizeof(key_tmp), "%s", key);
-    snprintf(val_tmp, sizeof(val_tmp), "%s", value);
+    snprintf(val_tmp, sizeof(val_tmp), "%s", value.c_str());
 
     strlower(key_tmp);
     strlower(val_tmp);
@@ -204,16 +204,20 @@ bool ini::set_bool(const char *section, const char *key, bool value)
     char key_tmp[512];
     char val_tmp[512];
 
-    std::<str::string, ini::section>::iterator it = this->sections.find(section);
+    std::map<std::string, ini::section>::iterator it = this->sections.find(section);
     if (it == this->sections.end()) {
         ini::section s;
-        this->sections.insert(std::pair<str::string, ini::section>(section, s));
+        this->sections.insert(std::pair<std::string, ini::section>(section, s));
     }
 
     it = this->sections.find(section);
 
     snprintf(key_tmp, sizeof(key_tmp), "%s", key);
-    snprintf(val_tmp, sizeof(val_tmp), "%s", value);
+    if (value == true) {
+        snprintf(val_tmp, sizeof(val_tmp), "%s", "true");
+    } else {
+        snprintf(val_tmp, sizeof(val_tmp), "%s", "false");
+    }
 
     strlower(key_tmp);
     strlower(val_tmp);
