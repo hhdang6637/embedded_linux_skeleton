@@ -32,6 +32,7 @@ namespace app
     firmwareManager::firmwareManager() :
             status(app::firmwareStatusType::NONE),
             result(app::firmwareResultType::NONE),
+            reboot(false),
             currentFwNumber(0),
             pidChild(-1)
     {
