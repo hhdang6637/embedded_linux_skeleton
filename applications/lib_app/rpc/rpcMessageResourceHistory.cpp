@@ -5,13 +5,12 @@
  *      Author: hhdang
  */
 
-#include "rpcMessageResourceHistory.h"
-
 #include <arpa/inet.h>
 #include <string.h>
 #include <syslog.h>
 #include <memory>
 
+#include "rpcMessageResourceHistory.h"
 
 namespace app
 {
@@ -28,13 +27,17 @@ rpcMessageResourceHistory::~rpcMessageResourceHistory()
 bool rpcMessageResourceHistory::serialize(int fd)
 {
     // just write the state
-    int buff_len = sizeof(uint16_t) + this->cpu_history.size() * sizeof(cpu_stat_t) +
-            sizeof(uint16_t) + this->ram_history.size() * sizeof(struct sysinfo);
+    int buff_len = 0;
+    buff_len += sizeof(uint16_t) + this->cpu_history.size() * sizeof(cpu_stat_t);
+    buff_len += sizeof(uint16_t) + this->ram_history.size() * sizeof(struct sysinfo);
+    buff_len += sizeof(uint16_t) + this->network_history.size() * sizeof(app::total_network_statistics_t);
+
     std::unique_ptr<char> buff_ptr(new char[buff_len]);
 
     int offset = 0;
     offset += rpcMessage::bufferAppendList(buff_ptr.get() + offset, this->cpu_history);
     offset += rpcMessage::bufferAppendList(buff_ptr.get() + offset, this->ram_history);
+    offset += rpcMessage::bufferAppendList(buff_ptr.get() + offset, this->network_history);
 
     if (buff_len != offset) {
         syslog(LOG_ERR, "%s:%u:%s something wrong happened", __FILE__, __LINE__,__FUNCTION__);
@@ -50,7 +53,7 @@ bool rpcMessageResourceHistory::serialize(int fd)
 
 bool rpcMessageResourceHistory::deserialize(int fd)
 {
-    uint16_t cpu_history_size, ram_history_size;
+    uint16_t cpu_history_size, ram_history_size, network_history_size;
 
     if (rpcMessage::recvInterruptRetry(fd, &cpu_history_size, sizeof(cpu_history_size)) != true) {
         return false;
@@ -78,6 +81,20 @@ bool rpcMessageResourceHistory::deserialize(int fd)
         }
 
         rpcMessage::ListFromBuff((struct sysinfo*) buff_ptr.get(), this->ram_history, ram_history_size);
+    }
+
+    if (rpcMessage::recvInterruptRetry(fd, &network_history_size, sizeof(network_history_size)) != true) {
+        return false;
+    }
+
+    if (network_history_size > 0) {
+        std::unique_ptr<char> buff_ptr(new char[network_history_size * sizeof(app::total_network_statistics_t)]);
+
+        if (rpcMessage::recvInterruptRetry(fd, buff_ptr.get(), network_history_size * sizeof(app::total_network_statistics_t)) != true) {
+            return false;
+        }
+
+        rpcMessage::ListFromBuff((app::total_network_statistics_t*) buff_ptr.get(), this->network_history, network_history_size);
     }
 
     return true;
