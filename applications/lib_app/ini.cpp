@@ -175,4 +175,76 @@ bool ini::set_int(const char *sect, const char *key, int value)
     return true;
 }
 
+bool ini::set_string(const char *section, const char *key, std::string &value)
+{
+    char key_tmp[512];
+    char val_tmp[512];
+
+    std::<str::string, ini::section>::iterator it = this->sections.find(section);
+    if (it == this->sections.end()) {
+        ini::section s;
+        this->sections.insert(std::pair<str::string, ini::section>(section, s));
+    }
+
+    it = this->sections.find(section);
+
+    snprintf(key_tmp, sizeof(key_tmp), "%s", key);
+    snprintf(val_tmp, sizeof(val_tmp), "%s", value);
+
+    strlower(key_tmp);
+    strlower(val_tmp);
+
+    it->second.properties.insert(
+            std::pair<std::string, std::string>(leftstrip(rightstrip(key_tmp)), leftstrip(rightstrip(val_tmp))));
+    return true;
+}
+
+bool ini::set_bool(const char *section, const char *key, bool value)
+{
+    char key_tmp[512];
+    char val_tmp[512];
+
+    std::<str::string, ini::section>::iterator it = this->sections.find(section);
+    if (it == this->sections.end()) {
+        ini::section s;
+        this->sections.insert(std::pair<str::string, ini::section>(section, s));
+    }
+
+    it = this->sections.find(section);
+
+    snprintf(key_tmp, sizeof(key_tmp), "%s", key);
+    snprintf(val_tmp, sizeof(val_tmp), "%s", value);
+
+    strlower(key_tmp);
+    strlower(val_tmp);
+
+    it->second.properties.insert(
+            std::pair<std::string, std::string>(leftstrip(rightstrip(key_tmp)), leftstrip(rightstrip(val_tmp))));
+    return true;
+}
+
+bool ini::set_uint16(const char *sect, const char *key, uint16_t value)
+{
+    char key_tmp[512];
+    char val_tmp[512];
+
+    std::map<std::string, ini::section>::iterator it = this->sections.find(sect);
+    if (it == this->sections.end()) {
+        ini::section s;
+        this->sections.insert(std::pair<std::string, ini::section>(sect, s));
+    }
+
+    it = this->sections.find(sect);
+
+    snprintf(key_tmp, sizeof(key_tmp), "%s", key);
+    snprintf(val_tmp, sizeof(val_tmp), "%u", value);
+
+    strlower(key_tmp);
+    strlower(val_tmp);
+
+    it->second.properties.insert(
+            std::pair<std::string, std::string>(leftstrip(rightstrip(key_tmp)), leftstrip(rightstrip(val_tmp))));
+    return true;
+}
+
 } /* namespace app */
