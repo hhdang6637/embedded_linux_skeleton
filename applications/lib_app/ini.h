@@ -10,12 +10,23 @@
 
 #include <stdint.h>
 #include <string>
+#include <map>
 
 namespace app
 {
 
 class ini
 {
+    class section
+    {
+        std::map<std::string, std::string> properties;
+        friend class ini;
+    };
+
+private:
+    std::map<std::string, section> sections;
+    void destroy();
+
 public:
     ini();
     bool loadFromFile(const char*);
@@ -31,8 +42,9 @@ public:
     bool set_int(const char *section, const char *key, int value);
     bool set_uint16(const char *section, const char *key, uint16_t value);
 
-    void destroy();
     virtual ~ini();
+
+    void dump();
 };
 
 } /* namespace app */
