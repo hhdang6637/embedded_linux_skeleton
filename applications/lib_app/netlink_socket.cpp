@@ -150,7 +150,7 @@ bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> 
                     char *if_name = (char *)RTA_DATA(attr);
                     NL_DEBUG_PRINT(stderr, "\tdevice name: %s\n",if_name);
                     strncpy(tmp_info.if_name, if_name, MAX_IFNAME_LEN);
-                    tmp_info.if_name[MAX_IFNAME_LEN] = '\0';
+                    tmp_info.if_name[MAX_IFNAME_LEN - 1] = '\0';
                     break;
                 }
                 case IFLA_STATS: {
