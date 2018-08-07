@@ -44,7 +44,7 @@ public:
 
     virtual ~ini();
 
-    void dump();
+    void dump(std::ostream &out);
 };
 
 } /* namespace app */

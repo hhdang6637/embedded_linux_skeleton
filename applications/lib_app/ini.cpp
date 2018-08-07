@@ -8,7 +8,6 @@
 #include <string.h>
 #include <syslog.h>
 
-#include <iostream>     // std::cout
 #include <fstream>      // std::ifstream
 
 #include "ini.h"
@@ -57,11 +56,11 @@ inline static char * strlower(char * s)
     return s;
 }
 
-bool ini::loadFromFile(const char* filename)
+bool ini::loadFromFile(const char* iniFileName)
 {
     this->destroy();
 
-    std::ifstream infile(filename);
+    std::ifstream infile(iniFileName);
 
     if (infile.is_open() == false) {
         return false;
@@ -106,7 +105,6 @@ bool ini::loadFromFile(const char* filename)
 
             strlower(key);
             strlower(value);
-            std::cout << "key :" << key << ", value :" << value << std::endl;
 
             it->second.properties.insert(
                     std::pair<std::string, std::string>(leftstrip(rightstrip(key)), leftstrip(rightstrip(value))));
@@ -120,23 +118,61 @@ bool ini::loadFromFile(const char* filename)
     return true;
 }
 
+bool ini::writeToFile(const char*iniFileName)
+{
+    std::ofstream outfile(iniFileName);
+
+    if (outfile.is_open() == false) {
+        return false;
+    }
+
+    this->dump(outfile);
+    outfile.close();
+
+    return true;
+}
+
 void ini::destroy()
 {
     this->sections.clear();
 }
 
-void ini::dump() {
+void ini::dump(std::ostream &out) {
     for (std::map<std::string, section>::iterator it = this->sections.begin();
             it != this->sections.end(); it++) {
-        std::cout << std::endl << "[" << it->first.c_str() << "]" << std::endl;
+        out << std::endl << "[" << it->first.c_str() << "]" << std::endl;
 
         std::map<std::string, std::string> &section = it->second.properties;
 
         for (std::map<std::string, std::string>::iterator subit = section.begin();
                 subit != section.end(); subit++) {
-            std::cout << subit->first.c_str() << "=" << subit->second.c_str() << std::endl;
+            out << subit->first.c_str() << "=" << subit->second.c_str() << std::endl;
         }
     }
+}
+
+bool ini::set_int(const char *sect, const char *key, int value)
+{
+    char key_tmp[512];
+    char val_tmp[512];
+
+    std::map<std::string, ini::section>::iterator it = this->sections.find(sect);
+    if (it == this->sections.end()) {
+        ini::section s;
+        this->sections.insert(std::pair<std::string, ini::section>(sect, s));
+    }
+
+    it = this->sections.find(sect);
+
+    snprintf(key_tmp, sizeof(key_tmp), "%s", key);
+    snprintf(val_tmp, sizeof(val_tmp), "%d", value);
+
+    strlower(key_tmp);
+    strlower(val_tmp);
+
+    it->second.properties.insert(
+            std::pair<std::string, std::string>(leftstrip(rightstrip(key_tmp)), leftstrip(rightstrip(val_tmp))));
+    return true;
 }
 
 } /* namespace app */
