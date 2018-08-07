@@ -151,6 +151,23 @@ void ini::dump(std::ostream &out) {
     }
 }
 
+bool ini::get_int(const char *section, const char *key, int &value)
+{
+    std::map<std::string, ini::section>::iterator it = this->sections.find(section);
+    if (it == this->sections.end()) {
+        return false;
+    } else {
+        std::map<std::string, std::string>::iterator propertiesIt = it->second.properties.find(key);
+        if (propertiesIt == it->second.properties.end()) {
+            return false;
+        }
+        long int lval = strtol (propertiesIt->second.c_str(), NULL, 0);
+        value = lval;
+    }
+
+    return true;
+}
+
 bool ini::set_int(const char *sect, const char *key, int value)
 {
     char key_tmp[512];
@@ -175,6 +192,22 @@ bool ini::set_int(const char *sect, const char *key, int value)
     return true;
 }
 
+bool ini::get_string(const char *section, const char *key, std::string &value)
+{
+    std::map<std::string, ini::section>::iterator it = this->sections.find(section);
+    if (it == this->sections.end()) {
+        return false;
+    } else {
+        std::map<std::string, std::string>::iterator propertiesIt = it->second.properties.find(key);
+        if (propertiesIt == it->second.properties.end()) {
+            return false;
+        }
+        value = propertiesIt->second;
+    }
+
+    return true;
+}
+
 bool ini::set_string(const char *section, const char *key, std::string &value)
 {
     char key_tmp[512];
@@ -196,6 +229,28 @@ bool ini::set_string(const char *section, const char *key, std::string &value)
 
     it->second.properties.insert(
             std::pair<std::string, std::string>(leftstrip(rightstrip(key_tmp)), leftstrip(rightstrip(val_tmp))));
+    return true;
+}
+
+bool ini::get_bool(const char *section, const char *key, bool &value)
+{
+    std::map<std::string, ini::section>::iterator it = this->sections.find(section);
+    if (it == this->sections.end()) {
+        return false;
+    } else {
+
+        std::map<std::string, std::string>::iterator propertiesIt = it->second.properties.find(key);
+        if (propertiesIt == it->second.properties.end()) {
+            return false;
+        }
+
+        if (propertiesIt->second.compare("true") == 0) {
+            value = true;
+        } else {
+            value = false;
+        }
+    }
+
     return true;
 }
 
@@ -224,6 +279,23 @@ bool ini::set_bool(const char *section, const char *key, bool value)
 
     it->second.properties.insert(
             std::pair<std::string, std::string>(leftstrip(rightstrip(key_tmp)), leftstrip(rightstrip(val_tmp))));
+    return true;
+}
+
+bool ini::get_uint16(const char *section, const char *key, uint16_t &value)
+{
+    std::map<std::string, ini::section>::iterator it = this->sections.find(section);
+    if (it == this->sections.end()) {
+        return false;
+    } else {
+        std::map<std::string, std::string>::iterator propertiesIt = it->second.properties.find(key);
+        if (propertiesIt == it->second.properties.end()) {
+            return false;
+        }
+        long int lval = strtoul (propertiesIt->second.c_str(), NULL, 0);
+        value = lval;
+    }
+
     return true;
 }
 
