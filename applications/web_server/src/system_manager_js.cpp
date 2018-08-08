@@ -70,6 +70,39 @@ std::string json_resource_usage_history(FCGX_Request *request)
             }
         }
         ss_json << "]";
+
+        std::list<app::total_network_statistics_t> network_history = msg.get_network_history();
+        ss_json << ",\"json_network_history\": {";
+        ss_json << "\"total_rx_bytes\":[";
+
+        counter = 0;
+        for (std::list<app::total_network_statistics_t>::iterator it = network_history.begin();
+                it != network_history.end(); ++it) {
+            counter++;
+
+            ss_json << it->total_rx_bytes;
+
+            if (counter < msg.get_network_history().size()) {
+                ss_json << ",";
+            }
+        }
+
+        ss_json << "]";
+        ss_json << ",\"total_tx_bytes\":[";
+
+        counter = 0;
+        for (std::list<app::total_network_statistics_t>::iterator it = network_history.begin();
+                it != network_history.end(); ++it) {
+            counter++;
+
+            ss_json << it->total_tx_bytes;
+
+            if (counter < msg.get_network_history().size()) {
+                ss_json << ",";
+            }
+        }
+
+        ss_json << "]}";
     }
 
     ss_json << "}";

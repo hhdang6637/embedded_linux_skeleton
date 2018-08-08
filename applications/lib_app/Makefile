@@ -6,7 +6,8 @@ SRCS=simpleTimerSync.o
 SRCS += cpu_stat.o utilities.o service.o
 SRCS += rpc/rpcMessage.o rpc/rpcMessageAddr.o rpc/rpcUnixClient.o rpc/rpcUnixServer.o
 SRCS += rpc/rpcMessageResourceHistory.o rpc/rpcMessageFirmware.o
-SRCS += libfdt/fdt_ro.o backtrace_signal.o
+SRCS += libfdt/fdt_ro.o backtrace_signal.o netlink_socket.o
+SRCS += ini.o
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@

@@ -3,6 +3,7 @@
 
 export CC      = $(CROSS_COMPILE)gcc
 export CXX     = $(CROSS_COMPILE)g++
+export AR      = $(CROSS_COMPILE)ar
 export LD      = $(CROSS_COMPILE)ld
 export INCLUDE = $(ROOTFS_DIR)/usr/include
 export LIB     = $(ROOTFS_DIR)/usr/lib
@@ -34,6 +35,7 @@ all: $(ROOTFS_DIR)
 	@$(MAKE) -C system_manager clean all
 	@$(MAKE) -C hello_world_app clean all
 	@$(MAKE) -C dropbear/dropbear-2018.76 clean all
+	@$(MAKE) -C valgrind/valgrind-3.13.0 clean all
 
 clean:
 	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean
@@ -44,4 +46,5 @@ clean:
 	@$(MAKE) -C system_manager clean
 	@$(MAKE) -C web_server clean
 	@$(MAKE) -C dropbear/dropbear-2018.76 clean
+	@$(MAKE) -C valgrind/valgrind-3.13.0 clean
 	@rm -rf   $(ROOTFS_DIR)
