@@ -12,6 +12,7 @@
 
 #include "utilities.h"
 #include "serviceHiawatha.h"
+#include "userManager.h"
 #include "simpleTimerSync.h"
 #include "resourceCollector.h"
 #include "firmwareManager.h"
@@ -24,6 +25,8 @@
 
 void system_manager_init()
 {
+
+    app::userManager::getInstance()->initDefaultUsers();
 
     mkdir(CONFIG_DIR, 0755);
     // start web server

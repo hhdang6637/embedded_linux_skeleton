@@ -16,13 +16,15 @@ namespace app
 class user
 {
     std::string name;
+    std::string password;
 
 public:
     user();
     virtual ~user();
 
-    void setName(std::string &name);
-    std::string getName();
+    void setName(const char *name) {this->name = name; };
+    void setPassword(const char *pass) {this->password = pass;};
+    std::string getName() {return this->name; };
     bool isValid();     // veryfi user information
 };
 
