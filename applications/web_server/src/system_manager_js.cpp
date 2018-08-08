@@ -20,6 +20,8 @@ std::string json_resource_usage_history(FCGX_Request *request)
 
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageResourceHistory msg;
+    std::string interface_name = "eth0"; // TODO: The user will choose the interface name with WEB UI
+    msg.set_interface_name(interface_name);
     if (rpcClient->doRpc(&msg)) {
 
         cpu_stat_t pre, cur;
@@ -71,16 +73,16 @@ std::string json_resource_usage_history(FCGX_Request *request)
         }
         ss_json << "]";
 
-        std::list<app::total_network_statistics_t> network_history = msg.get_network_history();
+        std::list<struct net_device_stats> network_history = msg.get_network_history();
         ss_json << ",\"json_network_history\": {";
-        ss_json << "\"total_rx_bytes\":[";
+        ss_json << "\"rx_bytes\":[";
 
         counter = 0;
-        for (std::list<app::total_network_statistics_t>::iterator it = network_history.begin();
+        for (std::list<struct net_device_stats>::iterator it = network_history.begin();
                 it != network_history.end(); ++it) {
             counter++;
 
-            ss_json << it->total_rx_bytes;
+            ss_json << it->rx_bytes;
 
             if (counter < msg.get_network_history().size()) {
                 ss_json << ",";
@@ -88,14 +90,14 @@ std::string json_resource_usage_history(FCGX_Request *request)
         }
 
         ss_json << "]";
-        ss_json << ",\"total_tx_bytes\":[";
+        ss_json << ",\"tx_bytes\":[";
 
         counter = 0;
-        for (std::list<app::total_network_statistics_t>::iterator it = network_history.begin();
+        for (std::list<struct net_device_stats>::iterator it = network_history.begin();
                 it != network_history.end(); ++it) {
             counter++;
 
-            ss_json << it->total_tx_bytes;
+            ss_json << it->tx_bytes;
 
             if (counter < msg.get_network_history().size()) {
                 ss_json << ",";

@@ -14,6 +14,7 @@
 #include <stdio.h>
 
 #include <list>
+#include <algorithm>
 
 #include "resourceCollector.h"
 #include "netlink_socket.h"
@@ -65,9 +66,13 @@ std::list<struct sysinfo> resourceCollector::get_ram_history()
     return this->ram_history;
 }
 
-std::list<app::total_network_statistics_t> resourceCollector::get_network_history()
+std::list<struct net_device_stats> resourceCollector::get_network_history(const std::string &if_name)
 {
-    return this->network_history;
+    std::map<std::string, std::list<struct net_device_stats>>::iterator it = this->network_history.find(if_name);
+    if (it != this->network_history.end())
+        return this->network_history[if_name];
+
+    return std::list<struct net_device_stats>();
 }
 
 void resourceCollector::ram_do_collect()
@@ -89,17 +94,30 @@ void resourceCollector::network_do_collect()
     std::list<struct interface_info> info;
 
     if (get_network_stats(info)) {
-        app::total_network_statistics_t total = {};
-        for (auto const &i : info) {
-            total.total_rx_bytes += i.if_stats.rx_bytes;
-            total.total_tx_bytes += i.if_stats.tx_bytes;
-        }
+        auto append_to_network_history = [&](const struct interface_info& info) {
 
-        if (this->network_history.size() >= resourceCollector::resource_history_max_sample) {
-            this->network_history.pop_front();
-        }
+            std::map<std::string, std::list<struct net_device_stats>>::iterator it = this->network_history.find(info.if_name);
 
-        this->network_history.push_back(total);
+            // non-existing element
+            if (it == this->network_history.end()) {
+
+                std::list<struct net_device_stats> stats;
+                stats.push_back(info.if_stats);
+                this->network_history.insert(
+                        std::pair<std::string, std::list<struct net_device_stats>>(info.if_name, stats));
+
+            } else {
+
+                // insert to existing element
+                if (this->network_history[info.if_name].size() >= resourceCollector::resource_history_max_sample) {
+                    this->network_history[info.if_name].pop_front();
+                }
+
+                this->network_history[info.if_name].push_back(info.if_stats);
+            }
+        };
+
+        std::for_each(info.cbegin(), info.cend(), append_to_network_history);
     }
 }
 
