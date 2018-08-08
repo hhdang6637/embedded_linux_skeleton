@@ -246,9 +246,6 @@ bool get_network_stats(std::list<struct interface_info> &info)
             rc = false;
             goto error_exit;
         }
-
-        /* Clear the buffer before next recv */
-        memset(buffer, 0, sizeof(buffer));
     }
 
 error_exit:
