@@ -70,7 +70,7 @@ clean_linux_kernel:
 compile_uboot: $(BIN_BUILD_DIR)
 	@echo "**********compile_uboot**********"
 	@cp $(CONFIGS_DIR)/uboot/config $(UBOOT_BUILD_DIR)/.config
-	@$(MAKE) -j$(NUM_OF_CPU) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
+	@$(MAKE) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
 	@cp $(UBOOT_BUILD_DIR)/u-boot $(UBOOT_BUILD_DIR)/u-boot.bin $(BIN_BUILD_DIR)
 	@echo "**********done**********"
 
