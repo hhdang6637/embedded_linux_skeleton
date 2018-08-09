@@ -13,30 +13,36 @@
 #include "rpcUnixClient.h"
 #include "rpcMessageResourceHistory.h"
 
-typedef std::list<unsigned long> tx_rates_t;
-typedef std::list<unsigned long> rx_rates_t;
+#define TO_KBIT(a) ((a * 8 ) / 1000)
 
-static std::pair<tx_rates_t, rx_rates_t> calculate_rates(const std::list<struct net_device_stats> &stats)
+typedef std::list<float> tx_rates_t;
+typedef std::list<float> rx_rates_t;
+
+static std::pair<tx_rates_t, rx_rates_t> calculate_rates(const std::list<struct rtnl_link_stats> &stats)
 {
     tx_rates_t    tx_rates;
     rx_rates_t    rx_rates;
     unsigned long tx_bytes_old = stats.begin()->tx_bytes;
     unsigned long rx_bytes_old = stats.begin()->rx_bytes;
 
-    for (auto const & it : stats) {
-        unsigned long tx_rate = 0, rx_rate = 0;
-        if (it.tx_bytes != 0 && (tx_bytes_old != it.tx_bytes)) {
-            tx_rate = it.tx_bytes - tx_bytes_old;
-            tx_bytes_old = it.tx_bytes;
+    for (auto it = stats.begin(); it != stats.end(); ++it) {
+        // skip the first sample
+        if (it == stats.begin())
+            continue;
+
+        float tx_rate = 0, rx_rate = 0;
+        if (it->tx_bytes != 0 && (tx_bytes_old != it->tx_bytes)) {
+            tx_rate = it->tx_bytes - tx_bytes_old;
+            tx_bytes_old = it->tx_bytes;
         }
 
-        if (it.rx_bytes != 0 && (rx_bytes_old != it.rx_bytes)) {
-            rx_rate = it.rx_bytes - rx_bytes_old;
-            rx_bytes_old = it.rx_bytes;
+        if (it->rx_bytes != 0 && (rx_bytes_old != it->rx_bytes)) {
+            rx_rate = it->rx_bytes - rx_bytes_old;
+            rx_bytes_old = it->rx_bytes;
         }
 
-        tx_rates.push_back(tx_rate);
-        rx_rates.push_back(rx_rate);
+        tx_rates.push_back(TO_KBIT(tx_rate));
+        rx_rates.push_back(TO_KBIT(rx_rate));
     }
 
     return std::make_pair(tx_rates, rx_rates);
@@ -127,7 +133,7 @@ std::string json_resource_usage_history(FCGX_Request *request)
 
             ss_json << rx_rate;
 
-            if (counter < msg.get_network_history().size()) {
+            if (counter < rates.second.size()) {
                 ss_json << ",";
             }
         }

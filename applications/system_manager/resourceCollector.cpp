@@ -108,8 +108,8 @@ void resourceCollector::network_do_collect()
 
             } else {
 
-                // insert to existing element
-                if (this->network_history[info.if_name].size() >= resourceCollector::resource_history_max_sample) {
+                // insert to existing element. We need 61 samples to achieve to 60 rates
+                if (this->network_history[info.if_name].size() >= resourceCollector::resource_history_max_sample + 1) {
                     this->network_history[info.if_name].pop_front();
                 }
 
