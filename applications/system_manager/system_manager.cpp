@@ -25,21 +25,11 @@
 
 void system_manager_init()
 {
-
-    app::userManager::getInstance()->initDefaultUsers();
-
     mkdir(CONFIG_DIR, 0755);
     // start web server
     app::serviceHiawatha::getInstance()->init();
     app::serviceHiawatha::getInstance()->start();
 
-    system("web_handler");
-
-#ifdef arm_vexpress_a9
-    if ((access("/dev/mmcblk0", F_OK)) != -1 && (access("/boot", F_OK) != -1)) {
-        system("mount -t vfat /dev/mmcblk0 /boot");
-    }
-#else
     if ((access("/dev/mmcblk0p1", F_OK)) != -1 && (access("/boot", F_OK) != -1)) {
         system("mount -t vfat /dev/mmcblk0p1 /boot");
     }
@@ -47,7 +37,10 @@ void system_manager_init()
     if ((access("/dev/mmcblk0p2", F_OK)) != -1 && (access("/data", F_OK) != -1)) {
         system("mount -t ext4 /dev/mmcblk0p2 /data/");
     }
-#endif
+
+    app::userManager::getInstance()->initDefaultUsers();
+
+    system("web_handler");
 
     app::rpcMessageAddr addr = app::rpcMessageAddr::getRpcMessageAddrbyType(
             app::rpcMessageAddr::rpcMessageAddrType::system_manager_addr_t);
