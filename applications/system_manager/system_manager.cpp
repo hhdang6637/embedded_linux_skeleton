@@ -38,7 +38,7 @@ void system_manager_init()
         system("mount -t ext4 /dev/mmcblk0p2 /data/");
     }
 
-    app::userManager::getInstance()->initDefaultUsers();
+    app::userManager::getInstance()->initFromFile();
 
     system("web_handler");
 

@@ -26,13 +26,17 @@ private:
     std::map<std::string, app::user> users;
     app::ini userConf;
 
+    void initDefaultUsers();
+
+    void createUser(app::user &user);
+    void changeUserPass(app::user &user);
 public:
     virtual ~userManager();
 
     static userManager* getInstance();
 
-    void initDefaultUsers();
-    bool initFromFile(const char*);
+    bool initFromFile();
+    bool writeToFile();
 };
 
 } /* namespace app */

@@ -23,9 +23,10 @@ public:
     virtual ~user();
 
     void setName(const char *name) {this->name = name; };
-    void setPassword(const char *pass) {this->password = pass;};
     std::string getName() {return this->name; };
-    bool isValid();     // veryfi user information
+    void setPassword(const char *pass) {this->password = pass;};
+    std::string getPassword() {return this->password; };
+    bool isValid() {return !this->name.empty(); };     // veryfi user information
 };
 
 } /* namespace app */

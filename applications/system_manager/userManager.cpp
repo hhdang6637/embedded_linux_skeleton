@@ -4,7 +4,7 @@
  *  Created on: Aug 7, 2018
  *      Author: hhdang
  */
-
+#include <iostream>
 #include <syslog.h>
 
 #include "userManager.h"
@@ -67,11 +67,86 @@ void userManager::initDefaultUsers()
     fclose(fp);
 }
 
-bool userManager::initFromFile(const char*fileName)
+void userManager::createUser(app::user &user)
+{
+    char cmd[128];
+    snprintf(cmd, sizeof(cmd), "adduser "
+            "-h /home " // set home dir
+            "-s /bin/sh "
+            "-H "// Don't create home dir
+            "-D "// Don't assign a password
+            "-G "// add user to group users
+            "users "
+            "%s >/dev/null 2>&1", user.getName().c_str());
+
+    system(cmd);
+}
+
+void userManager::changeUserPass(app::user &user)
+{
+    char cmd[128];
+    snprintf(cmd, sizeof(cmd), "echo -e \"%s\\n%s\" | passwd %s >/dev/null 2>&1",
+            user.getPassword().c_str(),
+            user.getPassword().c_str(),
+            user.getName().c_str());
+
+    system(cmd);
+}
+
+bool userManager::initFromFile()
 {
     initDefaultUsers();
 
-    return true;
+    if (this->userConf.loadFromFile("/data/users.conf")) {
+
+        for(int i = 0; i < 50; i++) {
+
+            char sect[32];
+            std::string value;
+
+            snprintf(sect, sizeof(sect), "user_%d", i);
+            if (this->userConf.get_string(sect, "name", value)) {
+
+                syslog(LOG_NOTICE, "found user %s from /data/users.conf", value.c_str());
+
+                app::user user;
+                user.setName(value.c_str());
+
+                if (this->userConf.get_string(sect, "password", value)) {
+                    user.setPassword(value.c_str());
+                }
+
+                if (user.isValid()) {
+
+                    auto it = this->users.find(user.getName());
+
+                    if (it == this->users.end()) {
+
+                        this->users.insert(std::pair<std::string, app::user>(user.getName(), user));
+                        this->createUser(user);
+
+                    } else {
+                        it->second = user;
+                    }
+
+                    this->changeUserPass(user);
+
+                    syslog(LOG_NOTICE, "add user %s to the user list", user.getName().c_str());
+                }
+            }
+        }
+
+        return true;
+    } else {
+        syslog(LOG_NOTICE, "cannot load user config from /data/users.conf");
+    }
+
+    return false;
+}
+
+bool userManager::writeToFile()
+{
+    return this->userConf.writeToFile("/data/users.conf");
 }
 
 } /* namespace app */
