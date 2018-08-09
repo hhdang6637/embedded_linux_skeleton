@@ -91,10 +91,10 @@ void resourceCollector::ram_do_collect()
 
 void resourceCollector::network_do_collect()
 {
-    std::list<struct interface_info> info;
+    std::list<struct net_interface_stats> stats;
 
-    if (get_network_stats(info)) {
-        auto append_to_network_history = [&](const struct interface_info& info) {
+    if (get_network_stats(stats)) {
+        auto append_to_network_history = [&](const struct net_interface_stats& info) {
 
             std::map<std::string, std::list<struct net_device_stats>>::iterator it = this->network_history.find(info.if_name);
 
@@ -117,7 +117,7 @@ void resourceCollector::network_do_collect()
             }
         };
 
-        std::for_each(info.cbegin(), info.cend(), append_to_network_history);
+        std::for_each(stats.cbegin(), stats.cend(), append_to_network_history);
     }
 }
 

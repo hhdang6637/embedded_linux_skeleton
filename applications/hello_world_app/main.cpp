@@ -16,7 +16,7 @@ int main(void) {
     unsigned long tx_bytes_old = 0, rx_bytes_old = 0;
 
     while (1) {
-        std::list<struct interface_info> info;
+        std::list<struct net_interface_stats> info;
 
         if (get_network_stats(info)) {
             for (auto const &i : info) {

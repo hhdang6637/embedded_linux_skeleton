@@ -111,14 +111,14 @@ int recv_netlink_response(int fd, char *buffer, size_t buf_size)
  * Parse netlink data to net_device_stats structure
  * return TRUE if net_device_stats structure parsed succeed, or FALSE if an error occurred
  */
-bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> &info)
+bool parse_netlink_data(char *buffer, int len, std::list<struct net_interface_stats> &stats)
 {
-    struct nlmsghdr       *nl_header;
-    struct ifinfomsg      *if_info;
-    struct rtattr         *attr;
-    int                   attr_len;
-    bool                  rc = true;
-    struct interface_info tmp_info;
+    struct nlmsghdr            *nl_header;
+    struct ifinfomsg           *if_info;
+    struct rtattr              *attr;
+    int                        attr_len;
+    bool                       rc = true;
+    struct net_interface_stats stat;
 
     nl_header = (struct nlmsghdr *) buffer;
 
@@ -149,14 +149,14 @@ bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> 
                 case IFLA_IFNAME: {
                     char *if_name = (char *)RTA_DATA(attr);
                     NL_DEBUG_PRINT(stderr, "\tdevice name: %s\n",if_name);
-                    strncpy(tmp_info.if_name, if_name, MAX_IFNAME_LEN);
-                    tmp_info.if_name[MAX_IFNAME_LEN - 1] = '\0';
+                    strncpy(stat.if_name, if_name, MAX_IFNAME_LEN);
+                    stat.if_name[MAX_IFNAME_LEN - 1] = '\0';
                     break;
                 }
                 case IFLA_STATS: {
                     struct net_device_stats *temp_stats;
                     temp_stats = (struct net_device_stats *) RTA_DATA(attr);
-                    memcpy(&tmp_info.if_stats, temp_stats, sizeof(struct net_device_stats));
+                    memcpy(&stat.if_stats, temp_stats, sizeof(struct net_device_stats));
 
                     NL_DEBUG_PRINT(stderr, "\treceive info:\n");
                     NL_DEBUG_PRINT(stderr, "\t\treceive packets: %lu, bytes: %lu\n", temp_stats->rx_packets,
@@ -190,7 +190,7 @@ bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> 
         /* Get the next netlink msg */
         nl_header = NLMSG_NEXT(nl_header, len);
 
-        info.push_back(tmp_info);
+        stats.push_back(stat);
     }
 
     return rc;
@@ -199,7 +199,7 @@ bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> 
 /**
  *  get network statistics of all interface from kernel (pid: 0)
  */
-bool get_network_stats(std::list<struct interface_info> &info)
+bool get_network_stats(std::list<struct net_interface_stats> &stats)
 {
     int                fd;
     struct sockaddr_nl sa;
@@ -241,7 +241,7 @@ bool get_network_stats(std::list<struct interface_info> &info)
             break;
         }
 
-        if (parse_netlink_data(buffer, nbytes, info) == false) {
+        if (parse_netlink_data(buffer, nbytes, stats) == false) {
             syslog(LOG_ERR, "parse_netlink_data failed\n");
             rc = false;
             goto error_exit;

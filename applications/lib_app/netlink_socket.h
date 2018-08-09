@@ -47,7 +47,7 @@ struct net_device_stats {
     unsigned long   tx_compressed;
 };
 
-struct interface_info {
+struct net_interface_stats {
     struct net_device_stats if_stats;
     char                    if_name[MAX_IFNAME_LEN];
 };
@@ -60,8 +60,8 @@ int send_netlink_get_request(int fd, int ifi_index, int seq);
 
 int recv_netlink_response(int fd, char *buffer, size_t buf_size);
 
-bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> &info);
+bool parse_netlink_data(char *buffer, int len, std::list<struct net_interface_stats> &stats);
 
-bool get_network_stats(std::list<struct interface_info> &info);
+bool get_network_stats(std::list<struct net_interface_stats> &stats);
 
 #endif /* APPLICATIONS_LIB_APP_NETLINK_SOCKET_H_ */
