@@ -280,20 +280,16 @@ function updateRealTime() {
         net_tx_max = Math.max.apply(null, data.json_network_history.tx_bytes);
         net_rx_max = Math.max.apply(null, data.json_network_history.rx_bytes);
 
-        // if (net_tx_max > window.netTxLine.options.scales.yAxes[0].ticks.max) {
-            if (net_tx_max/1000 < 20) {
-                window.netTxLine.options.scales.yAxes[0].ticks.max = net_tx_max*2;
-            } else {
-                window.netTxLine.options.scales.yAxes[0].ticks.max = net_tx_max;
-            }
-        // }
-        // if (net_rx_max > window.netRxLine.options.scales.yAxes[0].ticks.max) {
-            if (net_tx_max/1000 < 20) {
-                window.netRxLine.options.scales.yAxes[0].ticks.max = net_rx_max*2;
-            } else {
-                window.netRxLine.options.scales.yAxes[0].ticks.max = net_rx_max;
-            }
-        // }
+        if (net_tx_max/1000 < 20) {
+            window.netTxLine.options.scales.yAxes[0].ticks.max = net_tx_max*2;
+        } else {
+            window.netTxLine.options.scales.yAxes[0].ticks.max = net_tx_max;
+        }
+        if (net_rx_max/1000 < 20) {
+            window.netRxLine.options.scales.yAxes[0].ticks.max = net_rx_max*2;
+        } else {
+            window.netRxLine.options.scales.yAxes[0].ticks.max = net_rx_max;
+        }
 
         window.netTxLine.options.scales.yAxes[0].ticks.stepSize = window.netTxLine.options.scales.yAxes[0].ticks.max/5;
         window.netRxLine.options.scales.yAxes[0].ticks.stepSize = window.netRxLine.options.scales.yAxes[0].ticks.max/5;
