@@ -31,7 +31,7 @@ bool rpcMessageResourceHistory::serialize(int fd)
     buff_len += sizeof(uint16_t) + this->cpu_history.size() * sizeof(cpu_stat_t);
     buff_len += sizeof(uint16_t) + this->ram_history.size() * sizeof(struct sysinfo);
     buff_len += sizeof(uint16_t) + this->interface_name.length();
-    buff_len += sizeof(uint16_t) + this->network_history.size() * sizeof(struct net_device_stats);
+    buff_len += sizeof(uint16_t) + this->network_history.size() * sizeof(struct rtnl_link_stats);
 
     std::unique_ptr<char> buff_ptr(new char[buff_len]);
 
@@ -104,13 +104,13 @@ bool rpcMessageResourceHistory::deserialize(int fd)
     }
 
     if (network_history_size > 0) {
-        std::unique_ptr<char> buff_ptr(new char[network_history_size * sizeof(struct net_device_stats)]);
+        std::unique_ptr<char> buff_ptr(new char[network_history_size * sizeof(struct rtnl_link_stats)]);
 
-        if (rpcMessage::recvInterruptRetry(fd, buff_ptr.get(), network_history_size * sizeof(struct net_device_stats)) != true) {
+        if (rpcMessage::recvInterruptRetry(fd, buff_ptr.get(), network_history_size * sizeof(struct rtnl_link_stats)) != true) {
             return false;
         }
 
-        rpcMessage::ListFromBuff((struct net_device_stats*) buff_ptr.get(), this->network_history, network_history_size);
+        rpcMessage::ListFromBuff((struct rtnl_link_stats*) buff_ptr.get(), this->network_history, network_history_size);
     }
 
     return true;

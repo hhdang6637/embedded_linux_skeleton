@@ -10,58 +10,62 @@
 
 #include <list>
 
+#include <net/ethernet.h>
+#include <linux/rtnetlink.h>
+#include <linux/if_link.h>
+#include <linux/if_addr.h>
+#include <netinet/in.h>
+#include <stdint.h>
+
 #define MAX_IFNAME_LEN 32
-
-/*
- * Copy from kernel
- */
-struct net_device_stats {
-    unsigned long   rx_packets;             /* total packets received       */
-    unsigned long   tx_packets;             /* total packets transmitted    */
-    unsigned long   rx_bytes;               /* total bytes received         */
-    unsigned long   tx_bytes;               /* total bytes transmitted      */
-    unsigned long   rx_errors;              /* bad packets received         */
-    unsigned long   tx_errors;              /* packet transmit problems     */
-    unsigned long   rx_dropped;             /* no space in linux buffers    */
-    unsigned long   tx_dropped;             /* no space available in linux  */
-    unsigned long   multicast;              /* multicast packets received   */
-    unsigned long   collisions;
-
-    /* detailed rx_errors: */
-    unsigned long   rx_length_errors;
-    unsigned long   rx_over_errors;         /* receiver ring buff overflow  */
-    unsigned long   rx_crc_errors;          /* recved pkt with crc error    */
-    unsigned long   rx_frame_errors;        /* recv'd frame alignment error */
-    unsigned long   rx_fifo_errors;         /* recv'r fifo overrun          */
-    unsigned long   rx_missed_errors;       /* receiver missed packet       */
-
-    /* detailed tx_errors */
-    unsigned long   tx_aborted_errors;
-    unsigned long   tx_carrier_errors;
-    unsigned long   tx_fifo_errors;
-    unsigned long   tx_heartbeat_errors;
-    unsigned long   tx_window_errors;
-
-    /* for cslip etc */
-    unsigned long   rx_compressed;
-    unsigned long   tx_compressed;
-};
+#define MAX_IF_QDISC   32
 
 struct net_interface_stats {
-    struct net_device_stats if_stats;
-    char                    if_name[MAX_IFNAME_LEN];
+    struct rtnl_link_stats if_stats;
+    char                   if_name[MAX_IFNAME_LEN];
+};
+
+struct net_link_info {
+    struct ifinfomsg  ifla_info;
+    struct ether_addr ifla_address;                // Interface L2 address
+    struct ether_addr ifla_broadcast;              // L2 broadcast address.
+    char              ifla_ifname[MAX_IFNAME_LEN]; // Device name.
+    unsigned int      ifla_mtu;                    // MTU of the device.
+    int               ifla_link;                   // Link type.
+    char              ifla_qdisc[MAX_IF_QDISC];    // Queueing discipline.
+};
+
+struct net_address_info {
+    struct ifaddrmsg     ifa_info;
+    struct in_addr       ifa_address;               // Interface address
+    struct in_addr       ifa_local;                 // Local address
+    char                 ifa_label[MAX_IFNAME_LEN]; // Name of the interface
+    struct in_addr       ifa_broadcast;             // Broadcast address.
+    struct in_addr       ifa_anycast;               // Anycast address
+    struct ifa_cacheinfo ifa_cacheinfo;             // Address information.
+};
+
+struct net_interfaces_info {
+    std::list<struct net_link_info>    if_links;
+    std::list<struct net_address_info> if_addrs;
 };
 
 int open_netlink_socket();
 
 int bind_netlink_socket(int fd, struct sockaddr_nl *sa, int sa_size);
 
-int send_netlink_get_request(int fd, int ifi_index, int seq);
+int send_netlink_request(int fd, int pid, uint16_t nlmsg_type, uint16_t nlmsg_flags);
 
 int recv_netlink_response(int fd, char *buffer, size_t buf_size);
 
-bool parse_netlink_data(char *buffer, int len, std::list<struct net_interface_stats> &stats);
+bool parse_netlink_interface_stats(char *buffer, int len, std::list<struct net_interface_stats> &stats);
 
-bool get_network_stats(std::list<struct net_interface_stats> &stats);
+bool parse_netlink_link_info(char *buffer, int len, std::list<struct net_link_info> &info);
+
+bool parse_netlink_address_info(char *buffer, int len, std::list<struct net_address_info> &info);
+
+bool get_interfaces_stats(std::list<struct net_interface_stats> &stats);
+
+bool get_interfaces_info(struct net_interfaces_info &info);
 
 #endif /* APPLICATIONS_LIB_APP_NETLINK_SOCKET_H_ */

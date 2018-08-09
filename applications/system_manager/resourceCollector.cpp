@@ -66,13 +66,13 @@ std::list<struct sysinfo> resourceCollector::get_ram_history()
     return this->ram_history;
 }
 
-std::list<struct net_device_stats> resourceCollector::get_network_history(const std::string &if_name)
+std::list<struct rtnl_link_stats> resourceCollector::get_network_history(const std::string &if_name)
 {
-    std::map<std::string, std::list<struct net_device_stats>>::iterator it = this->network_history.find(if_name);
+    std::map<std::string, std::list<struct rtnl_link_stats>>::iterator it = this->network_history.find(if_name);
     if (it != this->network_history.end())
         return this->network_history[if_name];
 
-    return std::list<struct net_device_stats>();
+    return std::list<struct rtnl_link_stats>();
 }
 
 void resourceCollector::ram_do_collect()
@@ -93,18 +93,18 @@ void resourceCollector::network_do_collect()
 {
     std::list<struct net_interface_stats> stats;
 
-    if (get_network_stats(stats)) {
+    if (get_interfaces_stats(stats)) {
         auto append_to_network_history = [&](const struct net_interface_stats& info) {
 
-            std::map<std::string, std::list<struct net_device_stats>>::iterator it = this->network_history.find(info.if_name);
+            std::map<std::string, std::list<struct rtnl_link_stats>>::iterator it = this->network_history.find(info.if_name);
 
             // non-existing element
             if (it == this->network_history.end()) {
 
-                std::list<struct net_device_stats> stats;
+                std::list<struct rtnl_link_stats> stats;
                 stats.push_back(info.if_stats);
                 this->network_history.insert(
-                        std::pair<std::string, std::list<struct net_device_stats>>(info.if_name, stats));
+                        std::pair<std::string, std::list<struct rtnl_link_stats>>(info.if_name, stats));
 
             } else {
 
