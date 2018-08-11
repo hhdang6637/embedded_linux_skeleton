@@ -22,15 +22,15 @@ private:
     resourceCollector();
     static resourceCollector* s_instance;
 
-    std::list<cpu_stat_t> cpu_history;
-    std::list<struct sysinfo> ram_history;
-    std::list<app::total_network_statistics_t> network_history;
+    std::list<cpu_stat_t>                                     cpu_history;
+    std::list<struct sysinfo>                                 ram_history;
+    std::map<std::string, std::list<struct rtnl_link_stats>>  network_history;
 public:
     virtual ~resourceCollector();
 
-    std::list<cpu_stat_t> get_cpu_history();
-    std::list<struct sysinfo> get_ram_history();
-    std::list<app::total_network_statistics_t> get_network_history();
+    std::list<cpu_stat_t>              get_cpu_history();
+    std::list<struct sysinfo>          get_ram_history();
+    std::list<struct rtnl_link_stats>  get_network_history(const std::string &if_name);
 
     void cpu_do_collect();
     void ram_do_collect();

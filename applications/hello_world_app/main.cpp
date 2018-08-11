@@ -11,46 +11,10 @@
 
 
 int main(void) {
-    struct net_device_stats stast = {};
-    double tx_rate = 0, rx_rate = 0;
-    unsigned long tx_bytes_old = 0, rx_bytes_old = 0;
+    struct net_interfaces_info info;
 
-    while (1) {
-        std::list<struct interface_info> info;
-
-        if (get_network_stats(info)) {
-            for (auto const &i : info) {
-                stast = i.if_stats;
-
-                rx_rate = 0;
-                if (stast.rx_bytes != 0 && (rx_bytes_old != stast.rx_bytes)) {
-                    rx_rate = stast.rx_bytes - rx_bytes_old;
-                    rx_bytes_old = stast.rx_bytes;
-                }
-
-                if (rx_rate > 1024 * 1024) {
-                    fprintf(stderr, "\t\tRx Rate: %uMbit/s\n", (unsigned) (rx_rate / (1024 * 1024)));
-                } else if (rx_rate > 1024) {
-                    fprintf(stderr, "\t\tRx Rate: %uKbit/s\n", (unsigned) (rx_rate / 1024));
-                } else
-                    fprintf(stderr, "\t\tRx Rate: %ubit/s\n", (unsigned) rx_rate);
-
-                tx_rate = 0;
-                if (stast.tx_bytes != 0 && (tx_bytes_old != stast.tx_bytes)) {
-                    tx_rate = stast.tx_bytes - tx_bytes_old;
-                    tx_bytes_old = stast.tx_bytes;
-                }
-
-                if (tx_rate > 1024 * 1024) {
-                    fprintf(stderr, "\t\tTx Rate: %uMbit/s\n", (unsigned) (tx_rate / (1024 * 1024)));
-                } else if (tx_rate > 1024) {
-                    fprintf(stderr, "\t\tTx Rate: %uKbit/s\n", (unsigned) (tx_rate / 1024));
-                } else
-                    fprintf(stderr, "\t\tTx Rate: %ubit/s\n", (unsigned) tx_rate);
-            }
-        }
-
-        sleep(1);
+    if (get_interfaces_info(info) == false) {
+        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;

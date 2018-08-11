@@ -21,6 +21,18 @@
         margin-right: 40px;
         margin-bottom: 40px;
     }
+    .net-tx-chart-container {
+        width: 500px;
+        margin-left: 40px;
+        margin-right: 40px;
+        margin-bottom: 40px;
+    }
+    .net-rx-chart-container {
+        width: 500px;
+        margin-left: 40px;
+        margin-right: 40px;
+        margin-bottom: 40px;
+    }
     .cpu_chart_canvas {
         display: flex;
         flex-direction: row;
@@ -28,6 +40,18 @@
         justify-content: center;
     }
     .ram_chart_canvas {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .net_tx_chart_canvas {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .net_rx_chart_canvas {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
@@ -43,6 +67,19 @@
         <canvas id="ram_chart_canvas"></canvas>
     </div>
 </div>
+
+<p id="demo"></p>
+
+<div class="row">
+    <div id="net-tx-chart-container" style="padding-left: 2%; padding-right: 2%;" class="col-lg-6 col-md-12">
+        <canvas id="net_tx_chart_canvas"></canvas>
+    </div>
+
+    <div id="net-rx-chart-container" style="padding-left: 2%; padding-right: 2%;" class="col-lg-6 col-md-12">
+        <canvas id="net_rx_chart_canvas"></canvas>
+    </div>
+</div>
+
 <!-- ChartJs -->
 <script src="/js/plugins/chartjs/Chart.bundle.js"></script>
 <script>
@@ -62,7 +99,8 @@ for(i = 60; i >= 0; i--) {
 
 var cpu_percents = [];
 var ram_usage = [];
-
+var net_tx_stat = [];
+var net_rx_stat = [];
 
 
 var cpu_config = {
@@ -137,7 +175,82 @@ var ram_config = {
     }
 };
 
+// NET chart setup
+
+var net_tx_config = {
+    type: 'line',
+    data: {
+        labels: second_datas,
+        datasets: [{
+            label: 'TX Statistics',
+            backgroundColor: 'rgb(171, 23, 183)',
+            borderColor: 'rgb(255, 255, 255)',
+            data: net_tx_stat,
+            fill: true,
+        }]
+    },
+    options: {
+        responsive: true,
+        title: { display: true, text: 'Transmit (/s)'},
+        tooltips: { mode: 'index', intersect: false, },
+        hover: { mode: 'nearest', intersect: true },
+        scales: {
+            xAxes: [{
+                display: false,
+                scaleLabel: { display: false, labelString: '/s' },
+                // ticks: { min: 0, max: 40, stepSize: 5, reverse: false, },
+            }],
+            yAxes: [{
+                display: true,
+                scaleLabel: { display: false, labelString: '/s' },
+                ticks: { min: 0, max: 100, stepSize: 20, reverse: false, },
+            }]
+        },
+        animation: {
+            duration: 0
+        }
+    }
+};
+var net_rx_config = {
+    type: 'line',
+    data: {
+        labels: second_datas,
+        datasets: [{
+            label: 'RX Statistics',
+            backgroundColor: 'rgb(171, 123, 83)',
+            borderColor: 'rgb(255, 255, 255)',
+            data: net_rx_stat,
+            fill: true,
+        }]
+    },
+    options: {
+        responsive: true,
+        title: { display: true, text: 'Transmit (/s)'},
+        tooltips: { mode: 'index', intersect: false, },
+        hover: { mode: 'nearest', intersect: true },
+        scales: {
+            xAxes: [{
+                display: false,
+                scaleLabel: { display: false, labelString: '/s' },
+                // ticks: { min: 0, max: 40, stepSize: 5, reverse: false, },
+            }],
+            yAxes: [{
+                display: true,
+                scaleLabel: { display: false, labelString: '/s' },
+                ticks: { min: 0, max: 100, stepSize: 20, reverse: false, },
+            }]
+        },
+        animation: {
+            duration: 0
+        }
+    }
+};
+
+
 var realtime = 'on';
+
+var net_tx_max;
+var net_rx_max;
 
 function updateRealTime() {
 
@@ -146,12 +259,43 @@ function updateRealTime() {
         window.cpuLine.options.title.text = 'CPU USAGE ( ' + data.json_cpu_usage_history[data.json_cpu_usage_history.length - 1] + '%)';
         window.ramLine.options.title.text = 'MEMORY USAGE ( ' + data.json_ram_history[data.json_ram_history.length - 1] + '%)';
 
+        window.netTxLine.options.title.text = 'TX ( ' + data.json_network_history.tx_bytes[data.json_network_history.tx_bytes.length - 1] + ' Kbps)';
+        window.netRxLine.options.title.text = 'RX ( ' + data.json_network_history.rx_bytes[data.json_network_history.rx_bytes.length - 1] + ' Kbps)';
+
+
         cpu_config.data.datasets.forEach(function(dataset) {
             dataset.data = data.json_cpu_usage_history;
         });
         ram_config.data.datasets.forEach(function(dataset) {
             dataset.data = data.json_ram_history;
         });
+
+        net_tx_config.data.datasets.forEach(function(dataset) {
+            dataset.data = data.json_network_history.tx_bytes;
+        });
+        net_rx_config.data.datasets.forEach(function(dataset) {
+            dataset.data = data.json_network_history.rx_bytes;
+        });
+
+        net_tx_max = Math.max.apply(null, data.json_network_history.tx_bytes);
+        net_rx_max = Math.max.apply(null, data.json_network_history.rx_bytes);
+
+        if (net_tx_max/1000 < 20) {
+            window.netTxLine.options.scales.yAxes[0].ticks.max = net_tx_max*2;
+        } else {
+            window.netTxLine.options.scales.yAxes[0].ticks.max = net_tx_max;
+        }
+        if (net_rx_max/1000 < 20) {
+            window.netRxLine.options.scales.yAxes[0].ticks.max = net_rx_max*2;
+        } else {
+            window.netRxLine.options.scales.yAxes[0].ticks.max = net_rx_max;
+        }
+
+        window.netTxLine.options.scales.yAxes[0].ticks.stepSize = window.netTxLine.options.scales.yAxes[0].ticks.max/5;
+        window.netRxLine.options.scales.yAxes[0].ticks.stepSize = window.netRxLine.options.scales.yAxes[0].ticks.max/5;
+
+        window.netTxLine.update();
+        window.netRxLine.update();
         window.cpuLine.update();
         window.ramLine.update();
     });
@@ -167,8 +311,12 @@ function updateRealTime() {
 window.onload = function() {
     var cpu_ctx = document.getElementById('cpu_chart_canvas').getContext('2d');
     var ram_ctx = document.getElementById('ram_chart_canvas').getContext('2d');
+    var net_tx_ctx = document.getElementById('net_tx_chart_canvas').getContext('2d');
+    var net_rx_ctx = document.getElementById('net_rx_chart_canvas').getContext('2d');
     window.cpuLine = new Chart(cpu_ctx, cpu_config);
     window.ramLine = new Chart(ram_ctx, ram_config);
+    window.netTxLine = new Chart(net_tx_ctx, net_tx_config);
+    window.netRxLine = new Chart(net_rx_ctx, net_rx_config);
     updateRealTime();
 };
 

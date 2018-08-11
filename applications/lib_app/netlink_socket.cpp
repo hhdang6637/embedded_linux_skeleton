@@ -13,13 +13,15 @@
 #include <unistd.h>
 #include <asm/types.h>
 #include <linux/netlink.h>
-#include <linux/rtnetlink.h>
 #include <linux/netdevice.h>
 #include <net/if_arp.h>
 #include <linux/if.h>
 #include <netinet/if_ether.h>
 #include <netinet/ether.h>
 #include <syslog.h>
+#include <arpa/inet.h>
+
+#include <string>
 
 #include "netlink_socket.h"
 
@@ -60,19 +62,20 @@ int bind_netlink_socket(int fd, struct sockaddr_nl *sa, int sa_size)
 /*
  * send the netlink get request to kernel
  */
-int send_netlink_get_request(int fd, int ifi_index, int seq)
+int send_netlink_request(int fd, int pid, uint16_t nlmsg_type, uint16_t nlmsg_flags)
 {
     struct nlmsghdr    nh;
     struct iovec       iov;
     struct sockaddr_nl sa;
     struct msghdr      msg;
+    static int         seq_number = 0;
 
     /* Construct the request sending to the kernel */
     memset(&nh, 0, sizeof(nh));
     nh.nlmsg_len   = NLMSG_LENGTH(sizeof(nh));
-    nh.nlmsg_type  = RTM_GETLINK;
-    nh.nlmsg_seq   = seq;
-    nh.nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
+    nh.nlmsg_type  = nlmsg_type;
+    nh.nlmsg_seq   = seq_number;
+    nh.nlmsg_flags = nlmsg_flags;
 
     memset(&sa, 0, sizeof(sa));
     sa.nl_family = AF_NETLINK;
@@ -107,18 +110,97 @@ int recv_netlink_response(int fd, char *buffer, size_t buf_size)
     return nbytes;
 }
 
-/*
- * Parse netlink data to net_device_stats structure
- * return TRUE if net_device_stats structure parsed succeed, or FALSE if an error occurred
- */
-bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> &info)
+std::string device_type_to_str(struct ifinfomsg *if_info)
 {
-    struct nlmsghdr       *nl_header;
-    struct ifinfomsg      *if_info;
-    struct rtattr         *attr;
-    int                   attr_len;
-    bool                  rc = true;
-    struct interface_info tmp_info;
+    std::string type;
+
+    switch (if_info->ifi_type)
+    {
+        case ARPHRD_ETHER:
+            type = "Ethernet";
+            break;
+        case ARPHRD_PPP:
+            type = "PPP";
+            break;
+        case ARPHRD_LOOPBACK:
+            type = "Loopback";
+            break;
+        default:
+            type = "Unknown";
+            break;
+    }
+
+    return type;
+}
+
+std::string link_status_to_str(struct ifinfomsg *if_info)
+{
+    std::string status;
+
+    if ((if_info->ifi_flags & IFF_UP) == IFF_UP) {
+        status += " UP";
+    }
+    if ((if_info->ifi_flags & IFF_BROADCAST) == IFF_BROADCAST) {
+        status += " BROADCAST";
+    }
+    if ((if_info->ifi_flags & IFF_DEBUG) == IFF_DEBUG) {
+        status += " DEBUG";
+    }
+    if ((if_info->ifi_flags & IFF_LOOPBACK) == IFF_LOOPBACK) {
+        status += " LOOPBACK";
+    }
+    if ((if_info->ifi_flags & IFF_POINTOPOINT) == IFF_POINTOPOINT) {
+        status += " POINTOPOINT";
+    }
+    if ((if_info->ifi_flags & IFF_RUNNING) == IFF_RUNNING) {
+        status += " RUNNING";
+    }
+    if ((if_info->ifi_flags & IFF_NOARP) == IFF_NOARP) {
+        status += " NOARP";
+    }
+    if ((if_info->ifi_flags & IFF_PROMISC) == IFF_PROMISC) {
+        status += " PROMISC";
+    }
+    if ((if_info->ifi_flags & IFF_NOTRAILERS) == IFF_NOTRAILERS) {
+        status += " NOTAILERS";
+    }
+    if ((if_info->ifi_flags & IFF_ALLMULTI) == IFF_ALLMULTI) {
+        status += " ALLMULTI";
+    }
+    if ((if_info->ifi_flags & IFF_MASTER) == IFF_MASTER) {
+        status += " MASTER";
+    }
+    if ((if_info->ifi_flags & IFF_SLAVE) == IFF_SLAVE) {
+        status += " SLAVE";
+    }
+    if ((if_info->ifi_flags & IFF_MULTICAST) == IFF_MULTICAST) {
+        status += " MULTICAST";
+    }
+    if ((if_info->ifi_flags & IFF_PORTSEL) == IFF_PORTSEL) {
+        status += " PORTSEL";
+    }
+    if ((if_info->ifi_flags & IFF_AUTOMEDIA) == IFF_AUTOMEDIA) {
+        status += " AUTOMEDIA";
+    }
+    if ((if_info->ifi_flags & IFF_DYNAMIC) == IFF_DYNAMIC) {
+        status += " DYNAMIC";
+    }
+
+    return status;
+}
+
+/*
+ * Parse netlink interface statistics
+ * return TRUE if parsed succeed, or FALSE if an error occurred
+ */
+bool parse_netlink_interface_stats(char *buffer, int len, std::list<struct net_interface_stats> &stats)
+{
+    struct nlmsghdr            *nl_header;
+    struct ifinfomsg           *if_info;
+    struct rtattr              *attr;
+    int                        attr_len;
+    bool                       rc = true;
+    struct net_interface_stats stat;
 
     nl_header = (struct nlmsghdr *) buffer;
 
@@ -137,8 +219,6 @@ bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> 
         /* Handle the response from the kernel */
         if_info = (ifinfomsg *) NLMSG_DATA(nl_header);
 
-        NL_DEBUG_PRINT(stderr, "Got device[%d] info\n", if_info->ifi_index);
-
         /* Retrieve the attributes */
         attr = IFLA_RTA(if_info);
         attr_len = NLMSG_PAYLOAD(nl_header, sizeof(struct ifinfomsg));
@@ -146,39 +226,175 @@ bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> 
             /* Check the type of this valid attribute */
             switch (attr->rta_type)
             {
-                case IFLA_IFNAME: {
-                    char *if_name = (char *)RTA_DATA(attr);
-                    NL_DEBUG_PRINT(stderr, "\tdevice name: %s\n",if_name);
-                    strncpy(tmp_info.if_name, if_name, MAX_IFNAME_LEN);
-                    tmp_info.if_name[MAX_IFNAME_LEN - 1] = '\0';
+                case IFLA_IFNAME:
+                    strncpy(stat.if_name, (char *)RTA_DATA(attr), MAX_IFNAME_LEN);
+                    stat.if_name[MAX_IFNAME_LEN - 1] = '\0';
                     break;
-                }
-                case IFLA_STATS: {
-                    struct net_device_stats *temp_stats;
-                    temp_stats = (struct net_device_stats *) RTA_DATA(attr);
-                    memcpy(&tmp_info.if_stats, temp_stats, sizeof(struct net_device_stats));
+                case IFLA_STATS:
+                    memcpy(&stat.if_stats, (struct rtnl_link_stats *) RTA_DATA(attr), sizeof(struct rtnl_link_stats));
+                    break;
+                default:
+                    break;
+            }
 
-                    NL_DEBUG_PRINT(stderr, "\treceive info:\n");
-                    NL_DEBUG_PRINT(stderr, "\t\treceive packets: %lu, bytes: %lu\n", temp_stats->rx_packets,
-                                   temp_stats->rx_bytes);
-                    NL_DEBUG_PRINT(stderr, "\t\terrors: %lu, dropped: %lu, multicast: %lu, collisions: %lu\n",
-                                   temp_stats->rx_errors, temp_stats->rx_dropped, temp_stats->multicast,
-                                   temp_stats->collisions);
-                    NL_DEBUG_PRINT(stderr, "\t\tlength: %lu, over: %lu, crc: %lu, frame: %lu, fifo: %lu, missed: %lu\n",
-                                   temp_stats->rx_length_errors, temp_stats->rx_over_errors, temp_stats->rx_crc_errors,
-                                   temp_stats->rx_frame_errors, temp_stats->rx_fifo_errors,
-                                   temp_stats->rx_missed_errors);
-                    NL_DEBUG_PRINT(stderr, "\tsend info:\n");
-                    NL_DEBUG_PRINT(stderr, "\t\tsend packets: %lu, bytes: %lu\n", temp_stats->tx_packets,
-                                   temp_stats->tx_bytes);
-                    NL_DEBUG_PRINT(stderr, "\t\terrors: %lu, dropped: %lu\n", temp_stats->tx_errors,
-                                   temp_stats->tx_dropped);
-                    NL_DEBUG_PRINT(stderr, "\t\taborted: %lu, carrier: %lu, fifo: %lu, heartbeat: %lu, window: %lu\n",
-                                   temp_stats->tx_aborted_errors, temp_stats->tx_carrier_errors,
-                                   temp_stats->tx_fifo_errors, temp_stats->tx_heartbeat_errors,
-                                   temp_stats->tx_window_errors);
+            /* Get the next attribute */
+            attr = RTA_NEXT(attr, attr_len);
+        }
+
+        /* Get the next netlink msg */
+        nl_header = NLMSG_NEXT(nl_header, len);
+
+        stats.push_back(stat);
+    }
+
+    return rc;
+}
+
+/*
+ * Parse netlink link information
+ * return TRUE if parsed succeed, or FALSE if an error occurred
+ */
+bool parse_netlink_link_info(char *buffer, int len, std::list<struct net_link_info> &info)
+{
+    struct nlmsghdr      *nl_header;
+    struct ifinfomsg     *if_info;
+    struct rtattr        *attr;
+    int                  attr_len;
+    bool                 rc = true;
+    struct net_link_info tmp_info;
+
+    nl_header = (struct nlmsghdr *) buffer;
+
+    while (NLMSG_OK(nl_header, len)) {
+        /* Check for error */
+        if (nl_header->nlmsg_type == NLMSG_ERROR) {
+            /* This is a netlink error msg */
+            struct nlmsgerr *error = (struct nlmsgerr *) NLMSG_DATA(nl_header);
+            if (error->error != 0) {
+                syslog(LOG_ERR, "netlink msg error: %s\n", strerror(error->error));
+                rc = false;
+            }
+            break;
+        }
+
+        /* Handle the response from the kernel */
+        if_info = (ifinfomsg *) NLMSG_DATA(nl_header);
+        memcpy(&tmp_info.ifla_address, if_info, sizeof(struct ifinfomsg));
+
+        /* Retrive the attributes */
+        attr = IFLA_RTA(if_info);
+        attr_len = NLMSG_PAYLOAD(nl_header, sizeof(struct ifinfomsg));
+        while (RTA_OK(attr, attr_len)) {
+            /* Check the type of this valid attribute */
+            switch (attr->rta_type)
+            {
+                case IFLA_IFNAME:
+                    strncpy(tmp_info.ifla_ifname, (char *) RTA_DATA(attr), MAX_IFNAME_LEN);
+                    tmp_info.ifla_ifname[MAX_IFNAME_LEN - 1] = '\0';
+                    NL_DEBUG_PRINT(stderr, "device name: %s\n", (char *) RTA_DATA(attr));
                     break;
-                }
+                case IFLA_MTU:
+                    tmp_info.ifla_mtu = *(unsigned int *) RTA_DATA(attr);
+                    NL_DEBUG_PRINT(stderr, "device MTU: %d\n", *(unsigned int *) RTA_DATA(attr));
+                    break;
+                case IFLA_QDISC:
+                    strncpy(tmp_info.ifla_qdisc, (char *) RTA_DATA(attr), MAX_IF_QDISC);
+                    tmp_info.ifla_qdisc[MAX_IF_QDISC - 1] = '\0';
+                    NL_DEBUG_PRINT(stderr, "device Queueing discipline: %s\n", (char *) RTA_DATA(attr));
+                    break;
+                case IFLA_ADDRESS:
+                    if (if_info->ifi_type == ARPHRD_ETHER) {
+                        memcpy(&tmp_info.ifla_address, RTA_DATA(attr), sizeof(struct ether_addr));
+                        NL_DEBUG_PRINT(stderr, "MAC address: %s\n", ether_ntoa((struct ether_addr *) RTA_DATA(attr)));
+                    }
+                    break;
+                case IFLA_BROADCAST:
+                    if (if_info->ifi_type == ARPHRD_ETHER) {
+                        memcpy(&tmp_info.ifla_address, RTA_DATA(attr), sizeof(struct ether_addr));
+                        NL_DEBUG_PRINT(stderr, "BROADCAST address: %s\n", ether_ntoa((struct ether_addr *) RTA_DATA(attr)));
+                    }
+                    break;
+                case IFLA_STATS:
+                    break;
+                default:
+                    break;
+            }
+
+            /* Get the next attribute */
+            attr = RTA_NEXT(attr, attr_len);
+        }
+
+        /* Get the next netlink msg */
+        nl_header = NLMSG_NEXT(nl_header, len);
+
+        info.push_back(tmp_info);
+    }
+
+    return rc;
+}
+
+/*
+ * Parse netlink address information
+ * return TRUE if parsed succeed, or FALSE if an error occurred
+ */
+bool parse_netlink_address_info(char *buffer, int len, std::list<struct net_address_info> &info)
+{
+    struct nlmsghdr         *nl_header;
+    struct ifaddrmsg        *if_info;
+    struct rtattr           *attr;
+    int                     attr_len;
+    bool                    rc = true;
+    struct net_address_info tmp_info;
+
+    nl_header = (struct nlmsghdr *) buffer;
+
+    while (NLMSG_OK(nl_header, len)) {
+        /* Check for error */
+        if (nl_header->nlmsg_type == NLMSG_ERROR) {
+            /* This is a netlink error msg */
+            struct nlmsgerr *error = (struct nlmsgerr *) NLMSG_DATA(nl_header);
+            if (error->error != 0) {
+                syslog(LOG_ERR, "netlink msg error: %s\n", strerror(error->error));
+                rc = false;
+            }
+            break;
+        }
+
+        /* Handle the response from the kernel */
+        if_info = (ifaddrmsg *) NLMSG_DATA(nl_header);
+        memcpy(&tmp_info.ifa_info, if_info, sizeof(tmp_info.ifa_info));
+
+        /* Retrive the attributes */
+        attr = IFLA_RTA(if_info);
+        attr_len = NLMSG_PAYLOAD(nl_header, sizeof(struct ifinfomsg));
+        while (RTA_OK(attr, attr_len)) {
+            /* Check the type of this valid attribute */
+            switch (attr->rta_type)
+            {
+                case IFA_ADDRESS:
+                    memcpy(&tmp_info.ifa_address, RTA_DATA(attr), sizeof(struct in_addr));
+                    NL_DEBUG_PRINT(stderr, "IFA_ADDRESS: %s\n", inet_ntoa(*(struct in_addr *) RTA_DATA(attr)));
+                    break;
+                case IFA_LOCAL:
+                    memcpy(&tmp_info.ifa_local, RTA_DATA(attr), sizeof(struct in_addr));
+                    NL_DEBUG_PRINT(stderr, "IFA_LOCAL: %s\n", inet_ntoa(*(struct in_addr *) RTA_DATA(attr)));
+                    break;
+                case IFA_LABEL:
+                    strncpy(tmp_info.ifa_label, (char *) RTA_DATA(attr), MAX_IFNAME_LEN);
+                    tmp_info.ifa_label[MAX_IFNAME_LEN - 1] = '\0';
+                    NL_DEBUG_PRINT(stderr, "IFA_LABEL: %s\n", (char *) RTA_DATA(attr));
+                    break;
+                case IFA_BROADCAST:
+                    memcpy(&tmp_info.ifa_broadcast, RTA_DATA(attr), sizeof(struct in_addr));
+                    NL_DEBUG_PRINT(stderr, "IFA_BROADCAST: %s\n", inet_ntoa(*(struct in_addr *) RTA_DATA(attr)));
+                    break;
+                case IFA_ANYCAST:
+                    memcpy(&tmp_info.ifa_anycast, RTA_DATA(attr), sizeof(struct in_addr));
+                    NL_DEBUG_PRINT(stderr, "IFA_ANYCAST: %s\n", inet_ntoa(*(struct in_addr *) RTA_DATA(attr)));
+                    break;
+                case IFA_CACHEINFO:
+                    memcpy(&tmp_info.ifa_cacheinfo, RTA_DATA(attr), sizeof(struct ifa_cacheinfo));
+                    break;
                 default:
                     break;
             }
@@ -199,14 +415,13 @@ bool parse_netlink_data(char *buffer, int len, std::list<struct interface_info> 
 /**
  *  get network statistics of all interface from kernel (pid: 0)
  */
-bool get_network_stats(std::list<struct interface_info> &info)
+bool get_interfaces_stats(std::list<struct net_interface_stats> &stats)
 {
     int                fd;
     struct sockaddr_nl sa;
     struct nlmsghdr    *nl_header;
     char               buffer[BUF_SIZE];
     int                nbytes;
-    static int         seq_number = 0;\
     int                rc = true;
 
     if ((fd = open_netlink_socket()) == -1) {
@@ -226,7 +441,7 @@ bool get_network_stats(std::list<struct interface_info> &info)
         goto error_exit;
     }
 
-    if (send_netlink_get_request(fd, 0, ++seq_number) == -1) {
+    if (send_netlink_request(fd, 0, RTM_GETLINK, NLM_F_REQUEST | NLM_F_DUMP) == -1) {
         syslog(LOG_ERR, "send_nl_get_request failed\n");
         rc = false;
         goto error_exit;
@@ -241,14 +456,88 @@ bool get_network_stats(std::list<struct interface_info> &info)
             break;
         }
 
-        if (parse_netlink_data(buffer, nbytes, info) == false) {
+        if (parse_netlink_interface_stats(buffer, nbytes, stats) == false) {
             syslog(LOG_ERR, "parse_netlink_data failed\n");
             rc = false;
             goto error_exit;
         }
+    }
 
-        /* Clear the buffer before next recv */
-        memset(buffer, 0, sizeof(buffer));
+error_exit:
+
+    if (fd != -1) {
+        close(fd);
+    }
+
+    return rc;
+}
+
+bool get_interfaces_info(struct net_interfaces_info &info)
+{
+    int                fd;
+    struct sockaddr_nl sa;
+    struct nlmsghdr    *nl_header;
+    char               buffer[BUF_SIZE];
+    int                nbytes;
+    int                rc = true;
+
+    if ((fd = open_netlink_socket()) == -1) {
+        syslog(LOG_ERR, "open_nl_socket failed\n");
+        rc = false;
+        goto error_exit;
+    }
+
+    memset(&sa, 0, sizeof(sa));
+    sa.nl_family = AF_NETLINK;
+    sa.nl_pid    = 0;
+    sa.nl_groups = 0;
+
+    if (bind_netlink_socket(fd, &sa, sizeof(sa)) == -1) {
+        syslog(LOG_ERR, "bind_nl_socket failed\n");
+        rc = false;
+        goto error_exit;
+    }
+
+    // send get link request
+    if (send_netlink_request(fd, 0, RTM_GETLINK, NLM_F_REQUEST | NLM_F_DUMP) == -1) {
+        syslog(LOG_ERR, "send_nl_get_request failed\n");
+        rc = false;
+        goto error_exit;
+    }
+
+    while ((nbytes = recv_netlink_response(fd, buffer, sizeof(buffer))) > 0) {
+        nl_header = (struct nlmsghdr *) buffer;
+        if (nl_header->nlmsg_type == NLMSG_DONE) {
+            /* Ending of msg - no need to handle */
+            break;
+        }
+
+        if (parse_netlink_link_info(buffer, nbytes, info.if_links) == false) {
+            syslog(LOG_ERR, "parse_netlink_data failed\n");
+            rc = false;
+            goto error_exit;
+        }
+    }
+
+    // send get address request
+    if (send_netlink_request(fd, 0, RTM_GETADDR, NLM_F_REQUEST | NLM_F_DUMP) == -1) {
+        syslog(LOG_ERR, "send_nl_get_request failed\n");
+        rc = false;
+        goto error_exit;
+    }
+
+    while ((nbytes = recv_netlink_response(fd, buffer, sizeof(buffer))) > 0) {
+        nl_header = (struct nlmsghdr *) buffer;
+        if (nl_header->nlmsg_type == NLMSG_DONE) {
+            /* Ending of msg - no need to handle */
+            break;
+        }
+
+        if (parse_netlink_address_info(buffer, nbytes, info.if_addrs) == false) {
+            syslog(LOG_ERR, "parse_netlink_data failed\n");
+            rc = false;
+            goto error_exit;
+        }
     }
 
 error_exit:
