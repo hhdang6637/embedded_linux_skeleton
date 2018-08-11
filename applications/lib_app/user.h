@@ -15,18 +15,21 @@ namespace app
 
 class user
 {
-    std::string name;
-    std::string password;
+    char name[32];
+    char fullName[32];
+    char password[32];
 
 public:
     user();
     virtual ~user();
 
-    void setName(const char *name) {this->name = name; };
-    std::string getName() {return this->name; };
-    void setPassword(const char *pass) {this->password = pass;};
-    std::string getPassword() {return this->password; };
-    bool isValid() {return !this->name.empty(); };     // veryfi user information
+    void setName(const char *name);
+    std::string getName();
+    void setFullName(const char *fullName);
+    std::string getFullName();
+    void setPassword(const char *pass);
+    std::string getPassword();
+    bool isValid();     // verify user information
 };
 
 } /* namespace app */

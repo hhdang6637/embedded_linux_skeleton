@@ -6,6 +6,7 @@
  */
 #include <iostream>
 #include <syslog.h>
+#include <list>
 
 #include "userManager.h"
 
@@ -147,6 +148,17 @@ bool userManager::initFromFile()
 bool userManager::writeToFile()
 {
     return this->userConf.writeToFile("/data/users.conf");
+}
+
+std::list<app::user> userManager::getUsers()
+{
+    std::list<app::user> list_users;
+    for (auto it = this->users.begin(); it != this->users.end(); it++)
+    {
+        list_users.push_back(it->second);
+    }
+
+    return list_users;
 }
 
 } /* namespace app */
