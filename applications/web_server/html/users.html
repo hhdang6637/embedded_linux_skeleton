@@ -1,0 +1,45 @@
+<!--div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Firmware</h1>
+</div-->
+<div class="container">
+  <div class="panel panel-default">
+    <div class="panel-body">
+
+      <h3>Users infomation</h3>
+      <table id='table' class="table table-hover">
+        <thead>
+          <tr>
+            <th>User Name</th>
+            <th>Full Name</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div> <!-- /container -->
+<script>
+
+$(function () {
+    $("#myTopnav").find("a[href='/pages/users']").addClass("active")
+});
+
++ function($) {
+    'use strict';
+
+    $(document).ready(function(){
+        showFirmwareStatus();
+    });
+
+    function showFirmwareStatus() {
+
+        // $.getJSON( "/json/firmware_status", function(data) {
+
+        // });
+	$('#table > tbody:last-child').append('<tr><td>thdoan</td><td>Doan Tran</td><td>thdoan@tma.com.vn</td></tr>');
+    }
+
+}(jQuery);
+</script>
