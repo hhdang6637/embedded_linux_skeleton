@@ -1,0 +1,2 @@
+#DTB_FILE=bcm2835-rpi-b-plus.dtb
+DTB_FILE=bcm2837-rpi-3-b.dtb
