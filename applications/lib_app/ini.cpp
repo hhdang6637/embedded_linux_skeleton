@@ -7,6 +7,7 @@
 
 #include <string.h>
 #include <syslog.h>
+#include <sys/stat.h>
 
 #include <fstream>      // std::ifstream
 
@@ -128,6 +129,8 @@ bool ini::writeToFile(const char*iniFileName)
 
     this->dump(outfile);
     outfile.close();
+
+    chmod(iniFileName, 0600);
 
     return true;
 }

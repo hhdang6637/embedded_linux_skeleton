@@ -28,7 +28,7 @@
 ::sysinit:/etc/init.d/rcS
 ::sysinit:/usr/sbin/system_manager_daemon
 ::sysinit:/usr/sbin/network_manager_daemon
-::sysinit:/usr/sbin/dropbear -B
+::sysinit:/usr/sbin/dropbear
 
 # Put a getty on the serial port
 console::respawn:/sbin/getty -L  console 0 vt100 # GENERIC_SERIAL

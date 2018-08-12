@@ -25,12 +25,12 @@ class ini
 
 private:
     std::map<std::string, section> sections;
-    void destroy();
 
 public:
     ini();
     bool loadFromFile(const char*);
     bool writeToFile(const char*);
+    void destroy();
 
     bool get_string(const char *section, const char *key, std::string &value);
     bool get_bool(const char *section, const char *key, bool &value);

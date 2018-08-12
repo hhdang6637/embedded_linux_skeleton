@@ -12,6 +12,7 @@
 #include "simplewebfactory.h"
 #include "rpcUnixClient.h"
 #include "rpcMessageResourceHistory.h"
+#include "rpcMessageUsers.h"
 
 #define TO_KBIT(a) ((a * 8 ) / 1000)
 
@@ -142,6 +143,45 @@ std::string json_resource_usage_history(FCGX_Request *request)
     }
 
     ss_json << "}";
+
+    return ss_json.str();
+}
+
+std::string json_handle_users(FCGX_Request *request)
+{
+    const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
+    std::ostringstream ss_json;
+
+    if (method && (strcmp(method, "GET") == 0)) {
+
+        app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+        app::rpcMessageUsers msgUser;
+
+        if (rpcClient->doRpc(&msgUser) == true) {
+
+            std::list<app::user> users = msgUser.getUsers();
+            ss_json << "{\"json_users_list\": ";
+            ss_json << "[";
+            size_t counter = 0;
+            for(auto &u : users) {
+                ss_json << "{";
+                ss_json << "\"name\":\"" << u.getName() << "\"";
+                ss_json << ",";
+                ss_json << "\"fullname\":\"" << u.getFullName() << "\"";
+                ss_json << ",";
+                ss_json << "\"email\":\"" << u.getEmail() << "\"";
+                ss_json << "}";
+
+                if(++counter < users.size()) {
+                    ss_json << ",";
+                }
+            }
+            ss_json << "]";
+            ss_json << "}";
+        } else {
+            syslog(LOG_ERR, "can't call rpc to get user list");
+        }
+    }
 
     return ss_json.str();
 }

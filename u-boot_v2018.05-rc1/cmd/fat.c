@@ -66,11 +66,7 @@ int do_firmware_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	argv_internal[1] = "mmc";
 
-#ifdef arm_vexpress_a9
-	argv_internal[2] = "0:0";
-#else
 	argv_internal[2] = "0";
-#endif
 
 	snprintf(number_addr_str, 32, "%p" , &number);
 	argv_internal[3] = number_addr_str;

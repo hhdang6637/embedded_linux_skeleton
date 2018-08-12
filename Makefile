@@ -1,6 +1,7 @@
 export MODEL ?= pi_b_plus
 export BUILD_TYPE ?= NORMAL
 export PI_BOOT_DIR          := $(PWD)/pi-boot
+export FIRMWARE_NONFREE     := $(PWD)/firmware-nonfree
 export BUILD_DIR            := $(PWD)/build/$(MODEL)
 export CONFIGS_DIR          := $(PWD)/configs/$(MODEL)
 export CACHE_DIR            := $(PWD)/build_cache

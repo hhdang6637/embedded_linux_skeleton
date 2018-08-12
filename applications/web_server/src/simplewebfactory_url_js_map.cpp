@@ -8,6 +8,7 @@
 #include "firmware_manager_js.h"
 
 extern std::string json_resource_usage_history(FCGX_Request *request);
+extern std::string json_handle_users(FCGX_Request *request);
 
 void simpleWebFactory::init_url_js_map()
 {
@@ -15,4 +16,5 @@ void simpleWebFactory::init_url_js_map()
     this->url_js_map.insert(std::pair<std::string, jsCallback>("/json/firmware_upgrade", json_handle_firmware_upgrade));
     this->url_js_map.insert(std::pair<std::string, jsCallback>("/json/firmware_status", json_handle_firmware_status));
     this->url_js_map.insert(std::pair<std::string, jsCallback>("/json/firmware_info", json_handle_firmware_info));
+    this->url_js_map.insert(std::pair<std::string, jsCallback>("/json/users", json_handle_users));
 }

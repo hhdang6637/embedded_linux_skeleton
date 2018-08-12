@@ -8,6 +8,8 @@ mkdir -p lib/modules/4.14.22/kernel
 cp -r $LINUX_MOD_BUILD_DIR/lib .
 cp -r $SKELETON_ROOTFS_DIR/* .
 cp -r $ROOTFS_DIR/* .
+mkdir -p lib/firmware
+cp -r $FIRMWARE_NONFREE/* lib/firmware
 
 # remove /var/run
 if [ -e var/run ]; then

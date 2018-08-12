@@ -7,14 +7,21 @@
 #include <unistd.h>
 #include <syslog.h>
 
-#include "netlink_socket.h"
-
+#include "rpcUnixClient.h"
+#include "rpcMessageUsers.h"
 
 int main(void) {
-    struct net_interfaces_info info;
+    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+    app::rpcMessageUsers msgUser;
 
-    if (get_interfaces_info(info) == false) {
+    if (rpcClient->doRpc(&msgUser) == false) {
+        std::cout << "something went wrong: doRpc\n";
         return EXIT_FAILURE;
+    }
+
+    std::list<app::user> users = msgUser.getUsers();
+    for(auto &u : users) {
+        std::cout << u.getName() << "\n";
     }
 
     return EXIT_SUCCESS;

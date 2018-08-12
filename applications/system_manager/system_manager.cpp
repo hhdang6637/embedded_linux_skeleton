@@ -12,6 +12,7 @@
 
 #include "utilities.h"
 #include "serviceHiawatha.h"
+#include "userManager.h"
 #include "simpleTimerSync.h"
 #include "resourceCollector.h"
 #include "firmwareManager.h"
@@ -19,24 +20,17 @@
 #include "rpcMessageAddr.h"
 #include "rpcMessageResourceHistory.h"
 #include "rpcMessageFirmware.h"
+#include "rpcMessageUsers.h"
 
 #define CONFIG_DIR "/tmp/configs"
 
 void system_manager_init()
 {
-
     mkdir(CONFIG_DIR, 0755);
     // start web server
     app::serviceHiawatha::getInstance()->init();
     app::serviceHiawatha::getInstance()->start();
 
-    system("web_handler");
-
-#ifdef arm_vexpress_a9
-    if ((access("/dev/mmcblk0", F_OK)) != -1 && (access("/boot", F_OK) != -1)) {
-        system("mount -t vfat /dev/mmcblk0 /boot");
-    }
-#else
     if ((access("/dev/mmcblk0p1", F_OK)) != -1 && (access("/boot", F_OK) != -1)) {
         system("mount -t vfat /dev/mmcblk0p1 /boot");
     }
@@ -44,7 +38,10 @@ void system_manager_init()
     if ((access("/dev/mmcblk0p2", F_OK)) != -1 && (access("/data", F_OK) != -1)) {
         system("mount -t ext4 /dev/mmcblk0p2 /data/");
     }
-#endif
+
+    app::userManager::getInstance()->initFromFile();
+
+    system("web_handler");
 
     app::rpcMessageAddr addr = app::rpcMessageAddr::getRpcMessageAddrbyType(
             app::rpcMessageAddr::rpcMessageAddrType::system_manager_addr_t);
@@ -129,6 +126,29 @@ static bool firmware_action_handler(int socket_fd)
     return false;
 }
 
+static bool users_action_handler(int socket_fd)
+{
+    app::rpcMessageUsers msgUsers;
+
+    if (msgUsers.deserialize(socket_fd)) {
+        switch (msgUsers.getMsgAction())
+        {
+            case app::rpcMessageUsersActionType::GET_USERS:
+            {
+                std::list<app::user> users;
+                app::userManager::getInstance()->getUsers(users);
+                msgUsers.setUsers(users);
+                return msgUsers.serialize(socket_fd);
+            }
+            break;
+            default:
+                break;
+        }
+    }
+
+    return false;
+}
+
 void system_manager_service_loop()
 {
     fd_set read_fds;
@@ -136,6 +156,7 @@ void system_manager_service_loop()
     int server_socket = rpcServer->get_socket();
     rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::get_resource_history, get_resource_history_handler);
     rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::handle_firmware_action, firmware_action_handler);
+    rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::handle_users_action, users_action_handler);
 
     app::simpleTimerSync *timer = app::simpleTimerSync::getInstance();
     timer->init(1000);

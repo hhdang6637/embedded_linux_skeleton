@@ -29,7 +29,8 @@ public:
     enum rpcMessageType : uint16_t
     {
         get_resource_history,
-        handle_firmware_action
+        handle_firmware_action,
+        handle_users_action
     };
 protected:
     rpcMessageType  msgType;
