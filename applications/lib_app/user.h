@@ -18,6 +18,7 @@ class user
     char name[32];
     char fullName[32];
     char password[32];
+    char email[32];
 
 public:
     user();
@@ -29,6 +30,8 @@ public:
     std::string getFullName();
     void setPassword(const char *pass);
     std::string getPassword();
+    void setEmail(const char *email);
+    std::string getEmail();
     bool isValid();     // verify user information
 };
 

@@ -12,8 +12,9 @@ namespace app
 
 user::user()
 {
-    // TODO Auto-generated constructor stub
-
+    this->name[0] = '\0';
+    this->fullName[0] = '\0';
+    this->email[0] = '\0';
 }
 
 user::~user()
@@ -43,12 +44,22 @@ std::string user::getFullName()
 
 void user::setPassword(const char *pass)
 {
-    snprintf(this->password, sizeof(this->password), "%s", password);
+    snprintf(this->password, sizeof(this->password), "%s", pass);
 }
 
 std::string user::getPassword()
 {
     return std::string(this->password);
+}
+
+void user::setEmail(const char *email)
+{
+    snprintf(this->email, sizeof(this->email), "%s", email);
+}
+
+std::string user::getEmail()
+{
+    return std::string(this->email);
 }
 
 bool user::isValid()

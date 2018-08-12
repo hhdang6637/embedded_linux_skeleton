@@ -30,15 +30,19 @@ $(function () {
     'use strict';
 
     $(document).ready(function(){
-        showFirmwareStatus();
+        showUsers();
     });
 
-    function showFirmwareStatus() {
-
-        // $.getJSON( "/json/firmware_status", function(data) {
-
-        // });
-	$('#table > tbody:last-child').append('<tr><td>thdoan</td><td>Doan Tran</td><td>thdoan@tma.com.vn</td></tr>');
+    function showUsers() {
+      $.getJSON( "/json/users", function(data) {
+        var html = "";
+        var jsUsers = data.json_users_list;
+        for (var i = 0; i < jsUsers.length; i++) {
+          var user = jsUsers[i];
+          html += "<tr><td>" + user.name + "</td><td>" + user.fullname + "</td><td>" + user.email + "</td></tr>";
+        }
+        $('#table > tbody:last-child').append(html);
+      });
     }
 
 }(jQuery);
