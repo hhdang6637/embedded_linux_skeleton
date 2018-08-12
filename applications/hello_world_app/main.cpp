@@ -11,7 +11,6 @@
 #include "rpcMessageUsers.h"
 
 int main(void) {
-
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageUsers msgUser;
 

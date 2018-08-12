@@ -35,7 +35,9 @@ all: $(ROOTFS_DIR)
 	@$(MAKE) -C system_manager clean all
 	@$(MAKE) -C hello_world_app clean all
 	@$(MAKE) -C dropbear/dropbear-2018.76 clean all
+ifeq ($(BUILD_TYPE),DEBUG)
 	@$(MAKE) -C valgrind/valgrind-3.13.0 clean all
+endif
 
 clean:
 	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean
@@ -46,5 +48,7 @@ clean:
 	@$(MAKE) -C system_manager clean
 	@$(MAKE) -C web_server clean
 	@$(MAKE) -C dropbear/dropbear-2018.76 clean
+ifeq ($(BUILD_TYPE),DEBUG)
 	@$(MAKE) -C valgrind/valgrind-3.13.0 clean
+endif
 	@rm -rf   $(ROOTFS_DIR)
