@@ -24,7 +24,6 @@ private:
     static userManager* s_instance;
 
     std::map<std::string, app::user> users;
-    app::ini userConf;
 
     void initDefaultUsers();
 
@@ -35,10 +34,11 @@ public:
 
     static userManager* getInstance();
 
-    bool initFromFile();
+    bool addUser(app::user &user);
+    void initFromFile();
     bool writeToFile();
 
-    std::list< app::user> getUsers();
+    void getUsers(std::list< app::user> &users);
 };
 
 } /* namespace app */

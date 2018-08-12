@@ -5,8 +5,8 @@
  *      Author: hhdang
  */
 #include <iostream>
-#include <syslog.h>
 #include <list>
+#include <syslog.h>
 
 #include "userManager.h"
 
@@ -37,14 +37,6 @@ userManager* userManager::getInstance()
 void userManager::initDefaultUsers()
 {
     this->users.clear();
-    this->userConf.destroy();
-
-    app::user root;
-    root.setName("root");
-    root.setPassword("root");
-
-    // we don't need store root user into config file
-    this->users.insert(std::pair<std::string, app::user>(root.getName(), root));
 
     FILE *fp;
 
@@ -66,6 +58,22 @@ void userManager::initDefaultUsers()
     );
 
     fclose(fp);
+
+    std::list<app::user> defaultUsers;
+    app::user user;
+    user.setName("root");
+    user.setFullName("root");
+    user.setPassword("root");
+    defaultUsers.push_back(user);
+
+    user.setName("admin");
+    user.setFullName("admin");
+    user.setPassword("admin");
+    defaultUsers.push_back(user);
+
+    for(auto &u : defaultUsers) {
+        this->addUser(u);
+    }
 }
 
 void userManager::createUser(app::user &user)
@@ -94,11 +102,38 @@ void userManager::changeUserPass(app::user &user)
     system(cmd);
 }
 
-bool userManager::initFromFile()
+bool userManager::addUser(app::user &user)
+{
+    bool rc = false;
+
+    if (user.isValid()) {
+
+        auto it = this->users.find(user.getName());
+
+        if (it == this->users.end()) {
+            this->users.insert(std::pair<std::string, app::user>(user.getName(), user));
+            this->createUser(user);
+        } else {
+            it->second = user;
+        }
+
+        this->changeUserPass(user);
+
+        syslog(LOG_NOTICE, "add user %s to the user list", user.getName().c_str());
+
+        rc = true;
+    }
+
+    return rc;
+}
+
+void userManager::initFromFile()
 {
     initDefaultUsers();
 
-    if (this->userConf.loadFromFile("/data/users.conf")) {
+    app::ini userConf;
+
+    if (userConf.loadFromFile("/data/users.conf")) {
 
         for(int i = 0; i < 50; i++) {
 
@@ -106,59 +141,63 @@ bool userManager::initFromFile()
             std::string value;
 
             snprintf(sect, sizeof(sect), "user_%d", i);
-            if (this->userConf.get_string(sect, "name", value)) {
+            if (userConf.get_string(sect, "name", value)) {
 
                 syslog(LOG_NOTICE, "found user %s from /data/users.conf", value.c_str());
 
                 app::user user;
                 user.setName(value.c_str());
 
-                if (this->userConf.get_string(sect, "password", value)) {
+                if (userConf.get_string(sect, "password", value)) {
                     user.setPassword(value.c_str());
                 }
 
-                if (user.isValid()) {
-
-                    auto it = this->users.find(user.getName());
-
-                    if (it == this->users.end()) {
-
-                        this->users.insert(std::pair<std::string, app::user>(user.getName(), user));
-                        this->createUser(user);
-
-                    } else {
-                        it->second = user;
-                    }
-
-                    this->changeUserPass(user);
-
-                    syslog(LOG_NOTICE, "add user %s to the user list", user.getName().c_str());
-                }
+                this->addUser(user);
             }
         }
 
-        return true;
     } else {
-        syslog(LOG_NOTICE, "cannot load user config from /data/users.conf");
+        syslog(LOG_NOTICE, "cannot load user config from /data/users.conf, use default users");
     }
 
-    return false;
+    if (this->writeToFile() != true) {
+        syslog(LOG_WARNING, "cannot write user config to /data/users.conf");
+    }
 }
 
 bool userManager::writeToFile()
 {
-    return this->userConf.writeToFile("/data/users.conf");
-}
-
-std::list<app::user> userManager::getUsers()
-{
-    std::list<app::user> list_users;
+    app::ini userConf;
+    int i = 0;
     for (auto it = this->users.begin(); it != this->users.end(); it++)
     {
-        list_users.push_back(it->second);
+        char sect[32];
+        std::string value;
+
+        snprintf(sect, sizeof(sect), "user_%d", i++);
+
+        value = it->second.getName();
+        userConf.set_string(sect, "name", value);
+
+        value = it->second.getPassword();
+        userConf.set_string(sect, "password", value);
+
+        value = it->second.getFullName();
+        userConf.set_string(sect, "fullname", value);
+
+        value = it->second.getEmail();
+        userConf.set_string(sect, "email", value);
     }
 
-    return list_users;
+    return userConf.writeToFile("/data/users.conf");
+}
+
+void userManager::getUsers(std::list<app::user> &users)
+{
+    for (auto it = this->users.begin(); it != this->users.end(); it++)
+    {
+        users.push_back(it->second);
+    }
 }
 
 } /* namespace app */
