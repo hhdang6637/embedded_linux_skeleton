@@ -23,6 +23,11 @@ fi
 # add new symbol link /root -> /tmp/root
 ln -sf tmp/root root
 
+ln -sf tmp home
+
+rm etc/passwd
+cd etc && ln -sf ../tmp/passwd passwd && cd ..
+
 # mkdir /boot
 mkdir boot
 
