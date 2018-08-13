@@ -228,7 +228,6 @@ bool ini::set_string(const char *section, const char *key, std::string &value)
     snprintf(val_tmp, sizeof(val_tmp), "%s", value.c_str());
 
     strlower(key_tmp);
-    strlower(val_tmp);
 
     it->second.properties.insert(
             std::pair<std::string, std::string>(leftstrip(rightstrip(key_tmp)), leftstrip(rightstrip(val_tmp))));
