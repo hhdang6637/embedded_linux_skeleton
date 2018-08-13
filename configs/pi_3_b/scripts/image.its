@@ -1,7 +1,7 @@
 /dts-v1/;
 
 / {
-    description = "U-Boot fitImage for bcm2835-rpi-b-plus";
+    description = "U-Boot fitImage for bcm2837-rpi-3-b";
     #address-cells = <1>;
 
     images {
