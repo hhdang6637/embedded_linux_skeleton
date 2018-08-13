@@ -47,6 +47,11 @@ void network_manager_init()
 
     sleep(5);
 
+#ifdef pi_3_b
+    system("modprobe brcmfmac");
+    _network_manager_wake_up("wlan0");
+#endif
+
     // start network interface eth0
     if (_network_manager_wake_up("eth0")) {
         // start udhcp
