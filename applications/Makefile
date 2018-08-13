@@ -20,6 +20,7 @@ $(ROOTFS_DIR):
 	@mkdir    $(ROOTFS_DIR)
 	@mkdir    $(ROOTFS_DIR)/data
 	@mkdir    $(ROOTFS_DIR)/usr
+	@mkdir    $(ROOTFS_DIR)/bin
 	@mkdir -p $(ROOTFS_DIR)/var/www/hiawatha
 	@mkdir -p $(ROOTFS_DIR)/etc/hiawatha
 	@mkdir    $(ROOTFS_DIR)/usr/bin
@@ -36,6 +37,7 @@ all: $(ROOTFS_DIR)
 	@$(MAKE) -C hello_world_app clean all
 	@$(MAKE) -C dropbear/dropbear-2018.76 clean all
 ifeq ($(BUILD_TYPE),DEBUG)
+	@$(MAKE) -C busybox clean all
 	@$(MAKE) -C valgrind/valgrind-3.13.0 clean all
 endif
 
