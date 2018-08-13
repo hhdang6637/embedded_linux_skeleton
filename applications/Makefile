@@ -28,6 +28,10 @@ $(ROOTFS_DIR):
 	@mkdir    $(ROOTFS_DIR)/usr/lib
 
 all: $(ROOTFS_DIR)
+ifeq ($(MODEL),pi_3_b)
+	@$(MAKE) -C libnl clean all
+	@$(MAKE) -C iw clean all
+endif
 	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean all
 	@$(MAKE) -C lib_fastcgi/fcgi-2.4.0 clean all
 	@$(MAKE) -C lib_app clean all
