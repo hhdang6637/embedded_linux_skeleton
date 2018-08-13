@@ -80,9 +80,9 @@ void userManager::createUser(app::user &user)
 {
     char cmd[128];
     snprintf(cmd, sizeof(cmd), "adduser "
-            "-h /home " // set home dir
+//            "-h /home " // set home dir
             "-s /bin/sh "
-            "-H "// Don't create home dir
+//            "-H "// Don't create home dir
             "-D "// Don't assign a password
             "-G "// add user to group users
             "users "
