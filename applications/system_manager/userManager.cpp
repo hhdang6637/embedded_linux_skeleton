@@ -152,6 +152,14 @@ void userManager::initFromFile()
                     user.setPassword(value.c_str());
                 }
 
+                if (userConf.get_string(sect, "fullname", value)) {
+                    user.setFullName(value.c_str());
+                }
+
+                if (userConf.get_string(sect, "email", value)) {
+                    user.setEmail(value.c_str());
+                }
+
                 this->addUser(user);
             }
         }
