@@ -4,7 +4,7 @@ BIN := iw-4.9/iw
 
 $(BIN):
 	tar -xvf iw-4.9.tar.xz
-	cd iw-4.9 && NL3xFOUND=Y make
+	cd iw-4.9 && make
 
 install:
 	cp $(BIN) $(ROOTFS_DIR)/usr/bin
