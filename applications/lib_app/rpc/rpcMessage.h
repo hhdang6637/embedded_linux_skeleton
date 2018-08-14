@@ -37,7 +37,7 @@ protected:
     rpcMessageAddr::rpcMessageAddrType  msgAddrType;
 
 public:
-    rpcMessage(rpcMessageType);
+    rpcMessage(rpcMessageType, rpcMessageAddr::rpcMessageAddrType);
     virtual ~rpcMessage();
 
     virtual bool serialize(int fd) = 0;

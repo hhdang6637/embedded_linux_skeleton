@@ -13,7 +13,7 @@ namespace app
 {
 
     rpcMessageFirmware::rpcMessageFirmware() :
-            rpcMessage(rpcMessageType::handle_firmware_action),
+            rpcMessage(rpcMessageType::handle_firmware_action, rpcMessageAddr::system_manager_addr_t),
             msgAction(app::rpcFirmwareActionType::GET_INFO),
             msgData()
     {

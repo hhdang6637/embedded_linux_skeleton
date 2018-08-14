@@ -12,7 +12,8 @@
 namespace app
 {
 
-rpcMessageUsers::rpcMessageUsers() : rpcMessage(rpcMessageType::handle_users_action),
+rpcMessageUsers::rpcMessageUsers() :
+        rpcMessage(rpcMessageType::handle_users_action, rpcMessageAddr::system_manager_addr_t),
         msgAction(rpcMessageUsersActionType::GET_USERS)
 {
     // TODO Auto-generated constructor stub
