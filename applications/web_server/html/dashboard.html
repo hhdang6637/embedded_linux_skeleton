@@ -259,8 +259,25 @@ function updateRealTime() {
         window.cpuLine.options.title.text = 'CPU USAGE ( ' + data.json_cpu_usage_history[data.json_cpu_usage_history.length - 1] + '%)';
         window.ramLine.options.title.text = 'MEMORY USAGE ( ' + data.json_ram_history[data.json_ram_history.length - 1] + '%)';
 
-        window.netTxLine.options.title.text = 'TX ( ' + data.json_network_history.tx_bytes[data.json_network_history.tx_bytes.length - 1] + ' Kbps)';
-        window.netRxLine.options.title.text = 'RX ( ' + data.json_network_history.rx_bytes[data.json_network_history.rx_bytes.length - 1] + ' Kbps)';
+        var net_tx_cur = data.json_network_history.tx_bytes[data.json_network_history.tx_bytes.length - 1];
+        var tx_round;
+        if (net_tx_cur > 1000) {
+            tx_round = Math.floor((net_tx_cur/1000) * 100) / 100; //round 2 digits
+            window.netTxLine.options.title.text = 'TX ( ' + tx_round + ' Mbps)';
+        } else {
+            tx_round = Math.floor((net_tx_cur) * 100) / 100; //round 2 digits
+            window.netTxLine.options.title.text = 'TX ( ' + tx_round + ' Kbps)';
+        }
+
+        var net_rx_cur = data.json_network_history.rx_bytes[data.json_network_history.rx_bytes.length - 1];
+        var rx_round;
+        if (net_rx_cur > 1000) {
+            rx_round = Math.floor((net_rx_cur/1000) * 100) / 100; //round 2 digits
+            window.netRxLine.options.title.text = 'RX ( ' + rx_round + ' Mbps)';
+        } else {
+            rx_round = Math.floor((net_rx_cur) * 100) / 100; //round 2 digits
+            window.netRxLine.options.title.text = 'RX ( ' + rx_round + ' Kbps)';
+        }
 
 
         cpu_config.data.datasets.forEach(function(dataset) {
