@@ -34,6 +34,7 @@ all: $(ROOTFS_DIR)
 	@$(MAKE) -C web_server clean all
 	@$(MAKE) -C network_manager clean all
 	@$(MAKE) -C system_manager clean all
+	@$(MAKE) -C resource_manager clean all
 	@$(MAKE) -C hello_world_app clean all
 	@$(MAKE) -C dropbear/dropbear-2018.76 clean all
 ifeq ($(BUILD_TYPE),DEBUG)
@@ -48,6 +49,7 @@ clean:
 	@$(MAKE) -C hello_world_app clean
 	@$(MAKE) -C network_manager clean
 	@$(MAKE) -C system_manager clean
+	@$(MAKE) -C resource_manager clean
 	@$(MAKE) -C web_server clean
 	@$(MAKE) -C dropbear/dropbear-2018.76 clean
 ifeq ($(BUILD_TYPE),DEBUG)

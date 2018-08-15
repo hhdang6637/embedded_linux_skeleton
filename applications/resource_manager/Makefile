@@ -1,5 +1,5 @@
-BIN=system_manager_daemon
-SRCS=main.o system_manager.o serviceHiawatha.o firmwareManager.o userManager.o
+BIN=resource_manager_daemon
+SRCS=main.o resource_manager.o resourceCollector.o
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@
