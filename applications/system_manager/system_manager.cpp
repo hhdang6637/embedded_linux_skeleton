@@ -13,6 +13,7 @@
 #include "utilities.h"
 #include "serviceHiawatha.h"
 #include "serviceNtp.h"
+#include "serviceOpenvpn.h"
 #include "userManager.h"
 #include "simpleTimerSync.h"
 #include "firmwareManager.h"
@@ -26,11 +27,6 @@
 void system_manager_init()
 {
     mkdir(CONFIG_DIR, 0755);
-    // start web server
-    app::serviceHiawatha::getInstance()->init();
-    app::serviceHiawatha::getInstance()->start();
-    app::serviceNtp::getInstance()->init();
-    app::serviceNtp::getInstance()->start();
 
     if ((access("/dev/mmcblk0p1", F_OK)) != -1 && (access("/boot", F_OK) != -1)) {
         system("mount -t vfat /dev/mmcblk0p1 /boot");
@@ -39,6 +35,14 @@ void system_manager_init()
     if ((access("/dev/mmcblk0p2", F_OK)) != -1 && (access("/data", F_OK) != -1)) {
         system("mount -t ext4 /dev/mmcblk0p2 /data/");
     }
+
+    // start web server
+    app::serviceHiawatha::getInstance()->init();
+    app::serviceHiawatha::getInstance()->start();
+    app::serviceNtp::getInstance()->init();
+    app::serviceNtp::getInstance()->start();
+    app::serviceOpenvpn::getInstance()->init();
+    app::serviceOpenvpn::getInstance()->start();
 
     app::userManager::getInstance()->initFromFile();
 
@@ -83,7 +87,6 @@ static bool firmware_action_handler(int socket_fd)
                 msgData.status = app::firmwareManager::getInstance()->getFirmwareStatus();
                 msgData.result = app::firmwareManager::getInstance()->getFirmwareResult();
                 msgFirmware.setFirmwareMsgData(msgData);
-
                 break;
             }
             case app::rpcFirmwareActionType::GET_INFO:
