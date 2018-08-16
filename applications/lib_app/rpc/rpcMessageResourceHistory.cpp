@@ -15,7 +15,8 @@
 namespace app
 {
 
-rpcMessageResourceHistory::rpcMessageResourceHistory() : rpcMessage(rpcMessageType::get_resource_history)
+rpcMessageResourceHistory::rpcMessageResourceHistory() :
+        rpcMessage(rpcMessageType::get_resource_history, rpcMessageAddr::resource_manager_addr_t)
 {
 }
 

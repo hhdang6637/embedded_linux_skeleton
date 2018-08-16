@@ -33,6 +33,9 @@ rpcMessageAddr rpcMessageAddr::getRpcMessageAddrbyType(rpcMessageAddrType addrTy
         case network_manager_addr_t:
             return rpcMessageAddr("/tmp/network_manager.socket");
             break;
+        case resource_manager_addr_t:
+            return rpcMessageAddr("/tmp/resource_manager.socket");
+            break;
         default:
             return rpcMessageAddr("/tmp/system_manager.socket");
             break;

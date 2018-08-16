@@ -28,6 +28,7 @@
 ::sysinit:/etc/init.d/rcS
 ::sysinit:/usr/sbin/system_manager_daemon
 ::sysinit:/usr/sbin/network_manager_daemon
+::sysinit:/usr/sbin/resource_manager_daemon
 ::sysinit:/usr/sbin/dropbear -a
 
 # Put a getty on the serial port
