@@ -28,6 +28,7 @@ $(ROOTFS_DIR):
 	@mkdir    $(ROOTFS_DIR)/usr/lib
 
 all: $(ROOTFS_DIR)
+	@$(MAKE) -C ntp clean all
 	@$(MAKE) -C openssl clean all
 	@$(MAKE) -C openvpn clean all
 ifeq ($(MODEL),pi_3_b)

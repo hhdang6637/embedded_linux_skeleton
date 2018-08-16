@@ -12,6 +12,7 @@
 
 #include "utilities.h"
 #include "serviceHiawatha.h"
+#include "serviceNtp.h"
 #include "userManager.h"
 #include "simpleTimerSync.h"
 #include "firmwareManager.h"
@@ -28,6 +29,8 @@ void system_manager_init()
     // start web server
     app::serviceHiawatha::getInstance()->init();
     app::serviceHiawatha::getInstance()->start();
+    app::serviceNtp::getInstance()->init();
+    app::serviceNtp::getInstance()->start();
 
     if ((access("/dev/mmcblk0p1", F_OK)) != -1 && (access("/boot", F_OK) != -1)) {
         system("mount -t vfat /dev/mmcblk0p1 /boot");
