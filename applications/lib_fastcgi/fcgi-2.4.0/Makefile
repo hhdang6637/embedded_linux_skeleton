@@ -6,7 +6,7 @@ all:
 	@rm -rf build
 	@mkdir build
 	@cd build && ../configure $(FCGI_FLAGS)
-	@cd build && make && make install
+	@cd build && make -j1 && make install
 
 clean:
 	@rm -rf build
