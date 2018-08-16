@@ -5,8 +5,8 @@ export CC      = $(CROSS_COMPILE)gcc
 export CXX     = $(CROSS_COMPILE)g++
 export AR      = $(CROSS_COMPILE)ar
 export LD      = $(CROSS_COMPILE)ld
-export INCLUDE = $(ROOTFS_DIR)/usr/include
-export LIB     = $(ROOTFS_DIR)/usr/lib
+export INCLUDE +=$(ROOTFS_DIR)/usr/include -I$(CROSS_COMPILE_PATH)/usr/include
+export LIB     +=$(ROOTFS_DIR)/usr/lib -L$(CROSS_COMPILE_PATH)/usr/lib
 export CFLAGS  = -Wall -Werror -D$(MODEL) -I$(INCLUDE) -L$(LIB)
 export CXXFLAGS= -Wall -Werror -D$(MODEL) -I$(INCLUDE) -L$(LIB)
 
@@ -28,6 +28,8 @@ $(ROOTFS_DIR):
 	@mkdir    $(ROOTFS_DIR)/usr/lib
 
 all: $(ROOTFS_DIR)
+	@$(MAKE) -C openssl clean all
+	@$(MAKE) -C openvpn clean all
 ifeq ($(MODEL),pi_3_b)
 	@$(MAKE) -C libnl clean all
 	@$(MAKE) -C iw clean all

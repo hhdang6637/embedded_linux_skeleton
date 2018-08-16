@@ -1,4 +1,5 @@
-LIBNL_FLAGS := --target=arm-none-linux-gnueabi --host=armv7-none-linux-gnueabi --prefix=$(CROSS_COMPILE_PATH)
+LIBNL_FLAGS := --target=arm-none-linux-gnueabi --host=armv7-none-linux-gnueabi \
+--prefix=$(CROSS_COMPILE_PATH)/arm-buildroot-linux-uclibcgnueabi/sysroot/usr
 export CFLAGS =-Wall
 
 all:

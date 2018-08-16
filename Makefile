@@ -23,7 +23,7 @@ include $(CONFIGS_DIR)/Makefile.variable
 export PATH := $(BUILDROOT_BUILD_DIR)/host/usr/bin:$(PATH)
 export LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(BUILDROOT_BUILD_DIR)/host/usr/lib
 export CROSS_COMPILE=ccache arm-linux-
-export CROSS_COMPILE_PATH=$(BUILDROOT_BUILD_DIR)/host/usr/arm-buildroot-linux-uclibcgnueabi/sysroot/usr
+export CROSS_COMPILE_PATH=$(BUILDROOT_BUILD_DIR)/host/usr
 export BISON_PKGDATADIR=$(BUILDROOT_BUILD_DIR)/host/usr/share/bison
 export M4=$(BUILDROOT_BUILD_DIR)/host/usr/bin/m4
 export ARCH=arm
