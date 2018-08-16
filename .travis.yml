@@ -6,7 +6,6 @@ cache:
   directories:
     - ~/.ccache
 before_script:
-  - sudo apt-get remove autoconf
   - sudo apt-get install u-boot-tools device-tree-compiler mtools
 script:
   - du --block-size=M --max-depth=1 ~
