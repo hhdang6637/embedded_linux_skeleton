@@ -24,17 +24,44 @@
 
 #define CONFIG_DIR "/tmp/configs"
 
+void mount_sd_card() {
+
+    if (access("/dev/mmcblk0p1", F_OK) == -1) {
+        syslog(LOG_ERR, "/dev/mmcblk0p1 is not existed");
+        return;
+    }
+
+    if (access("/boot", F_OK) == -1) {
+        syslog(LOG_ERR, "/boot is not existed");
+        return;
+    }
+
+    if (system("mount -t vfat /dev/mmcblk0p1 /boot") != 0) {
+        syslog(LOG_ERR, "cannot mount /dev/mmcblk0p1 to /boot");
+        return;
+    }
+
+    if (access("/dev/mmcblk0p2", F_OK) == -1) {
+        syslog(LOG_ERR, "/dev/mmcblk0p2 is not existed");
+        return;
+    }
+
+    if (access("/data", F_OK) == -1) {
+        syslog(LOG_ERR, "/data is not existed");
+        return;
+    }
+
+    if (system("mount -t ext4 /dev/mmcblk0p2 /data") != 0) {
+        syslog(LOG_ERR, "cannot mount /dev/mmcblk0p2 to /data");
+        return;
+    }
+}
+
 void system_manager_init()
 {
     mkdir(CONFIG_DIR, 0755);
 
-    if ((access("/dev/mmcblk0p1", F_OK)) != -1 && (access("/boot", F_OK) != -1)) {
-        system("mount -t vfat /dev/mmcblk0p1 /boot");
-    }
-
-    if ((access("/dev/mmcblk0p2", F_OK)) != -1 && (access("/data", F_OK) != -1)) {
-        system("mount -t ext4 /dev/mmcblk0p2 /data/");
-    }
+    mount_sd_card();
 
     // start web server
     app::serviceHiawatha::getInstance()->init();
