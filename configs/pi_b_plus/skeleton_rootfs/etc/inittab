@@ -26,6 +26,7 @@
 ::sysinit:/bin/hostname -F /etc/hostname
 # now run any rc scripts
 ::sysinit:/etc/init.d/rcS
+::wait:/bin/sleep 1
 ::sysinit:/usr/sbin/system_manager_daemon
 ::sysinit:/usr/sbin/network_manager_daemon
 ::sysinit:/usr/sbin/resource_manager_daemon
