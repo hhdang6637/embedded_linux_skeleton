@@ -12,6 +12,9 @@ install:
 	cp $(BIN) $(ROOTFS_DIR)/sbin
 	cp -av iptables-1.6.2/libiptc/.libs/lib*.so* $(ROOTFS_DIR)/usr/lib
 	cp -av iptables-1.6.2/libxtables/.libs/lib*.so* $(ROOTFS_DIR)/usr/lib
+	cp -av iptables-1.6.2/extensions/libxt_conntrack.so $(ROOTFS_DIR)/usr/lib
+	cp -av iptables-1.6.2/extensions/libxt_standard.so $(ROOTFS_DIR)/usr/lib
+	cp -av iptables-1.6.2/extensions/libipt_MASQUERADE.so $(ROOTFS_DIR)/usr/lib
 	cd $(ROOTFS_DIR)/sbin && ln -fs xtables-multi iptables
 	cd $(ROOTFS_DIR)/sbin && ln -fs xtables-multi iptables-restore
 	cd $(ROOTFS_DIR)/sbin && ln -fs xtables-multi iptables-save

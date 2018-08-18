@@ -52,8 +52,11 @@ bool serviceOpenvpn::start()
 {
     std::string command;
     command = "/usr/sbin/openvpn --config /data/openvpn/openvpn.conf --daemon --writepid " OPENVPN_PID_FILE;
-
     system(command.c_str());
+
+    system("echo 1 > /proc/sys/net/ipv4/ip_forward");
+    // FIXME - hardcode ip and interface
+    system("iptables -t nat -I POSTROUTING -o eth0 -s 192.168.255.0/24 -j MASQUERADE");
 
     return true;
 }
