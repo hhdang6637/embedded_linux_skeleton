@@ -21,6 +21,7 @@ $(ROOTFS_DIR):
 	@mkdir    $(ROOTFS_DIR)/data
 	@mkdir    $(ROOTFS_DIR)/usr
 	@mkdir    $(ROOTFS_DIR)/bin
+	@mkdir    $(ROOTFS_DIR)/sbin
 	@mkdir -p $(ROOTFS_DIR)/var/www/hiawatha
 	@mkdir -p $(ROOTFS_DIR)/etc/hiawatha
 	@mkdir    $(ROOTFS_DIR)/usr/bin
@@ -28,6 +29,7 @@ $(ROOTFS_DIR):
 	@mkdir    $(ROOTFS_DIR)/usr/lib
 
 all: $(ROOTFS_DIR)
+	@$(MAKE) -C iptables clean all
 	@$(MAKE) -C ntp clean all
 	@$(MAKE) -C openssl clean all
 	@$(MAKE) -C openvpn clean all
