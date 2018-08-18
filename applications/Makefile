@@ -36,6 +36,7 @@ all: $(ROOTFS_DIR)
 ifeq ($(MODEL),pi_3_b)
 	@$(MAKE) -C libnl clean all
 	@$(MAKE) -C iw clean all
+	@$(MAKE) -C hostapd clean all
 endif
 	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean all
 	@$(MAKE) -C lib_fastcgi/fcgi-2.4.0 clean all
