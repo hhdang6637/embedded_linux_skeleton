@@ -56,6 +56,7 @@ bool serviceOpenvpn::start()
 
     system("echo 1 > /proc/sys/net/ipv4/ip_forward");
     // FIXME - hardcode ip and interface
+    setenv("XTABLES_LIBDIR", "/usr/lib", 1);
     system("iptables -t nat -I POSTROUTING -o eth0 -s 192.168.255.0/24 -j MASQUERADE");
 
     return true;
