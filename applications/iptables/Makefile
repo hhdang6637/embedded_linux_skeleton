@@ -5,8 +5,12 @@ IPTABLES_FLAGS := --target=arm-none-linux-gnueabi --host=armv7-none-linux-gnueab
 export CFLAGS =-Wall
 
 $(BIN):
+ifneq ("$(wildcard iptables-1.6.2_$(MODEL).tar.xz)","")
+	tar -xvf iptables-1.6.2_$(MODEL).tar.xz;
+else
 	tar -xvf iptables-1.6.2.tar.bz2
 	cd iptables-1.6.2 && ./configure $(IPTABLES_FLAGS) && make
+endif
 
 install:
 	cp $(BIN) $(ROOTFS_DIR)/sbin
