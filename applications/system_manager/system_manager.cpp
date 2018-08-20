@@ -63,6 +63,8 @@ void system_manager_init()
 
     mount_sd_card();
 
+    app::userManager::getInstance()->initFromFile();
+
     // start web server
     app::serviceHiawatha::getInstance()->init();
     app::serviceHiawatha::getInstance()->start();
@@ -70,8 +72,6 @@ void system_manager_init()
     app::serviceNtp::getInstance()->start();
     app::serviceOpenvpn::getInstance()->init();
     app::serviceOpenvpn::getInstance()->start();
-
-    app::userManager::getInstance()->initFromFile();
 
     system("web_handler");
 
