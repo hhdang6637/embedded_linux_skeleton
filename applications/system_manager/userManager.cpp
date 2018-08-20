@@ -7,6 +7,7 @@
 #include <iostream>
 #include <list>
 #include <syslog.h>
+#include <string.h>
 
 #include "userManager.h"
 
@@ -204,6 +205,9 @@ void userManager::getUsers(std::list<app::user> &users)
 {
     for (auto it = this->users.begin(); it != this->users.end(); it++)
     {
+        if (it->second.getName() == "root") {
+            continue;
+        }
         users.push_back(it->second);
     }
 }
