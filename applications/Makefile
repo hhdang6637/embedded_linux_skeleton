@@ -39,7 +39,7 @@ ifeq ($(MODEL),pi_3_b)
 	@$(MAKE) -C hostapd clean all
 endif
 	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean all
-	@$(MAKE) -C lib_fastcgi/fcgi-2.4.0 clean all
+	@$(MAKE) -C lib_fastcgi clean all
 	@$(MAKE) -C lib_app clean all
 	@$(MAKE) -C web_server clean all
 	@$(MAKE) -C network_manager clean all
