@@ -65,7 +65,7 @@ bool serviceHiawatha::init()
                 "ThreadPoolSize     = 2\n"
                 "Binding {\n"
                 "    Port = 80\n"
-                "    MaxRequestSize = 32768\n"
+                "    MaxRequestSize = 65536\n"
                 "}\n"
                 "Hostname       = 127.0.0.1\n"
                 "WebsiteRoot    = WEBROOT_DIR\n"

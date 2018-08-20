@@ -20,10 +20,12 @@ export ALL_LOG              := $(BUILD_DIR)/all.log
 include $(CONFIGS_DIR)/Makefile.variable
 
 # follow https://elinux.org/RPi_U-Boot
-# sudo apt-get install binutils-arm-linux-gnueabi gcc-arm-linux-gnueabi
 export PATH := $(BUILDROOT_BUILD_DIR)/host/usr/bin:$(PATH)
 export LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(BUILDROOT_BUILD_DIR)/host/usr/lib
 export CROSS_COMPILE=ccache arm-linux-
+export CROSS_COMPILE_PATH=$(BUILDROOT_BUILD_DIR)/host/usr
+export BISON_PKGDATADIR=$(BUILDROOT_BUILD_DIR)/host/usr/share/bison
+export M4=$(BUILDROOT_BUILD_DIR)/host/usr/bin/m4
 export ARCH=arm
 #export USE_PRIVATE_LIBGCC=yes
 
@@ -70,8 +72,10 @@ clean_linux_kernel:
 
 compile_uboot: $(BIN_BUILD_DIR)
 	@echo "**********compile_uboot**********"
-	@cp $(CONFIGS_DIR)/uboot/config $(UBOOT_BUILD_DIR)/.config
-	@$(MAKE) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
+	@if  ! $(CACHE_DIR)/get_uboot_$(MODEL)_cache.sh > $(CURRENT_LOG) 2>&1 ; then \
+		cp $(CONFIGS_DIR)/uboot/config $(UBOOT_BUILD_DIR)/.config ; \
+		$(MAKE) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ; \
+	fi
 	@cp $(UBOOT_BUILD_DIR)/u-boot $(UBOOT_BUILD_DIR)/u-boot.bin $(BIN_BUILD_DIR)
 	@echo "**********done**********"
 

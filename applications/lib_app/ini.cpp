@@ -105,7 +105,6 @@ bool ini::loadFromFile(const char* iniFileName)
             }
 
             strlower(key);
-            strlower(value);
 
             it->second.properties.insert(
                     std::pair<std::string, std::string>(leftstrip(rightstrip(key)), leftstrip(rightstrip(value))));

@@ -12,6 +12,8 @@
 
 #include "utilities.h"
 #include "serviceHiawatha.h"
+#include "serviceNtp.h"
+#include "serviceOpenvpn.h"
 #include "userManager.h"
 #include "simpleTimerSync.h"
 #include "firmwareManager.h"
@@ -22,20 +24,52 @@
 
 #define CONFIG_DIR "/tmp/configs"
 
+void mount_sd_card() {
+
+    if (access("/dev/mmcblk0p1", F_OK) == -1) {
+        syslog(LOG_ERR, "/dev/mmcblk0p1 is not existed");
+        return;
+    }
+
+    if (access("/boot", F_OK) == -1) {
+        syslog(LOG_ERR, "/boot is not existed");
+        return;
+    }
+
+    if (system("mount -t vfat /dev/mmcblk0p1 /boot") != 0) {
+        syslog(LOG_ERR, "cannot mount /dev/mmcblk0p1 to /boot");
+        return;
+    }
+
+    if (access("/dev/mmcblk0p2", F_OK) == -1) {
+        syslog(LOG_ERR, "/dev/mmcblk0p2 is not existed");
+        return;
+    }
+
+    if (access("/data", F_OK) == -1) {
+        syslog(LOG_ERR, "/data is not existed");
+        return;
+    }
+
+    if (system("mount -t ext4 /dev/mmcblk0p2 /data") != 0) {
+        syslog(LOG_ERR, "cannot mount /dev/mmcblk0p2 to /data");
+        return;
+    }
+}
+
 void system_manager_init()
 {
     mkdir(CONFIG_DIR, 0755);
+
+    mount_sd_card();
+
     // start web server
     app::serviceHiawatha::getInstance()->init();
     app::serviceHiawatha::getInstance()->start();
-
-    if ((access("/dev/mmcblk0p1", F_OK)) != -1 && (access("/boot", F_OK) != -1)) {
-        system("mount -t vfat /dev/mmcblk0p1 /boot");
-    }
-
-    if ((access("/dev/mmcblk0p2", F_OK)) != -1 && (access("/data", F_OK) != -1)) {
-        system("mount -t ext4 /dev/mmcblk0p2 /data/");
-    }
+    app::serviceNtp::getInstance()->init();
+    app::serviceNtp::getInstance()->start();
+    app::serviceOpenvpn::getInstance()->init();
+    app::serviceOpenvpn::getInstance()->start();
 
     app::userManager::getInstance()->initFromFile();
 
@@ -80,7 +114,6 @@ static bool firmware_action_handler(int socket_fd)
                 msgData.status = app::firmwareManager::getInstance()->getFirmwareStatus();
                 msgData.result = app::firmwareManager::getInstance()->getFirmwareResult();
                 msgFirmware.setFirmwareMsgData(msgData);
-
                 break;
             }
             case app::rpcFirmwareActionType::GET_INFO:

@@ -5,8 +5,8 @@ export CC      = $(CROSS_COMPILE)gcc
 export CXX     = $(CROSS_COMPILE)g++
 export AR      = $(CROSS_COMPILE)ar
 export LD      = $(CROSS_COMPILE)ld
-export INCLUDE = $(ROOTFS_DIR)/usr/include
-export LIB     = $(ROOTFS_DIR)/usr/lib
+export INCLUDE +=$(ROOTFS_DIR)/usr/include -I$(CROSS_COMPILE_PATH)/usr/include
+export LIB     +=$(ROOTFS_DIR)/usr/lib -L$(CROSS_COMPILE_PATH)/usr/lib
 export CFLAGS  = -Wall -Werror -D$(MODEL) -I$(INCLUDE) -L$(LIB)
 export CXXFLAGS= -Wall -Werror -D$(MODEL) -I$(INCLUDE) -L$(LIB)
 
@@ -21,6 +21,7 @@ $(ROOTFS_DIR):
 	@mkdir    $(ROOTFS_DIR)/data
 	@mkdir    $(ROOTFS_DIR)/usr
 	@mkdir    $(ROOTFS_DIR)/bin
+	@mkdir    $(ROOTFS_DIR)/sbin
 	@mkdir -p $(ROOTFS_DIR)/var/www/hiawatha
 	@mkdir -p $(ROOTFS_DIR)/etc/hiawatha
 	@mkdir    $(ROOTFS_DIR)/usr/bin
@@ -28,8 +29,17 @@ $(ROOTFS_DIR):
 	@mkdir    $(ROOTFS_DIR)/usr/lib
 
 all: $(ROOTFS_DIR)
+	@$(MAKE) -C iptables clean all
+	@$(MAKE) -C ntp clean all
+	@$(MAKE) -C openssl clean all
+	@$(MAKE) -C openvpn clean all
+ifeq ($(MODEL),pi_3_b)
+	@$(MAKE) -C libnl clean all
+	@$(MAKE) -C iw clean all
+	@$(MAKE) -C hostapd clean all
+endif
 	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean all
-	@$(MAKE) -C lib_fastcgi/fcgi-2.4.0 clean all
+	@$(MAKE) -C lib_fastcgi clean all
 	@$(MAKE) -C lib_app clean all
 	@$(MAKE) -C web_server clean all
 	@$(MAKE) -C network_manager clean all

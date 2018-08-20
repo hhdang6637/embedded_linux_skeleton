@@ -50,7 +50,7 @@ static int parse_and_save_file(const char *data, const char *contentType, const 
 
         POSTParser.SetTempDirForFileUpload("/tmp");
 
-        POSTParser.SetMaxCollectedDataLength(32 * 1024 * 1024); // 32MB
+        POSTParser.SetMaxCollectedDataLength(64 * 1024 * 1024); // 64MB
 
         POSTParser.SetContentType(contentType);
 

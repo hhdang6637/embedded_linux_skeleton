@@ -95,19 +95,24 @@ std::string json_resource_usage_history(FCGX_Request *request)
         std::list<struct sysinfo> ram_history = msg.get_ram_history();
         ss_json << ",\"json_ram_history\":[";
 
+        struct sysinfo sysinfoLatest = {0};
         counter = 0;
         for (std::list<struct sysinfo>::iterator it = ram_history.begin();
                 it != ram_history.end(); ++it) {
 
             counter++;
 
-            ss_json << (long)(it->totalram - it->freeram)*100/it->totalram;
+            ss_json << (((long long)it->totalram - it->freeram) * 100) / it->totalram;
 
             if (counter < ram_history.size()) {
                 ss_json << ",";
+            } else {
+                sysinfoLatest = *it;
             }
         }
         ss_json << "]";
+        ss_json << ",\"json_ram_total\": " << sysinfoLatest.totalram;
+        ss_json << ",\"json_ram_free\": " << sysinfoLatest.freeram;
 
         std::pair<tx_rates_t, rx_rates_t> rates = calculate_rates(msg.get_network_history());
 

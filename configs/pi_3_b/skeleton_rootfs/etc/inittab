@@ -26,10 +26,11 @@
 ::sysinit:/bin/hostname -F /etc/hostname
 # now run any rc scripts
 ::sysinit:/etc/init.d/rcS
+::wait:/bin/sleep 1
 ::sysinit:/usr/sbin/system_manager_daemon
 ::sysinit:/usr/sbin/network_manager_daemon
 ::sysinit:/usr/sbin/resource_manager_daemon
-::sysinit:/usr/sbin/dropbear
+::sysinit:/usr/sbin/dropbear -a
 
 # Put a getty on the serial port
 console::respawn:/sbin/getty -L  console 0 vt100 # GENERIC_SERIAL

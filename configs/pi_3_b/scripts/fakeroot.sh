@@ -24,7 +24,7 @@ if [ -e root ]; then
 fi
 # add new symbol link /root -> /tmp/root
 ln -sf tmp/root root
-
+rm -rf run; ln -sf tmp run
 ln -sf tmp home
 
 rm etc/passwd
