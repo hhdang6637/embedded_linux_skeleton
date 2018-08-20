@@ -108,21 +108,21 @@ bool userManager::addUser(app::user &user)
     bool rc = false;
 
     if (user.isValid()) {
-
         auto it = this->users.find(user.getName());
 
         if (it == this->users.end()) {
             this->users.insert(std::pair<std::string, app::user>(user.getName(), user));
             this->createUser(user);
+            syslog(LOG_NOTICE, "create new user %s", user.getName().c_str());
         } else {
             it->second = user;
+            syslog(LOG_NOTICE, "update user %s", user.getName().c_str());
         }
 
         this->changeUserPass(user);
-
-        syslog(LOG_NOTICE, "add user %s to the user list", user.getName().c_str());
-
         rc = true;
+    } else {
+        syslog(LOG_NOTICE, "user not valid for add or update");
     }
 
     return rc;

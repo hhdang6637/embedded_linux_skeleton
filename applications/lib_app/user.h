@@ -16,12 +16,13 @@ namespace app
 class user
 {
     char name[32];
-    char fullName[32];
     char password[32];
+    char fullName[32];
     char email[32];
 
 public:
     user();
+    user(const char*name, const char*pass, const char*fullname = 0, const char*email = 0);
     virtual ~user();
 
     void setName(const char *name);

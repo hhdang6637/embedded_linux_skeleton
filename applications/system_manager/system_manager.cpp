@@ -150,6 +150,36 @@ static bool users_action_handler(int socket_fd)
                 return msgUsers.serialize(socket_fd);
             }
             break;
+            case app::rpcMessageUsersActionType::SET_USERS:
+            {
+                if (msgUsers.getUsers().size() > 0) {
+
+                    app::user user = msgUsers.getUsers().front();
+
+#if 0
+                    syslog(LOG_NOTICE, "%s: SET_USERS, username : %s, password : %s, fullname : %s, email : %s", __FUNCTION__,
+                            user.getName().c_str(), user.getPassword().c_str(),
+                            user.getFullName().c_str(), user.getEmail().c_str());
+#endif
+
+                    if (app::userManager::getInstance()->addUser(user)) {
+
+                        if (app::userManager::getInstance()->writeToFile()) {
+                            syslog(LOG_ERR, "cannot update the user.conf");
+                        }
+
+                        msgUsers.setMsgResult(app::rpcMessageUsersResultType::SUCCEEDED);
+
+                    } else {
+                        msgUsers.setMsgResult(app::rpcMessageUsersResultType::FAILED);
+                    }
+                } else {
+                    msgUsers.setMsgResult(app::rpcMessageUsersResultType::FAILED);
+                }
+
+                return msgUsers.serialize(socket_fd);
+            }
+            break;
             default:
                 break;
         }

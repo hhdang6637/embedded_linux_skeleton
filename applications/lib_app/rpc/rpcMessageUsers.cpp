@@ -14,7 +14,8 @@ namespace app
 
 rpcMessageUsers::rpcMessageUsers() :
         rpcMessage(rpcMessageType::handle_users_action, rpcMessageAddr::system_manager_addr_t),
-        msgAction(rpcMessageUsersActionType::GET_USERS)
+        msgAction(rpcMessageUsersActionType::GET_USERS),
+        msgResult(rpcMessageUsersResultType::SUCCEEDED)
 {
     // TODO Auto-generated constructor stub
 
@@ -33,6 +34,11 @@ bool rpcMessageUsers::serialize(int fd)
     int offset = 0;
 
     tmpValue = (uint16_t)this->msgAction;
+    if (rpcMessage::sendInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+        return false;
+    }
+
+    tmpValue = (uint16_t)this->msgResult;
     if (rpcMessage::sendInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
         return false;
     }
@@ -72,8 +78,13 @@ bool rpcMessageUsers::deserialize(int fd)
     if (rpcMessage::recvInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
         return false;
     }
-
     this->msgAction = app::rpcMessageUsersActionType(tmpValue);
+
+    if (rpcMessage::recvInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+        return false;
+    }
+    this->msgResult = app::rpcMessageUsersResultType(tmpValue);
+
     switch (this->msgAction)
     {
         case app::rpcMessageUsersActionType::GET_USERS:
@@ -112,12 +123,29 @@ std::list<app::user> rpcMessageUsers::getUsers()
 
 void rpcMessageUsers::setUsers(std::list<app::user> &users)
 {
+    this->msgAction = rpcMessageUsersActionType::SET_USERS;
     this->users = users;
+}
+void rpcMessageUsers::setUser(app::user &user)
+{
+    this->msgAction = rpcMessageUsersActionType::SET_USERS;
+    this->users.clear();
+    this->users.push_back(user);
 }
 
 app::rpcMessageUsersActionType rpcMessageUsers::getMsgAction()
 {
     return this->msgAction;
+}
+
+app::rpcMessageUsersResultType rpcMessageUsers::getMsgResult()
+{
+    return this->msgResult;
+}
+
+void rpcMessageUsers::setMsgResult(rpcMessageUsersResultType type)
+{
+    this->msgResult = type;
 }
 
 } /* namespace app */

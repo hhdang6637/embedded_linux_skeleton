@@ -14,6 +14,9 @@ int main(void) {
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageUsers msgUser;
 
+    app::user u1("test", "test", "test user", "test@gmail.com");
+    msgUser.setUser(u1);
+
     if (rpcClient->doRpc(&msgUser) == false) {
         std::cout << "something went wrong: doRpc\n";
         return EXIT_FAILURE;

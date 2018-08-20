@@ -13,8 +13,25 @@ namespace app
 user::user()
 {
     this->name[0] = '\0';
+    this->password[0] = '\0';
     this->fullName[0] = '\0';
     this->email[0] = '\0';
+}
+
+user::user(const char*name, const char*pass, const char*fullName, const char*email) :
+        user()
+{
+    if (name)
+        snprintf(this->name, sizeof(this->name), "%s", name);
+
+    if (pass)
+        snprintf(this->password, sizeof(this->password), "%s", pass);
+
+    if (fullName)
+        snprintf(this->fullName, sizeof(this->fullName), "%s", fullName);
+
+    if (email)
+        snprintf(this->email, sizeof(this->email), "%s", email);
 }
 
 user::~user()
@@ -64,7 +81,13 @@ std::string user::getEmail()
 
 bool user::isValid()
 {
-    return this->name[0] != '\0' && this->password[0] != '\0';
+    bool rc = true;
+
+    if (this->name[0] == '\0' || this->password[0] == '\0') {
+        rc = false;
+    }
+
+    return rc;
 }
 
 } /* namespace app */
