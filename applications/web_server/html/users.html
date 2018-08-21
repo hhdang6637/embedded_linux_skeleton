@@ -12,6 +12,7 @@
             <th>User Name</th>
             <th>Full Name</th>
             <th>Email</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -39,9 +40,17 @@ $(function () {
         var jsUsers = data.json_users_list;
         for (var i = 0; i < jsUsers.length; i++) {
           var user = jsUsers[i];
-          html += "<tr><td>" + user.name + "</td><td>" + user.fullname + "</td><td>" + user.email + "</td></tr>";
+          html += "<tr><td>" + user.name + "</td><td>" + user.fullname + "</td><td>" + user.email +
+                  "</td><td><button type=\"button\" id=\"editUsers_" + user.name + "\"" + "class=\"btn\">" + "Edit" +"</button></td></tr>";
         }
         $('#table > tbody:last-child').append(html);
+
+        for (var i = 0; i < jsUsers.length; i++) {
+          var user = jsUsers[i];
+          $("#editUsers_" + user.name).click(function(){
+            window.location.href="/pages/edituser";
+          });
+        }
       });
     }
 
