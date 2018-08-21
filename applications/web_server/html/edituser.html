@@ -1,0 +1,28 @@
+<!--div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Firmware</h1>
+</div-->
+<div class="container">
+  <h3>Edit user infomation</h3>
+  <form action="/action_page.php">
+    <div class="form-group">
+      <label for="email">Email:</label>
+      <input type="email" class="form-control" id="email" placeholder="Enter email" name="email">
+    </div>
+    <div class="form-group">
+      <label for="pwd">Password:</label>
+      <input type="password" class="form-control" id="pwd" placeholder="Enter password" name="pwd">
+    </div>
+    <div class="checkbox">
+      <label><input type="checkbox" name="remember"> Remember me</label>
+    </div>
+    <button type="submit" class="btn btn-default">Submit</button>
+  </form>
+</div> <!-- /container -->
+
+<script>
+
+$(function () {
+    $("#myTopnav").find("a[href='/pages/users']").addClass("active")
+});
+
+</script>
