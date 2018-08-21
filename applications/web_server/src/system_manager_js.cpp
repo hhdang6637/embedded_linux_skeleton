@@ -176,17 +176,18 @@ std::string json_handle_users(FCGX_Request *request)
             size_t counter = 0;
             for(auto &u : users) {
 
-                if (filterUser[0] != '\0' && strcmp(filterUser, u.getName().c_str()) == 0) {
+                if (filterUser[0] != '\0') {
 
-                    ss_json << "{";
-                    ss_json << "\"name\":\"" << u.getName() << "\"";
-                    ss_json << ",";
-                    ss_json << "\"fullname\":\"" << u.getFullName() << "\"";
-                    ss_json << ",";
-                    ss_json << "\"email\":\"" << u.getEmail() << "\"";
-                    ss_json << "}";
-
-                    break;
+                    if (strcmp(filterUser, u.getName().c_str()) == 0) {
+                        ss_json << "{";
+                        ss_json << "\"name\":\"" << u.getName() << "\"";
+                        ss_json << ",";
+                        ss_json << "\"fullname\":\"" << u.getFullName() << "\"";
+                        ss_json << ",";
+                        ss_json << "\"email\":\"" << u.getEmail() << "\"";
+                        ss_json << "}";
+                        break;
+                    }
 
                 } else {
 
