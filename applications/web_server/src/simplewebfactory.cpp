@@ -138,7 +138,7 @@ const char* simpleWebFactory::get_js_str(FCGX_Request *request)
 {
     std::map<std::string,jsCallback>::iterator it;
 
-    it = this->url_js_map.find(FCGX_GetParam("REQUEST_URI", request->envp));
+    it = this->url_js_map.find(FCGX_GetParam("SCRIPT_NAME", request->envp));
     if (it == this->url_js_map.end()) {
         return NULL;
     }

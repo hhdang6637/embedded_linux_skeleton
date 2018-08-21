@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <list>          // std::queue
 
+#include "fcgi.h"
 #include "simplewebfactory.h"
 #include "rpcUnixClient.h"
 #include "rpcMessageResourceHistory.h"
@@ -159,6 +160,11 @@ std::string json_handle_users(FCGX_Request *request)
 
     if (method && (strcmp(method, "GET") == 0)) {
 
+        char filterUser[32];
+        if (fcgi_form_varable_str(request, "user", filterUser, sizeof(filterUser)) <= 0) {
+            filterUser[0] = '\0';
+        }
+
         app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
         app::rpcMessageUsers msgUser;
 
@@ -169,6 +175,11 @@ std::string json_handle_users(FCGX_Request *request)
             ss_json << "[";
             size_t counter = 0;
             for(auto &u : users) {
+
+                if (filterUser[0] != '\0' && strcmp(filterUser, u.getName().c_str())) {
+                    continue;
+                }
+
                 ss_json << "{";
                 ss_json << "\"name\":\"" << u.getName() << "\"";
                 ss_json << ",";

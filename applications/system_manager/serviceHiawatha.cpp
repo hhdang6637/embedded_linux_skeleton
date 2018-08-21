@@ -86,7 +86,6 @@ bool serviceHiawatha::init()
                 "UrlToolkit {\n"
                 "    ToolkitID = WebHandlerToolkit\n"
                 "    RequestURI isfile Return\n"
-                "    Match ^/(.*) Rewrite / Continue\n"
                 "    Match / UseFastCGI WebHandlerFCGI\n"
                 "}\n"
                 "\n";

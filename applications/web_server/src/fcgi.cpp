@@ -7,6 +7,7 @@
 
 #include <sys/stat.h>
 #include <syslog.h>
+#include <string.h>
 #include <fcgiapp.h>
 
 #include <iostream>
@@ -49,3 +50,52 @@ void fcgi_start()
     fcgi_accept_loop();
 }
 
+static const char * fcgi_form_varable_search(FCGX_Request *request, const char *name)
+{
+    const char *arglist;
+
+    int lenName = strlen(name);
+    const char *start, *ptr;
+
+    arglist = FCGX_GetParam("QUERY_STRING", request->envp);
+
+    if (arglist == NULL) {
+        return NULL;
+    }
+
+    start = arglist;
+    while(*arglist && (ptr = strstr(arglist, name))) {
+        if(ptr[lenName] == '=' &&
+           (ptr == start ||     /* ^name= match OR*/
+            ptr[-1] == '&'))    /* &name= match */
+            return ptr + lenName + 1; /* Match, skip past "name=" */
+        /* False match, advance past match */
+        arglist = ptr + lenName;
+    }
+
+    return NULL;
+}
+
+unsigned int fcgi_form_varable_str(FCGX_Request *request, const char *name, char *buff, unsigned int len)
+{
+    unsigned int datalen = 0;
+
+    const char *value = fcgi_form_varable_search(request, name);
+    if(value) {
+        while(value[datalen] && (value[datalen] != '&')) {
+            datalen++;
+        }
+
+        if (datalen >  0) {
+
+            if (datalen > len - 1) {
+                datalen = len - 1;
+            }
+
+            memcpy(buff, value, datalen);
+            buff[datalen] = '\0';
+        }
+    }
+
+    return datalen;
+}
