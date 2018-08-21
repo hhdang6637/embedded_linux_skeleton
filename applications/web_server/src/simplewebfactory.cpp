@@ -73,7 +73,7 @@ simpleWebFactory* simpleWebFactory::getInstance()
 
 void simpleWebFactory::handle_request(FCGX_Request *request)
 {
-    const char *response_content = this->get_html_str(FCGX_GetParam("REQUEST_URI", request->envp));
+    const char *response_content = this->get_html_str(FCGX_GetParam("SCRIPT_NAME", request->envp));
 
     if (response_content != NULL) {
 

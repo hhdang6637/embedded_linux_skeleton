@@ -3,17 +3,22 @@
 </div-->
 <div class="container">
   <h3>Edit user infomation</h3>
-  <form action="/action_page.php">
+  <form action="/pages/users">
+    <div class="form-group">
+      <label for="fullname">Full Name:</label>
+      <input type="text" class="form-control" id="fullname" placeholder="Enter full name" name="fullname">
+    </div>
     <div class="form-group">
       <label for="email">Email:</label>
       <input type="email" class="form-control" id="email" placeholder="Enter email" name="email">
     </div>
     <div class="form-group">
-      <label for="pwd">Password:</label>
-      <input type="password" class="form-control" id="pwd" placeholder="Enter password" name="pwd">
+      <label for="password">Password:</label>
+      <input type="password" class="form-control" id="password" placeholder="Enter password" name="password">
     </div>
-    <div class="checkbox">
-      <label><input type="checkbox" name="remember"> Remember me</label>
+    <div class="form-group">
+      <label for="repassword">Password Confirm:</label>
+      <input type="password" class="form-control" id="repassword" placeholder="Enter password confirm" name="repassword">
     </div>
     <button type="submit" class="btn btn-default">Submit</button>
   </form>
@@ -24,5 +29,31 @@
 $(function () {
     $("#myTopnav").find("a[href='/pages/users']").addClass("active")
 });
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
++ function($) {
+    'use strict';
+
+    $(document).ready(function(){
+        loadUser();
+    });
+
+    function loadUser() {
+      $.getJSON( "/json/users?user=" + getParameterByName('user'), function(data) {
+        var jsUsers = data.json_users_list;
+        $("#fullname").val(jsUsers[0].fullname);
+        $("#email").val(jsUsers[0].email);
+      });
+    }
+}(jQuery);
 
 </script>

@@ -41,18 +41,15 @@ $(function () {
         for (var i = 0; i < jsUsers.length; i++) {
           var user = jsUsers[i];
           html += "<tr><td>" + user.name + "</td><td>" + user.fullname + "</td><td>" + user.email +
-                  "</td><td><button type=\"button\" id=\"editUsers_" + user.name + "\"" + "class=\"btn\">" + "Edit" +"</button></td></tr>";
+                  "</td><td><button type=\"button\"  onclick=\"editUser('" + user.name + "')\"" + " class=\"btn\">" + "Edit" +"</button></td></tr>";
         }
         $('#table > tbody:last-child').append(html);
-
-        for (var i = 0; i < jsUsers.length; i++) {
-          var user = jsUsers[i];
-          $("#editUsers_" + user.name).click(function(){
-            window.location.href="/pages/edituser";
-          });
-        }
       });
     }
-
 }(jQuery);
+
+function editUser(name) {
+    window.location.href="/pages/edituser?user=" + name;
+}
+
 </script>
