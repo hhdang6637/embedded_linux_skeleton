@@ -1,0 +1,37 @@
+<!--div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Firmware</h1>
+</div-->
+<div class="container">
+  <h3>Add user information</h3>
+  <form action="" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="fullname">Full Name:</label>
+      <input type="text" class="form-control" id="fullname" placeholder="Enter full name" name="fullname">
+    </div>
+    <div class="form-group">
+      <label for="user_name">User Name:</label>
+      <input type="text" class="form-control" id="user_name" placeholder="Enter user name" name="user_name">
+    </div>
+    <div class="form-group">
+      <label for="password">Password:</label>
+      <input type="password" class="form-control" id="password" placeholder="Enter password" name="password">
+    </div>
+    <div class="form-group">
+      <label for="repassword">Password Confirm:</label>
+      <input type="password" class="form-control" id="repassword" placeholder="Enter password confirm" name="repassword">
+    </div>
+    <div class="form-group">
+      <label for="email">Email:</label>
+      <input type="email" class="form-control" id="email" placeholder="Enter email" name="email">
+    </div>
+    <button type="submit" onclick="submit_addUser()" class="btn btn-default">Submit</button>
+  </form>
+</div> <!-- /container -->
+
+<script>
+
+$(function () {
+    $("#myTopnav").find("a[href='/pages/users']").addClass("active")
+});
+
+</script>
