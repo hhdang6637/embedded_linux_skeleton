@@ -4,8 +4,14 @@
 <div class="container">
   <div class="panel panel-default">
     <div class="panel-body">
-
-      <h3>Users infomation</h3>
+      <div class="row">
+        <div class="col-lg-9">
+          <h3>Users information</h3>
+        </div>
+        <div class="col-lg-3">
+          <button type="button" onclick="addUser()" class="btn">Add User</button>
+        </div>
+      </div>
       <table id='table' class="table table-hover">
         <thead>
           <tr>
@@ -50,6 +56,10 @@ $(function () {
 
 function editUser(name) {
     window.location.href="/pages/edituser?user=" + name;
+}
+
+function addUser() {
+    window.location.href="/pages/adduser";
 }
 
 </script>

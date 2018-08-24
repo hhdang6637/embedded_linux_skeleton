@@ -3,4 +3,5 @@
 /pages/dashboard,dashboard.html
 /pages/firmware,firmware.html
 /pages/users,users.html
+/pages/adduser,adduser.html
 /pages/edituser,edituser.html
