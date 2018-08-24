@@ -23,6 +23,7 @@
 #include "MPFDParser/Field.h"
 #include "MPFDParser/Exception.h"
 #include "user.h"
+#include "user_error_code.h"
 
 #define TO_KBIT(a) ((a * 8 ) / 1000)
 
@@ -162,15 +163,25 @@ std::string json_resource_usage_history(FCGX_Request *request)
     return ss_json.str();
 }
 
-static int valid_user(std::string fullname, std::string user_name, std::string password, std::string repassword,
+static inline std::string build_user_rsp_json(std::string status, std::string message = "") {
+    std::ostringstream ss_json;
+    ss_json << "{";
+    ss_json << "\"status\": \"" << status <<"\",";
+    ss_json << "\"message\": \""<< message <<"\"";
+    ss_json << "}";
+
+    return ss_json.str();
+}
+
+static user_error_t validate_user(std::string fullname, std::string user_name, std::string password, std::string repassword,
                         std::string email)
 {
     //compare password and repassword
     if (password.compare(repassword) != 0) {
-        return 0;
+        return USER_PWD_NOT_MATCH;
     }
 
-    return 1;
+    return USER_SUCCESS;
 }
 
 static int do_add_user(app::user &user)
@@ -230,10 +241,12 @@ std::string json_handle_users(FCGX_Request *request)
 {
     const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
     const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
+    std::ostringstream ss_json;
+    std::string status;
+
+    status.assign("failed");
 
     if (method && (strcmp(method, "GET") == 0)) {
-        std::ostringstream ss_json;
-
         char filterUser[32];
         if (fcgi_form_varable_str(request, "user", filterUser, sizeof(filterUser)) <= 0) {
             filterUser[0] = '\0';
@@ -292,6 +305,7 @@ std::string json_handle_users(FCGX_Request *request)
 
         if (get_post_data(request, data))
         {
+
             app::user user;
             std::string fullname, user_name, password, repassword, email;
             try
@@ -310,10 +324,12 @@ std::string json_handle_users(FCGX_Request *request)
 
             } catch (MPFD::Exception &e) {
                 syslog(LOG_ERR, "%s\n", e.GetError().c_str());
-                return "failed";
+
+                return build_user_rsp_json(status, "Failed to get data from browser");
             }
 
-            if (valid_user(fullname, user_name, password, repassword, email))
+            user_error_t validate_status = validate_user(fullname, user_name, password, repassword, email);
+            if (validate_status == USER_SUCCESS)
             {
                 user.setFullName(fullname.c_str());
                 user.setName(user_name.c_str());
@@ -321,13 +337,23 @@ std::string json_handle_users(FCGX_Request *request)
                 user.setEmail(email.c_str());
 
                 if (do_add_user(user)) {
-                    return "succeeded";
+                    status.assign("succeeded");
+
+                    return build_user_rsp_json(status);
                 }
+                else
+                {
+                    return build_user_rsp_json(status, "User name exist");
+                }
+            }
+            else if (validate_status == USER_PWD_NOT_MATCH)
+            {
+                return build_user_rsp_json(status, "Password does not match");
             }
         }
     }
 
     syslog(LOG_ERR, "Failed to add user\n");
 
-    return "failed";
+    return build_user_rsp_json(status, "Failed to add users");
 }
