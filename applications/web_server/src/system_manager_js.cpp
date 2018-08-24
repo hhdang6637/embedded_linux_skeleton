@@ -162,10 +162,6 @@ std::string json_resource_usage_history(FCGX_Request *request)
     return ss_json.str();
 }
 
-
-//don't forget to delete
-// ========================================================================================================= //
-
 static int valid_user(std::string fullname, std::string user_name, std::string password, std::string repassword,
                         std::string email)
 {
@@ -219,7 +215,7 @@ static bool get_post_data(FCGX_Request *request, std::string &data)
 
         if (ch < 0) {
 
-            syslog(LOG_ERR, "Failed to get file content\n");
+            syslog(LOG_ERR, "Failed to get user information\n");
             return false;
 
         } else {
