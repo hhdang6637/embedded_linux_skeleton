@@ -144,12 +144,13 @@ bool userManager::addOrEditUser(app::user &user)
     return rc;
 }
 
-bool userManager::addUser(app::user &user) {
-     bool rc = false;
+user_error userManager::addUser(app::user &user) {
+     user_error check = SUCCEEDED;
 
      if (users.size() >= userManager::MAX_USERS) {
          syslog(LOG_NOTICE, "maximum user is reached %d, cannot add more", userManager::MAX_USERS);
-         return false;
+         check = ERROR_MAX_USER;
+         return check;
      }
 
      if (user.isValid()) {
@@ -163,20 +164,22 @@ bool userManager::addUser(app::user &user) {
              } else
              {
                  syslog(LOG_NOTICE, "email existed");
-                 return rc;
+                 check = EMAIL_EXISTED;
+                 return check;
              }
          } else {
              syslog(LOG_NOTICE, "user existed");
-             return rc;
+             check = USERNAME_EXISTED;
+             return check;
          }
 
          this->changeUserPass(user);
-         rc = true;
      } else {
          syslog(LOG_NOTICE, "user not valid for add");
+         check = USER_NOT_VALID;
      }
 
-     return rc;
+     return check;
 }
 
 bool userManager::editUser(app::user &user) {
