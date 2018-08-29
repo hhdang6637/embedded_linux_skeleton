@@ -211,6 +211,11 @@ bool userManager::editUser(app::user &user) {
 bool userManager::deleteUser(app::user &user) {
     bool check = false;
 
+    if (user.getName().compare("admin") == 0) {
+        syslog(LOG_WARNING, "cannot delete user admin");
+        return false;
+    }
+
     auto it = this->users.find(user.getName());
 
     if (it != this->users.end())
