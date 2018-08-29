@@ -48,7 +48,7 @@ $(function () {
         for (var i = 0; i < jsUsers.length; i++) {
           var user = jsUsers[i];
           html += "<tr><td>" + user.name + "</td><td>" + user.fullname + "</td><td>" + user.email +
-                  "</td><td><button type=\"button\"  onclick=\"editUser('" + user.name + "')\"" + "class=\"btn mr-1\">" + "Edit" + "</button><button type =\"button\" onclick=\"deleteUser('" + user.name + "')\"" + "class=\"btn mr-1\">" + "Delete" + "</button</td></tr>";
+                  "</td><td><button type=\"button\"  onclick=\"editUser('" + user.name + "')\"" + "class=\"btn mr-1\">" + "Edit" + "</button><button type =\"button\" onclick=\"deleteUser('" + user.name + "')\"" + "class=\"btn btn-danger\">" + "Delete" + "</button</td></tr>";
         }
         $('#table > tbody:last-child').append(html);
       });
