@@ -45,7 +45,9 @@ bool rpcMessageUsers::serialize(int fd)
 
     switch (this->msgAction) {
         case app::rpcMessageUsersActionType::GET_USERS:
-        case app::rpcMessageUsersActionType::SET_USERS:
+        case app::rpcMessageUsersActionType::ADD_USER:
+        case app::rpcMessageUsersActionType::EDIT_USER:
+        case app::rpcMessageUsersActionType::DELETE_USER:
         {
             buff_len += sizeof(uint16_t) + this->users.size() * sizeof(app::user);
 
@@ -88,7 +90,9 @@ bool rpcMessageUsers::deserialize(int fd)
     switch (this->msgAction)
     {
         case app::rpcMessageUsersActionType::GET_USERS:
-        case app::rpcMessageUsersActionType::SET_USERS:
+        case app::rpcMessageUsersActionType::ADD_USER:
+        case app::rpcMessageUsersActionType::EDIT_USER:
+        case app::rpcMessageUsersActionType::DELETE_USER:
         {
             uint16_t users_size;
 
@@ -123,12 +127,11 @@ std::list<app::user> rpcMessageUsers::getUsers()
 
 void rpcMessageUsers::setUsers(std::list<app::user> &users)
 {
-    this->msgAction = rpcMessageUsersActionType::SET_USERS;
+    this->msgAction = rpcMessageUsersActionType::ADD_USER;
     this->users = users;
 }
 void rpcMessageUsers::setUser(app::user &user)
 {
-    this->msgAction = rpcMessageUsersActionType::SET_USERS;
     this->users.clear();
     this->users.push_back(user);
 }
@@ -136,6 +139,11 @@ void rpcMessageUsers::setUser(app::user &user)
 app::rpcMessageUsersActionType rpcMessageUsers::getMsgAction()
 {
     return this->msgAction;
+}
+
+void rpcMessageUsers::setMsgAction(rpcMessageUsersActionType type)
+{
+    this->msgAction = type;
 }
 
 app::rpcMessageUsersResultType rpcMessageUsers::getMsgResult()

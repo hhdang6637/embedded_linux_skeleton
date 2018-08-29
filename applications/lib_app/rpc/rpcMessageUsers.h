@@ -19,13 +19,19 @@ namespace app
 enum class rpcMessageUsersActionType : uint16_t
 {
     GET_USERS,
-    SET_USERS
+    ADD_USER,
+    EDIT_USER,
+    DELETE_USER
 };
 
 enum class rpcMessageUsersResultType : uint16_t
 {
     SUCCEEDED,
-    FAILED
+    FAILED,
+    USER_NOT_VALID,
+    USERNAME_EXISTED,
+    EMAIL_EXISTED,
+    ERROR_MAX_USER
 };
 
 class rpcMessageUsers: public rpcMessage
@@ -45,8 +51,10 @@ public:
     void setUsers(std::list<app::user> &users);
     void setUser(app::user &user);
     app::rpcMessageUsersActionType getMsgAction();
+    void setMsgAction(rpcMessageUsersActionType type);
     app::rpcMessageUsersResultType getMsgResult();
     void setMsgResult(rpcMessageUsersResultType type);
+
 };
 
 } /* namespace app */
