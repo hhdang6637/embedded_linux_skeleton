@@ -4,6 +4,7 @@
       <div class="row">
         <div class="col-lg-8">
           <h3>System Log</h3>
+          <textarea class="form-control" rows="10" id="text_log" readonly></textarea>
         </div>
       </div>
       <br>
@@ -20,7 +21,15 @@ $(function () {
     'use strict';
 
     $(document).ready(function(){
+        showSyslog();
     });
+
+    function showSyslog() {
+
+        $.getJSON( "/json/syslog", function(data) {
+            $('#text_log').html(data.syslog);
+        });
+    }
 }(jQuery);
 
 </script>
