@@ -1,13 +1,8 @@
 <div class="container">
   <div class="panel panel-default">
     <div class="panel-body">
-      <div class="row">
-        <div class="col-lg-8">
-          <h3>System Log</h3>
-          <textarea class="form-control" rows="10" id="text_log" readonly></textarea>
-        </div>
-      </div>
-      <br>
+      <h3>System Log</h3>
+      <textarea class="form-control" rows="10" id="text_log" readonly></textarea>
     </div>
   </div>
 </div> <!-- /container -->
@@ -25,7 +20,6 @@ $(function () {
     });
 
     function showSyslog() {
-
         $.getJSON( "/json/syslog", function(data) {
             $('#text_log').html(data.syslog);
         });
