@@ -24,6 +24,7 @@ userManager::~userManager()
     // TODO Auto-generated destructor stub
 }
 
+const int userManager::MAX_USERS = 10;
 userManager *userManager::s_instance = 0;
 
 userManager* userManager::getInstance()
@@ -146,6 +147,10 @@ bool userManager::addOrEditUser(app::user &user)
 bool userManager::addUser(app::user &user) {
      bool rc = false;
 
+     if (users.size() >= userManager::MAX_USERS) {
+         return false;
+     }
+
      if (user.isValid()) {
          if(is_username_existed(user.getName()) == false)
          {
@@ -227,7 +232,7 @@ void userManager::initFromFile()
 
     if (userConf.loadFromFile("/data/users.conf")) {
 
-        for(int i = 0; i < 50; i++) {
+        for(int i = 0; i < userManager::MAX_USERS; i++) {
 
             char sect[32];
             std::string value;

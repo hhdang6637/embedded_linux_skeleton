@@ -33,6 +33,8 @@ public:
     virtual ~userManager();
 
     static userManager* getInstance();
+    static const int MAX_USERS;
+
     bool is_username_existed(std::string user_name);
     bool is_email_existed(std::string email);
 
