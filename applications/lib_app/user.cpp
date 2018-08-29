@@ -6,6 +6,7 @@
  */
 
 #include "user.h"
+#include <string.h>
 
 namespace app
 {
@@ -82,6 +83,13 @@ std::string user::getEmail()
 bool user::isValid()
 {
     bool rc = true;
+    size_t index;
+
+    for(index = 0; index < strlen(this->name); index++) {
+        if (this->name[index] == ' ') {
+            rc = false;
+        }
+    }
 
     if (this->name[0] == '\0' || this->password[0] == '\0') {
         rc = false;
