@@ -70,6 +70,7 @@ void userManager::initDefaultUsers()
     user.setName("admin");
     user.setFullName("admin");
     user.setPassword("admin");
+    user.setEmail("admin@gmail.com");
     defaultUsers.push_back(user);
 
     for(auto &u : defaultUsers) {
@@ -103,29 +104,119 @@ void userManager::changeUserPass(app::user &user)
     system(cmd);
 }
 
-bool userManager::addUser(app::user &user)
+bool userManager::is_username_existed(std::string user_name) {
+    bool check = false;
+
+    for(auto &u : this->users) {
+        if (u.first.compare(user_name) == 0) {
+            check = true;
+            return check;
+        }
+    }
+
+    return check;
+}
+
+bool userManager::is_email_existed(std::string email) {
+    bool check = false;
+
+    for(auto &u : this->users) {
+        if(u.second.getEmail().compare(email) == 0) {
+            check = true;
+            return check;
+        }
+    }
+
+    return check;
+}
+
+bool userManager::addOrEditUser(app::user &user)
 {
     bool rc = false;
 
-    if (user.isValid()) {
-        auto it = this->users.find(user.getName());
-
-        if (it == this->users.end()) {
-            this->users.insert(std::pair<std::string, app::user>(user.getName(), user));
-            this->createUser(user);
-            syslog(LOG_NOTICE, "create new user %s", user.getName().c_str());
-        } else {
-            it->second = user;
-            syslog(LOG_NOTICE, "update user %s", user.getName().c_str());
-        }
-
-        this->changeUserPass(user);
-        rc = true;
+    if (this->addUser(user) == false) {
+        rc = this->editUser(user);
     } else {
-        syslog(LOG_NOTICE, "user not valid for add or update");
+        rc = true;
     }
 
     return rc;
+}
+
+bool userManager::addUser(app::user &user) {
+     bool rc = false;
+
+     if (user.isValid()) {
+         if(is_username_existed(user.getName()) == false)
+         {
+             if (is_email_existed(user.getEmail()) == false)
+             {
+                 this->users.insert(std::pair<std::string, app::user>(user.getName(), user));
+                 this->createUser(user);
+                 syslog(LOG_NOTICE, "create new user %s", user.getName().c_str());
+             } else
+             {
+                 syslog(LOG_NOTICE, "email existed");
+                 return rc;
+             }
+         } else {
+             syslog(LOG_NOTICE, "user existed");
+             return rc;
+         }
+
+         this->changeUserPass(user);
+         rc = true;
+     } else {
+         syslog(LOG_NOTICE, "user not valid for add");
+     }
+
+     return rc;
+}
+
+bool userManager::editUser(app::user &user) {
+     bool rc = false;
+
+     if (user.isValid()) {
+         if (is_email_existed(user.getEmail()) == false) {
+             auto it = this->users.find(user.getName());
+
+             if (it != this->users.end()) {
+                it->second = user;
+             } else {
+                 syslog(LOG_NOTICE, "user be editted not existed");
+                 return rc;
+             }
+         } else {
+             syslog(LOG_NOTICE, "email be editted not existed");
+             return rc;
+         }
+
+         syslog(LOG_NOTICE, "edit user %s", user.getName().c_str());
+
+         this->changeUserPass(user);
+         rc = true;
+     } else {
+         syslog(LOG_NOTICE, "user not valid for edit");
+     }
+
+     return rc;
+}
+
+bool userManager::deleteUser(app::user &user) {
+    bool check = false;
+
+    auto it = this->users.find(user.getName());
+
+    if (it != this->users.end())
+    {
+        this->users.erase(it);
+        check = true;
+    } else {
+        syslog(LOG_NOTICE, "user existed");
+        return check;
+    }
+
+    return check;
 }
 
 void userManager::initFromFile()
@@ -161,7 +252,7 @@ void userManager::initFromFile()
                     user.setEmail(value.c_str());
                 }
 
-                this->addUser(user);
+                this->addOrEditUser(user);
             }
         }
 

@@ -33,8 +33,13 @@ public:
     virtual ~userManager();
 
     static userManager* getInstance();
+    bool is_username_existed(std::string user_name);
+    bool is_email_existed(std::string email);
 
+    bool addOrEditUser(app::user &user);
     bool addUser(app::user &user);
+    bool editUser(app::user &user);
+    bool deleteUser(app::user &user);
     void initFromFile();
     bool writeToFile();
 
