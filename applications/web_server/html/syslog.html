@@ -2,7 +2,7 @@
   <div class="panel panel-default">
     <div class="panel-body">
       <h3>System Log</h3>
-      <textarea class="form-control" rows="10" id="text_log" readonly></textarea>
+      <textarea class="form-control" rows="20" id="text_log" readonly></textarea>
     </div>
   </div>
 </div> <!-- /container -->
@@ -21,7 +21,9 @@ $(function () {
 
     function showSyslog() {
         $.getJSON( "/json/syslog", function(data) {
-            $('#text_log').html(data.syslog);
+            var text_log = $('#text_log')[0];
+            text_log.value = data.syslog;
+            text_log.scrollTop = text_log.scrollHeight;
         });
     }
 }(jQuery);
