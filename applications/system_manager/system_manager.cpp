@@ -164,7 +164,7 @@ static bool users_action_handler(int socket_fd)
 
                     if (app::userManager::getInstance()->addUser(user)) {
 
-                        if (app::userManager::getInstance()->writeToFile()) {
+                        if (!app::userManager::getInstance()->writeToFile()) {
                             syslog(LOG_ERR, "cannot update the user.conf");
                         }
 
