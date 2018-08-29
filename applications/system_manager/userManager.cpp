@@ -148,6 +148,7 @@ bool userManager::addUser(app::user &user) {
      bool rc = false;
 
      if (users.size() >= userManager::MAX_USERS) {
+         syslog(LOG_NOTICE, "maximum user is reached %d, cannot add more", userManager::MAX_USERS);
          return false;
      }
 
