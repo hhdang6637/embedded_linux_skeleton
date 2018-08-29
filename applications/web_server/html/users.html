@@ -5,13 +5,14 @@
   <div class="panel panel-default">
     <div class="panel-body">
       <div class="row">
-        <div class="col-lg-9">
+        <div class="col-lg-8">
           <h3>Users information</h3>
         </div>
         <div class="col-lg-3">
-          <button type="button" onclick="addUser()" class="btn">Add User</button>
+          <button type="button" onclick="addUser()"  class="btn btn-lg">Add User</button>
         </div>
       </div>
+      <br>
       <table id='table' class="table table-hover">
         <thead>
           <tr>
@@ -47,7 +48,7 @@ $(function () {
         for (var i = 0; i < jsUsers.length; i++) {
           var user = jsUsers[i];
           html += "<tr><td>" + user.name + "</td><td>" + user.fullname + "</td><td>" + user.email +
-                  "</td><td><button type=\"button\"  onclick=\"editUser('" + user.name + "')\"" + " class=\"btn\">" + "Edit" +"</button></td></tr>";
+                  "</td><td><button type=\"button\"  onclick=\"editUser('" + user.name + "')\"" + "class=\"btn mr-1\">" + "Edit" + "</button><button type =\"button\" onclick=\"deleteUser('" + user.name + "')\"" + "class=\"btn mr-1\">" + "Delete" + "</button</td></tr>";
         }
         $('#table > tbody:last-child').append(html);
       });
@@ -60,6 +61,10 @@ function editUser(name) {
 
 function addUser() {
     window.location.href="/pages/adduser";
+}
+
+function deleteUser() {
+
 }
 
 </script>
