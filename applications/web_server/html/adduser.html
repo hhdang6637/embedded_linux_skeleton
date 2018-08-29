@@ -20,12 +20,14 @@
     <div class="form-group">
       <label for="repassword">Password Confirm:</label>
       <input type="password" class="form-control" id="repassword" placeholder="Enter password confirm" name="repassword">
+      <div id="checkpassword"></div>
     </div>
     <div class="form-group">
       <label for="email">Email:</label>
       <input type="email" class="form-control" id="email" placeholder="Enter email" name="email">
     </div>
-    <button type="submit" class="btn btn-default">Add</button>
+    <input type="hidden" name="action" value="add">
+    <button type="submit" class="btn btn-default" id="submit" disabled>Add</button>
   </form>
 </div> <!-- /container -->
 
@@ -35,48 +37,61 @@ $(function () {
     $("#myTopnav").find("a[href='/pages/users']").addClass("active")
 });
 
+function checkPasswordMatch() {
+    var password = $("#password").val();
+    var rePassword = $("#repassword").val();
+
+    $("#checkpassword").empty();
+    if (password != rePassword){
+        $("#checkpassword").html("Passwords do not match!");
+        $('#submit').prop('disabled', true);
+    } else {
+        $("#checkpassword").html("Passwords match!");
+        $('#submit').prop('disabled', false);
+    }
+}
+
+$(document).ready(function () {
+    $("#password, #repassword").keyup(checkPasswordMatch);
+});
+
+function post_form_data($, id, onSuccess) {
+
+    var formData = new FormData();
+    $.each($('#' + id +' [name]'), function(i, elem) {
+        formData.append($(elem).attr('name'), $(elem).val());
+    });
+
+    $.ajax({
+        type: "POST",
+        url: $('#' + id).attr('action'),
+        data: formData,
+        enctype: 'multipart/form-data',
+        processData: false,
+        contentType: false,
+        cache: false,
+
+        success: onSuccess,
+    });
+}
+
 (function($) {
 
     var addUserForm = document.getElementById('js-add_user-form');
 
     addUserForm.addEventListener('submit', function(e) {
-      var uploadFullname = $('#fullname').val();
-      var uploadUsername = $('#user_name').val();
-      var uploadPassword = $('#password').val();
-      var uploadRePassword = $('#repassword').val();
-      var uploadEmail = $('#email').val();
-
-      e.preventDefault();
-
-      var formData = new FormData();
-      formData.append('fullname', uploadFullname);
-      formData.append('user_name', uploadUsername);
-      formData.append('password', uploadPassword);
-      formData.append('repassword', uploadRePassword);
-      formData.append('email', uploadEmail);
-
-      $.ajax ({
-        type: "POST",
-        url: $(addUserForm).attr('action'),
-        data: formData,
-        enctype: 'multipart/form-data',
-        processData: false,  // Important!
-        contentType: false,
-        cache: false,
-
-        success: function(json) {
-          console.log(json);
-          $(".status").empty();
-          if (json.status == "succeeded") {
-            $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
-            setTimeout(function(){
-              window.location.href = "/pages/users";
-            }, 1500);
-          } else {
-            $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
-          }
-        },
-      });
+        e.preventDefault();
+        post_form_data($, 'js-add_user-form', function(json) {
+        $(".status").empty();
+        if (json.status == "succeeded") {
+          $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+          setTimeout(function(){
+            window.location.href = "/pages/users";
+          }, 1500);
+        } else {
+          $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+        }
+        });
     })
 
 })(jQuery);

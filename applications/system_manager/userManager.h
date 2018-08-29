@@ -13,18 +13,10 @@
 
 #include "ini.h"
 #include "user.h"
+#include "rpcMessageUsers.h"
 
 namespace app
 {
-
-enum user_error {
-    SUCCEEDED,
-    FAILED,
-    USER_NOT_VALID,
-    USERNAME_EXISTED,
-    EMAIL_EXISTED,
-    ERROR_MAX_USER
-};
 
 class userManager
 {
@@ -48,7 +40,7 @@ public:
     bool is_email_existed(std::string email);
 
     bool addOrEditUser(app::user &user);
-    user_error addUser(app::user &user);
+    app::rpcMessageUsersResultType addUser(app::user &user);
     bool editUser(app::user &user);
     bool deleteUser(app::user &user);
     void initFromFile();

@@ -23,7 +23,6 @@
 #include "MPFDParser/Field.h"
 #include "MPFDParser/Exception.h"
 #include "user.h"
-#include "user_error_code.h"
 
 #define TO_KBIT(a) ((a * 8 ) / 1000)
 
@@ -173,43 +172,40 @@ static inline std::string build_user_rsp_json(std::string status, std::string me
     return ss_json.str();
 }
 
-static user_error_t validate_user(std::string fullname, std::string user_name, std::string password, std::string repassword,
-                        std::string email)
-{
-    //compare password and repassword
-    if (password.compare(repassword) != 0) {
-        return USER_PWD_NOT_MATCH;
-    }
-
-    return USER_SUCCESS;
-}
-
-static int do_add_user(app::user &user)
+static app::rpcMessageUsersResultType do_add_user(app::user &user)
 {
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageUsers msg;
 
     if (rpcClient->doRpc(&msg) == false) {
         syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
-        return 0;
+        return app::rpcMessageUsersResultType::FAILED;
     }
 
-    std::list<app::user> users = msg.getUsers();
-
-    for(auto &u : users) {
-        if (user.getName().compare(u.getName()) == 0) {
-            return 0;
-        }
-    }
-
+    msg.setMsgAction(app::rpcMessageUsersActionType::ADD_USER);
     msg.setUser(user);
 
     if (rpcClient->doRpc(&msg) == false) {
         syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
-        return 0;
+        return app::rpcMessageUsersResultType::FAILED;
     }
 
-    return 1;
+    app::rpcMessageUsersResultType check_account = app::rpcMessageUsersResultType::SUCCEEDED;
+    if (msg.getMsgResult() == app::rpcMessageUsersResultType::ERROR_MAX_USER)
+    {
+        check_account = app::rpcMessageUsersResultType::ERROR_MAX_USER;
+    } else if (msg.getMsgResult() == app::rpcMessageUsersResultType::USER_NOT_VALID)
+    {
+        check_account = app::rpcMessageUsersResultType::USER_NOT_VALID;
+    } else if (msg.getMsgResult() == app::rpcMessageUsersResultType::USERNAME_EXISTED)
+    {
+        check_account = app::rpcMessageUsersResultType::USERNAME_EXISTED;
+    }else if (msg.getMsgResult() == app::rpcMessageUsersResultType::EMAIL_EXISTED)
+    {
+        check_account = app::rpcMessageUsersResultType::EMAIL_EXISTED;
+    }
+
+    return check_account;
 }
 
 static bool get_post_data(FCGX_Request *request, std::string &data)
@@ -307,7 +303,7 @@ std::string json_handle_users(FCGX_Request *request)
         {
 
             app::user user;
-            std::string fullname, user_name, password, repassword, email;
+            std::string fullname, user_name, password, email;
             try
             {
                 MPFD::Parser POSTParser;
@@ -319,7 +315,6 @@ std::string json_handle_users(FCGX_Request *request)
                 fullname = POSTParser.GetField("fullname")->GetTextTypeContent();
                 user_name = POSTParser.GetField("user_name")->GetTextTypeContent();
                 password = POSTParser.GetField("password")->GetTextTypeContent();
-                repassword = POSTParser.GetField("repassword")->GetTextTypeContent();
                 email = POSTParser.GetField("email")->GetTextTypeContent();
 
             } catch (MPFD::Exception &e) {
@@ -328,27 +323,30 @@ std::string json_handle_users(FCGX_Request *request)
                 return build_user_rsp_json(status, "Failed to get data from browser");
             }
 
-            user_error_t validate_status = validate_user(fullname, user_name, password, repassword, email);
-            if (validate_status == USER_SUCCESS)
-            {
-                user.setFullName(fullname.c_str());
-                user.setName(user_name.c_str());
-                user.setPassword(password.c_str());
-                user.setEmail(email.c_str());
+            user.setFullName(fullname.c_str());
+            user.setName(user_name.c_str());
+            user.setPassword(password.c_str());
+            user.setEmail(email.c_str());
 
-                if (do_add_user(user)) {
-                    status.assign("succeeded");
+            app::rpcMessageUsersResultType validate_user = do_add_user(user);
 
-                    return build_user_rsp_json(status);
-                }
-                else
-                {
-                    return build_user_rsp_json(status, "User name exist");
-                }
+            if (validate_user == app::rpcMessageUsersResultType::SUCCEEDED) {
+                status.assign("succeeded");
+
+                return build_user_rsp_json(status);
             }
-            else if (validate_status == USER_PWD_NOT_MATCH)
+            else if (validate_user == app::rpcMessageUsersResultType::ERROR_MAX_USER)
             {
-                return build_user_rsp_json(status, "Password does not match");
+                return build_user_rsp_json(status, "Error max user");
+            }else if (validate_user == app::rpcMessageUsersResultType::USER_NOT_VALID)
+            {
+                return build_user_rsp_json(status, "User information not valid");
+            }else if (validate_user == app::rpcMessageUsersResultType::USERNAME_EXISTED)
+            {
+                return build_user_rsp_json(status, "User name existed");
+            }else if (validate_user == app::rpcMessageUsersResultType::EMAIL_EXISTED)
+            {
+                return build_user_rsp_json(status, "Email existed");
             }
         }
     }

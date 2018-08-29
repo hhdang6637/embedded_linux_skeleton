@@ -16,7 +16,7 @@
 namespace app
 {
 
-enum class rpcMessageUsersActionType : uint16_t
+enum rpcMessageUsersActionType : uint16_t
 {
     GET_USERS,
     ADD_USER,
@@ -24,14 +24,14 @@ enum class rpcMessageUsersActionType : uint16_t
     DELETE_USER
 };
 
-enum class rpcMessageUsersResultType : uint16_t
+enum rpcMessageUsersResultType : uint16_t
 {
     SUCCEEDED,
-    FAILED,
     USER_NOT_VALID,
     USERNAME_EXISTED,
     EMAIL_EXISTED,
-    ERROR_MAX_USER
+    ERROR_MAX_USER,
+    FAILED
 };
 
 class rpcMessageUsers: public rpcMessage

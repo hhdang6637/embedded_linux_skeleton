@@ -150,28 +150,41 @@ static bool users_action_handler(int socket_fd)
                 return msgUsers.serialize(socket_fd);
             }
             break;
-            case app::rpcMessageUsersActionType::SET_USERS:
+            case app::rpcMessageUsersActionType::ADD_USER:
             {
                 if (msgUsers.getUsers().size() > 0) {
 
                     app::user user = msgUsers.getUsers().front();
 
 #if 0
-                    syslog(LOG_NOTICE, "%s: SET_USERS, username : %s, password : %s, fullname : %s, email : %s", __FUNCTION__,
+                    syslog(LOG_NOTICE, "%s: ADD_USERS, username : %s, password : %s, fullname : %s, email : %s", __FUNCTION__,
                             user.getName().c_str(), user.getPassword().c_str(),
                             user.getFullName().c_str(), user.getEmail().c_str());
 #endif
-
-                    if (app::userManager::getInstance()->addUser(user)) {
+                    app::rpcMessageUsersResultType validate_user = app::userManager::getInstance()->addUser(user);
+                    if (validate_user == app::rpcMessageUsersResultType::SUCCEEDED) {
 
                         if (app::userManager::getInstance()->writeToFile()) {
                             syslog(LOG_ERR, "cannot update the user.conf");
                         }
-
                         msgUsers.setMsgResult(app::rpcMessageUsersResultType::SUCCEEDED);
 
-                    } else {
-                        msgUsers.setMsgResult(app::rpcMessageUsersResultType::FAILED);
+                    }
+                    else if (validate_user == app::rpcMessageUsersResultType::USER_NOT_VALID)
+                    {
+                        msgUsers.setMsgResult(app::rpcMessageUsersResultType::USER_NOT_VALID);
+                    }
+                    else if (validate_user == app::rpcMessageUsersResultType::ERROR_MAX_USER)
+                    {
+                        msgUsers.setMsgResult(app::rpcMessageUsersResultType::ERROR_MAX_USER);
+                    }
+                    else if (validate_user == app::rpcMessageUsersResultType::USERNAME_EXISTED)
+                    {
+                        msgUsers.setMsgResult(app::rpcMessageUsersResultType::USERNAME_EXISTED);
+                    }
+                    else if (validate_user == app::rpcMessageUsersResultType::EMAIL_EXISTED)
+                    {
+                        msgUsers.setMsgResult(app::rpcMessageUsersResultType::EMAIL_EXISTED);
                     }
                 } else {
                     msgUsers.setMsgResult(app::rpcMessageUsersResultType::FAILED);

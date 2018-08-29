@@ -144,42 +144,39 @@ bool userManager::addOrEditUser(app::user &user)
     return rc;
 }
 
-user_error userManager::addUser(app::user &user) {
-     user_error check = SUCCEEDED;
+app::rpcMessageUsersResultType userManager::addUser(app::user &user) {
+    rpcMessageUsersResultType check = app::rpcMessageUsersResultType::SUCCEEDED;
 
-     if (users.size() >= userManager::MAX_USERS) {
-         syslog(LOG_NOTICE, "maximum user is reached %d, cannot add more", userManager::MAX_USERS);
-         check = ERROR_MAX_USER;
-         return check;
-     }
+    if (users.size() >= userManager::MAX_USERS) {
+        syslog(LOG_NOTICE, "maximum user is reached %d, cannot add more", userManager::MAX_USERS);
+        check = app::rpcMessageUsersResultType::ERROR_MAX_USER;
+        return check;
+    }
 
-     if (user.isValid()) {
-         if(is_username_existed(user.getName()) == false)
-         {
-             if (is_email_existed(user.getEmail()) == false)
-             {
-                 this->users.insert(std::pair<std::string, app::user>(user.getName(), user));
-                 this->createUser(user);
-                 syslog(LOG_NOTICE, "create new user %s", user.getName().c_str());
-             } else
-             {
-                 syslog(LOG_NOTICE, "email existed");
-                 check = EMAIL_EXISTED;
-                 return check;
-             }
-         } else {
-             syslog(LOG_NOTICE, "user existed");
-             check = USERNAME_EXISTED;
-             return check;
-         }
+    if (user.isValid()) {
+        if (is_username_existed(user.getName()) == false) {
+            if (is_email_existed(user.getEmail()) == false) {
+                this->users.insert(std::pair<std::string, app::user>(user.getName(), user));
+                this->createUser(user);
+                syslog(LOG_NOTICE, "create new user %s", user.getName().c_str());
+            } else {
+                syslog(LOG_NOTICE, "email existed");
+                check = app::rpcMessageUsersResultType::EMAIL_EXISTED;
+                return check;
+            }
+        } else {
+            syslog(LOG_NOTICE, "user existed");
+            check = app::rpcMessageUsersResultType::USERNAME_EXISTED;
+            return check;
+        }
 
-         this->changeUserPass(user);
-     } else {
-         syslog(LOG_NOTICE, "user not valid for add");
-         check = USER_NOT_VALID;
-     }
+        this->changeUserPass(user);
+    } else {
+        syslog(LOG_NOTICE, "user not valid for add");
+        check = app::rpcMessageUsersResultType::USER_NOT_VALID;
+    }
 
-     return check;
+    return check;
 }
 
 bool userManager::editUser(app::user &user) {
