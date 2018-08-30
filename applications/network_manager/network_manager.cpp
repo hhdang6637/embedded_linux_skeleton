@@ -14,6 +14,7 @@
 #include "rpcMessageAddr.h"
 #ifdef pi_3_b
 #include "serviceHostapd.h"
+#include "serviceDnsmasq.h"
 #endif // pi_3_b
 
 static bool _network_manager_wake_up(const char* interfaceName)
@@ -65,6 +66,13 @@ void network_manager_init()
         // start hostapd
         app::serviceHostapd::getInstance()->init();
         app::serviceHostapd::getInstance()->start();
+        app::serviceDnsmasq::getInstance()->init();
+        app::serviceDnsmasq::getInstance()->start();
+        system("ifconfig wlan0 10.0.0.1 netmask 255.255.255.0");
+        system("echo 1 > /proc/sys/net/ipv4/ip_forward");
+        // FIXME - hardcode ip and interface
+        setenv("XTABLES_LIBDIR", "/usr/lib", 1);
+        system("iptables -t nat -I POSTROUTING -o eth0 -s 10.0.0.0/24 -j MASQUERADE");
     }
 #endif
 
