@@ -3,6 +3,10 @@
     <div class="panel-body">
       <h3>System Log</h3>
       <textarea class="form-control" rows="20" id="text_log" readonly></textarea>
+      <br>
+      <div class="col-md-12 text-center">
+        <button type="button" class="btn btn-info " id="syslog-refresh">Refresh</button>
+      </div>
     </div>
   </div>
 </div> <!-- /container -->
@@ -17,6 +21,9 @@ $(function () {
 
     $(document).ready(function(){
         showSyslog();
+        $( "#syslog-refresh" ).click(function() {
+            showSyslog();
+        });
     });
 
     function showSyslog() {
