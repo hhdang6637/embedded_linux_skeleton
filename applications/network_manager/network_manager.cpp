@@ -12,6 +12,9 @@
 #include "serviceDhcpC.h"
 #include "rpcUnixServer.h"
 #include "rpcMessageAddr.h"
+#ifdef pi_3_b
+#include "serviceHostapd.h"
+#endif // pi_3_b
 
 static bool _network_manager_wake_up(const char* interfaceName)
 {
@@ -47,12 +50,6 @@ void network_manager_init()
 
     sleep(5);
 
-#ifdef pi_3_b
-    system("modprobe brcmfmac");
-    sleep(1);
-    _network_manager_wake_up("wlan0");
-#endif
-
     // start network interface eth0
     if (_network_manager_wake_up("eth0")) {
         // start udhcp
@@ -60,6 +57,16 @@ void network_manager_init()
         app::serviceDhcpC::getInstance()->addManagedInterfaces("eth0");
         app::serviceDhcpC::getInstance()->start();
     }
+
+#ifdef pi_3_b
+    system("modprobe brcmfmac");
+    sleep(1);
+    if (_network_manager_wake_up("wlan0")) {
+        // start hostapd
+        app::serviceHostapd::getInstance()->init();
+        app::serviceHostapd::getInstance()->start();
+    }
+#endif
 
     app::rpcMessageAddr addr = app::rpcMessageAddr::getRpcMessageAddrbyType(
             app::rpcMessageAddr::rpcMessageAddrType::network_manager_addr_t);

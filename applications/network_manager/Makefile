@@ -2,7 +2,9 @@ CXXFLAGS += -lapp
 
 BIN=network_manager_daemon
 SRCS=main.o network_manager.o serviceDhcpC.o
-
+ifeq ($(MODEL),pi_3_b)
+SRCS+= serviceHostapd.o
+endif
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@
 
