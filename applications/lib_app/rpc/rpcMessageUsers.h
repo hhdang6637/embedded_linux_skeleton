@@ -27,12 +27,16 @@ enum rpcMessageUsersActionType : uint16_t
 enum rpcMessageUsersResultType : uint16_t
 {
     SUCCEEDED,
-    USER_NOT_VALID,
+    USER_INVALID,
     USERNAME_EXISTED,
+    USER_NOT_EXISTED,
     EMAIL_EXISTED,
     ERROR_MAX_USER,
-    FAILED
+    UNKNOWN_ERROR
 };
+
+// we should move this function to conversion.cpp after the netlink_event branch merged into master
+std::string userMsgResult2Str(const app::rpcMessageUsersResultType type);
 
 class rpcMessageUsers: public rpcMessage
 {
@@ -47,13 +51,15 @@ public:
     rpcMessageUsers();
     virtual ~rpcMessageUsers();
 
-    std::list<app::user> getUsers();
-    void setUsers(std::list<app::user> &users);
-    void setUser(app::user &user);
+    std::list<app::user>           getUsers();
+    void                           setUsers(const std::list<app::user> &users);
+    void                           setUser(const app::user &user);
+
     app::rpcMessageUsersActionType getMsgAction();
-    void setMsgAction(rpcMessageUsersActionType type);
+    void                           setMsgAction(const rpcMessageUsersActionType type);
+
     app::rpcMessageUsersResultType getMsgResult();
-    void setMsgResult(rpcMessageUsersResultType type);
+    void                           setMsgResult(const rpcMessageUsersResultType type);
 
 };
 
