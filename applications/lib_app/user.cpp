@@ -80,10 +80,10 @@ std::string user::getEmail()
     return std::string(this->email);
 }
 
-int validate_email(const char* email)
+static int validate_email(const char* email)
 {
-    char *permis_special_local = "!#$&*~`?_-/{}|=.";
-    char *permis_special_domain = ".";
+    const char *permis_special_local = "!#$&*~`?_-/{}|=.";
+    const char *permis_special_domain = ".";
 
     int index_isolate = -1;
     char *c;
@@ -117,7 +117,7 @@ int validate_email(const char* email)
         return -1;
 
     /* valid domain */
-    for(i = index_isolate + 1; i < strlen(email); i++)
+    for(i = index_isolate + 1; i < (int)strlen(email); i++)
     {
         c = strchr(permis_special_domain, email[i]);
 
@@ -165,9 +165,9 @@ int validate_email(const char* email)
     return 0;
 }
 
-int validate_password(const char* pass)
+static int validate_password(const char* pass)
 {
-    char *permis_special = "!@#$^&()_-+={}[];:<>,.?/";
+    const char *permis_special = "!@#$^&()_-+={}[];:<>,.?/";
 
     if(pass == NULL)
         return -1;
@@ -175,7 +175,7 @@ int validate_password(const char* pass)
     if(strlen(pass) < 8 || strlen(pass) > 32)
         return -1;
 
-    int i = 0;
+    size_t i = 0;
     char *c = NULL;
 
     for(; i < strlen(pass); i++)
