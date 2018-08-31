@@ -80,6 +80,129 @@ std::string user::getEmail()
     return std::string(this->email);
 }
 
+int validate_email(const char* email)
+{
+    char *permis_special_local = "!#$&*~`?_-/{}|=.";
+    char *permis_special_domain = ".";
+
+    int index_isolate = -1;
+    char *c;
+
+    if(email == NULL)
+        return -1;
+
+    if(strlen(email) > 32)
+        return -1;
+
+    if(email[0] == '@') /* @example.com */
+        return -1;
+
+    if(email[strlen(email)-1] == '@') /* abc@ */
+        return -1;
+
+    int i =  strlen(email);
+    for(; i >= 0; i--)
+    {
+        if(email[i] == '@')
+        {
+            index_isolate = i;
+            break;
+        }
+    }
+
+    if(index_isolate == -1)
+        return -1;
+
+    if(email[ index_isolate + 1 ] == '.' || email[ strlen(email) - 1 ] == '.') /* abc@.example.vn*/
+        return -1;
+
+    /* valid domain */
+    for(i = index_isolate + 1; i < strlen(email); i++)
+    {
+        c = strchr(permis_special_domain, email[i]);
+
+        if(c == NULL)
+        {
+            //in range [0-9]
+            if(email[i] >= 48 && email[i] <= 57)
+                continue;
+
+            //in range [A-Z]
+            if(email[i] >= 65 && email[i] <= 90)
+                continue;
+
+            //in range[a-z]
+            if(email[i] >= 97 && email[i] <= 122)
+                continue;
+
+            return -1;
+        }
+    }
+
+    /* valid local */
+    for(i = 0; i < index_isolate; i++)
+    {
+        c = strchr(permis_special_local, email[i]);
+
+        if(c == NULL)
+        {
+            //in range [0-9]
+            if(email[i] >= 48 && email[i] <= 57)
+                continue;
+
+            //in range [A-Z]
+            if(email[i] >= 65 && email[i] <= 90)
+                continue;
+
+            //in range[a-z]
+            if(email[i] >= 97 && email[i] <= 122)
+                continue;
+
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+int validate_password(const char* pass)
+{
+    char *permis_special = "!@#$^&()_-+={}[];:<>,.?/";
+
+    if(pass == NULL)
+        return -1;
+
+    if(strlen(pass) < 8 || strlen(pass) > 32)
+        return -1;
+
+    int i = 0;
+    char *c = NULL;
+
+    for(; i < strlen(pass); i++)
+    {
+        c = strchr(permis_special, pass[i]);
+
+        if(c == NULL)
+        {
+            //in range [0-9]
+            if(pass[i] >= 48 && pass[i] <= 57)
+                continue;
+
+            //in range [A-Z]
+            if(pass[i] >= 65 && pass[i] <= 90)
+                continue;
+
+            //in range[a-z]
+            if(pass[i] >= 97 && pass[i] <= 122)
+                continue;
+
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
 bool user::isValid()
 {
     bool rc = true;
@@ -92,6 +215,16 @@ bool user::isValid()
     }
 
     if (this->name[0] == '\0' || this->password[0] == '\0') {
+        rc = false;
+    }
+
+    if(validate_email(this->email) == -1)
+    {
+        rc = false;
+    }
+
+    if(validate_password(this->password) == -1)
+    {
         rc = false;
     }
 
