@@ -133,6 +133,11 @@ std::list<app::user> rpcMessageUsers::getUsers()
     return this->users;
 }
 
+app::user& rpcMessageUsers::getUser()
+{
+    return this->users.front();
+}
+
 void rpcMessageUsers::setUsers(const std::list<app::user> &users)
 {
     this->msgAction = rpcMessageUsersActionType::ADD_USER;

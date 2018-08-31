@@ -150,27 +150,15 @@ static bool users_action_handler(int socket_fd)
 
             case app::rpcMessageUsersActionType::ADD_USER:
             {
-                if (msgUsers.getUsers().size() > 0) {
-
-                    msgUsers.setMsgResult(app::userManager::getInstance()->addUser(msgUsers.getUsers().front()));
-
-                } else {
-                    msgUsers.setMsgResult(app::rpcMessageUsersResultType::UNKNOWN_ERROR);
-                }
+                msgUsers.setMsgResult(app::userManager::getInstance()->addUser(msgUsers.getUser()));
 
                 return msgUsers.serialize(socket_fd);
             }
 
             case app::rpcMessageUsersActionType::EDIT_USER:
             {
-                if (msgUsers.getUsers().size() > 0) {
-
-                    msgUsers.setMsgResult(app::userManager::getInstance()->editUser(msgUsers.getUsers().front(),
-                                                                                    msgUsers.getEditPwd()));
-
-                } else {
-                    msgUsers.setMsgResult(app::rpcMessageUsersResultType::UNKNOWN_ERROR);
-                }
+                msgUsers.setMsgResult(app::userManager::getInstance()->editUser(msgUsers.getUser(),
+                                                                                msgUsers.getEditPwd()));
 
                 return msgUsers.serialize(socket_fd);
             }

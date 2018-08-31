@@ -54,6 +54,7 @@ public:
 
     std::list<app::user>           getUsers();
     void                           setUsers(const std::list<app::user> &users);
+    app::user&                     getUser();
     void                           setUser(const app::user &user);
 
     bool                           getEditPwd();
