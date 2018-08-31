@@ -80,7 +80,7 @@ std::string user::getEmail()
     return std::string(this->email);
 }
 
-static int validate_email(const char* email)
+static int validateEmail(const char* email)
 {
     const char *permis_special_local = "!#$&*~`?_-/{}|=.";
     const char *permis_special_domain = ".";
@@ -165,7 +165,7 @@ static int validate_email(const char* email)
     return 0;
 }
 
-static int validate_password(const char* pass)
+static int validatePassword(const char* pass)
 {
     const char *permis_special = "!@#$^&()_-+={}[];:<>,.?/";
 
@@ -218,12 +218,12 @@ bool user::isValid()
         rc = false;
     }
 
-    if(validate_email(this->email) == -1)
+    if(validateEmail(this->email) == -1)
     {
         rc = false;
     }
 
-    if(validate_password(this->password) == -1)
+    if(validatePassword(this->password) == -1)
     {
         rc = false;
     }

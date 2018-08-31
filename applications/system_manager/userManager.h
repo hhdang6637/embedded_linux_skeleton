@@ -36,8 +36,8 @@ public:
     static userManager* getInstance();
     static const int MAX_USERS;
 
-    bool is_username_existed(std::string user_name);
-    bool is_email_existed(std::string email);
+    bool usernameExisted(std::string user_name);
+    bool emailExisted(std::string email);
 
     app::rpcMessageUsersResultType addUser(app::user &user);
     app::rpcMessageUsersResultType editUser(app::user &user, bool is_edit_pwd);

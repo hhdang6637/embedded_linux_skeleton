@@ -106,7 +106,7 @@ void userManager::changeUserPass(app::user &user)
     system(cmd);
 }
 
-bool userManager::is_username_existed(std::string user_name)
+bool userManager::usernameExisted(std::string user_name)
 {
     for (auto &u : this->users) {
         if (u.first.compare(user_name) == 0) {
@@ -117,7 +117,7 @@ bool userManager::is_username_existed(std::string user_name)
     return false;
 }
 
-bool userManager::is_email_existed(std::string email)
+bool userManager::emailExisted(std::string email)
 {
     for (auto &u : this->users) {
         if (u.second.getEmail().compare(email) == 0) {
@@ -136,76 +136,64 @@ app::rpcMessageUsersResultType userManager::addUser(app::user &user)
     }
 
     if (user.isValid()) {
-        if (is_username_existed(user.getName()) == false) {
-            if (is_email_existed(user.getEmail()) == false) {
-                this->users.insert(std::pair<std::string, app::user>(user.getName(), user));
-                this->createUser(user);
-                syslog(LOG_NOTICE, "create new user %s", user.getName().c_str());
-            } else {
-                syslog(LOG_NOTICE, "email existed");
-                return app::rpcMessageUsersResultType::EMAIL_EXISTED;
-            }
-        } else {
+        if (usernameExisted(user.getName())) {
             syslog(LOG_NOTICE, "user existed");
             return app::rpcMessageUsersResultType::USERNAME_EXISTED;
+
+        } else if (emailExisted(user.getEmail())) {
+            syslog(LOG_NOTICE, "email existed");
+            return app::rpcMessageUsersResultType::EMAIL_EXISTED;
         }
 
+        this->users.insert(std::pair<std::string, app::user>(user.getName(), user));
+        this->createUser(user);
         this->changeUserPass(user);
-    } else {
-        syslog(LOG_NOTICE, "user not valid for add");
-        return app::rpcMessageUsersResultType::USER_INVALID;
+
+        if (this->writeToFile()) {
+            syslog(LOG_ERR, "cannot update the user.conf");
+        }
+
+        syslog(LOG_NOTICE, "created user %s successfully", user.getName().c_str());
+        return app::rpcMessageUsersResultType::SUCCEEDED;
     }
 
-    if (this->writeToFile()) {
-        syslog(LOG_ERR, "cannot update the user.conf");
-    }
-
-    return app::rpcMessageUsersResultType::SUCCEEDED;
+    syslog(LOG_NOTICE, "user not valid for add");
+    return app::rpcMessageUsersResultType::USER_INVALID;
 }
 
-app::rpcMessageUsersResultType userManager::editUser(app::user &user, bool is_edit_pwd)
+app::rpcMessageUsersResultType userManager::editUser(app::user &user, bool changPasswd)
 {
-    if (is_edit_pwd == false) {
-        auto it = this->users.find(user.getName());
+    auto it = this->users.find(user.getName());
 
-        if (it != this->users.end()) {
-            user.setPassword(it->second.getPassword().c_str());
-        }
+    if (it == this->users.end()) {
+        syslog(LOG_NOTICE, "user doesn't exist");
+        return app::rpcMessageUsersResultType::USER_NOT_EXISTED;
+    }
+
+    if (!changPasswd) {
+        user.setPassword(it->second.getPassword().c_str());
     }
 
     if (user.isValid()) {
-        auto it = this->users.find(user.getName());
 
-        if (it != this->users.end()) {
-
-            if (it->second.getEmail() != user.getEmail()) {
-                if (is_email_existed(user.getEmail()))
-                {
-                    syslog(LOG_NOTICE, "email existed");
-                    return app::rpcMessageUsersResultType::EMAIL_EXISTED;
-                } else {
-                    it->second = user;
-                }
-            }
-
-            this->changeUserPass(user);
-
-        } else {
-            syslog(LOG_NOTICE, "user doesn't exist");
-            return app::rpcMessageUsersResultType::USER_NOT_EXISTED;
+        if (it->second.getEmail() != user.getEmail() && emailExisted(user.getEmail())) {
+            syslog(LOG_NOTICE, "email existed");
+            return app::rpcMessageUsersResultType::EMAIL_EXISTED;
         }
 
-    } else {
-        syslog(LOG_NOTICE, "user not valid for edit");
-        return app::rpcMessageUsersResultType::USER_INVALID;
+        this->changeUserPass(user);
+        it->second = user;
+
+        if (this->writeToFile()) {
+            syslog(LOG_ERR, "cannot update the user.conf");
+        }
+
+        syslog(LOG_NOTICE, "edit user %s succeed", user.getName().c_str());
+        return app::rpcMessageUsersResultType::SUCCEEDED;
     }
 
-    if (this->writeToFile()) {
-        syslog(LOG_ERR, "cannot update the user.conf");
-    }
-
-    syslog(LOG_NOTICE, "edit user %s succeed", user.getName().c_str());
-    return app::rpcMessageUsersResultType::SUCCEEDED;
+    syslog(LOG_NOTICE, "user not valid for edit");
+    return app::rpcMessageUsersResultType::USER_INVALID;
 }
 
 bool userManager::deleteUser(app::user &user)
