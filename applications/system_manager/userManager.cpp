@@ -158,26 +158,38 @@ app::rpcMessageUsersResultType userManager::addUser(app::user &user)
     return app::rpcMessageUsersResultType::SUCCEEDED;
 }
 
-app::rpcMessageUsersResultType userManager::editUser(app::user &user)
+app::rpcMessageUsersResultType userManager::editUser(app::user &user, bool is_edit_pwd)
 {
+    if (is_edit_pwd == false) {
+        auto it = this->users.find(user.getName());
+
+        if (it != this->users.end()) {
+            user.setPassword(it->second.getPassword().c_str());
+        }
+    }
+
     if (user.isValid()) {
         auto it = this->users.find(user.getName());
 
         if (it != this->users.end()) {
 
-            if (it->second.getEmail() != user.getEmail() && is_email_existed(user.getEmail())) {
-                syslog(LOG_NOTICE, "email existed");
-                return app::rpcMessageUsersResultType::EMAIL_EXISTED;
-            } else {
-                it->second = user;
+            if (it->second.getEmail() != user.getEmail()) {
+                if (is_email_existed(user.getEmail()))
+                {
+                    syslog(LOG_NOTICE, "email existed");
+                    return app::rpcMessageUsersResultType::EMAIL_EXISTED;
+                } else {
+                    it->second = user;
+                }
             }
+
+            this->changeUserPass(user);
 
         } else {
             syslog(LOG_NOTICE, "user doesn't exist");
             return app::rpcMessageUsersResultType::USER_NOT_EXISTED;
         }
 
-        this->changeUserPass(user);
     } else {
         syslog(LOG_NOTICE, "user not valid for edit");
         return app::rpcMessageUsersResultType::USER_INVALID;

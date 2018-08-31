@@ -193,6 +193,28 @@ static app::rpcMessageUsersResultType do_add_user(app::user &user)
     return msg.getMsgResult();
 }
 
+static app::rpcMessageUsersResultType do_edit_user(app::user &user, bool check_edit_pwd)
+{
+    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+    app::rpcMessageUsers msg;
+
+    if (rpcClient->doRpc(&msg) == false) {
+        syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+        return app::rpcMessageUsersResultType::UNKNOWN_ERROR;
+    }
+
+    msg.setMsgAction(app::rpcMessageUsersActionType::EDIT_USER);
+    msg.setUser(user);
+    msg.setEditPwd(check_edit_pwd);
+
+    if (rpcClient->doRpc(&msg) == false) {
+        syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+        return app::rpcMessageUsersResultType::UNKNOWN_ERROR;
+    }
+
+    return msg.getMsgResult();
+}
+
 std::string json_handle_users(FCGX_Request *request)
 {
     const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
@@ -260,7 +282,8 @@ std::string json_handle_users(FCGX_Request *request)
         if (get_post_data(request, data)) {
 
             app::user user;
-            std::string fullname, user_name, password, email;
+            std::string fullname, user_name, password, email, action, edit_pwd;
+            bool check_edit_pwd = true;
             try {
                 MPFD::Parser POSTParser;
 
@@ -272,6 +295,15 @@ std::string json_handle_users(FCGX_Request *request)
                 user.setName(POSTParser.GetField("user_name")->GetTextTypeContent().c_str());
                 user.setPassword(POSTParser.GetField("password")->GetTextTypeContent().c_str());
                 user.setEmail(POSTParser.GetField("email")->GetTextTypeContent().c_str());
+                action = POSTParser.GetField("action")->GetTextTypeContent();
+
+                if (action == "edit") {
+                    edit_pwd = POSTParser.GetField("edit_pwd")->GetTextTypeContent();
+
+                    if (edit_pwd == "disabled") {
+                        check_edit_pwd = false;
+                    }
+                }
 
             } catch (MPFD::Exception &e) {
                 syslog(LOG_ERR, "%s\n", e.GetError().c_str());
@@ -279,13 +311,24 @@ std::string json_handle_users(FCGX_Request *request)
                 return build_user_rsp_json(failed_str, "Failed to get data from browser");
             }
 
-            app::rpcMessageUsersResultType result = do_add_user(user);
+            if (action == "add") {
+                app::rpcMessageUsersResultType result = do_add_user(user);
 
-            if (result == app::rpcMessageUsersResultType::SUCCEEDED) {
-                return build_user_rsp_json(userMsgResult2Str(result));
+                if (result == app::rpcMessageUsersResultType::SUCCEEDED) {
+                    return build_user_rsp_json(userMsgResult2Str(result));
+                } else {
+                    return build_user_rsp_json(failed_str, userMsgResult2Str(result));
+                }
             } else {
-                return build_user_rsp_json(failed_str, userMsgResult2Str(result));
+                app::rpcMessageUsersResultType result = do_edit_user(user, check_edit_pwd);
+
+                if (result == app::rpcMessageUsersResultType::SUCCEEDED) {
+                    return build_user_rsp_json(userMsgResult2Str(result));
+                } else {
+                    return build_user_rsp_json(failed_str, userMsgResult2Str(result));
+                }
             }
+
         }
     }
 

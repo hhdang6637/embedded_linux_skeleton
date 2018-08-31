@@ -42,6 +42,7 @@ class rpcMessageUsers: public rpcMessage
 {
     app::rpcMessageUsersActionType msgAction;
     app::rpcMessageUsersResultType msgResult;
+    bool editPwd;
     std::list<app::user> users;
 
 public:
@@ -54,6 +55,9 @@ public:
     std::list<app::user>           getUsers();
     void                           setUsers(const std::list<app::user> &users);
     void                           setUser(const app::user &user);
+
+    bool                           getEditPwd();
+    void                           setEditPwd(const bool editPwd_t);
 
     app::rpcMessageUsersActionType getMsgAction();
     void                           setMsgAction(const rpcMessageUsersActionType type);

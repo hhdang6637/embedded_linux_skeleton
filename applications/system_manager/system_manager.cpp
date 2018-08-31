@@ -180,11 +180,11 @@ static bool users_action_handler(int socket_fd)
 
                     app::user user = msgUsers.getUsers().front();
 #if 0
-                    syslog(LOG_NOTICE, "%s: ADD_USERS, username : %s, password : %s, fullname : %s, email : %s", __FUNCTION__,
+                    syslog(LOG_NOTICE, "%s: EDIT_USERS, username : %s, password : %s, fullname : %s, email : %s", __FUNCTION__,
                             user.getName().c_str(), user.getPassword().c_str(),
                             user.getFullName().c_str(), user.getEmail().c_str());
 #endif
-                    app::rpcMessageUsersResultType result = app::userManager::getInstance()->editUser(user);
+                    app::rpcMessageUsersResultType result = app::userManager::getInstance()->editUser(user, msgUsers.getEditPwd());
                     if (app::userManager::getInstance()->writeToFile()) {
                         syslog(LOG_ERR, "cannot update the user.conf");
                     }

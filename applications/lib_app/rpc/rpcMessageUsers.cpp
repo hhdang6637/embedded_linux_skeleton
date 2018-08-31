@@ -65,6 +65,10 @@ bool rpcMessageUsers::serialize(int fd)
             if (rpcMessage::sendInterruptRetry(fd, buff_ptr.get(), offset) != true) {
                 return false;
             }
+
+            if (rpcMessage::sendInterruptRetry(fd, &this->editPwd, sizeof(bool)) != true) {
+                return false;
+            }
             break;
         }
         default:
@@ -110,6 +114,10 @@ bool rpcMessageUsers::deserialize(int fd)
                 rpcMessage::ListFromBuff((app::user*) buff_ptr.get(), this->users, users_size);
             }
 
+            if (rpcMessage::recvInterruptRetry(fd, &this->editPwd, sizeof(bool)) != true) {
+                return false;
+            }
+
             break;
         }
 
@@ -134,6 +142,16 @@ void rpcMessageUsers::setUser(const app::user &user)
 {
     this->users.clear();
     this->users.push_back(user);
+}
+
+bool rpcMessageUsers::getEditPwd ()
+{
+    return this->editPwd;
+}
+
+void rpcMessageUsers::setEditPwd(const bool editPwd_t)
+{
+    this->editPwd = editPwd_t;
 }
 
 app::rpcMessageUsersActionType rpcMessageUsers::getMsgAction()

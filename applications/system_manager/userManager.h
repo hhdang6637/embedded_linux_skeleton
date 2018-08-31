@@ -40,7 +40,7 @@ public:
     bool is_email_existed(std::string email);
 
     app::rpcMessageUsersResultType addUser(app::user &user);
-    app::rpcMessageUsersResultType editUser(app::user &user);
+    app::rpcMessageUsersResultType editUser(app::user &user, bool is_edit_pwd);
     bool                           deleteUser(app::user &user);
 
     void initFromFile();
