@@ -161,7 +161,7 @@ app::rpcMessageUsersResultType userManager::addUser(app::user &user)
     return app::rpcMessageUsersResultType::USER_INVALID;
 }
 
-app::rpcMessageUsersResultType userManager::editUser(app::user &user, bool changPasswd)
+app::rpcMessageUsersResultType userManager::editUser(app::user &user, uint16_t changPasswd)
 {
     auto it = this->users.find(user.getName());
 
@@ -181,8 +181,8 @@ app::rpcMessageUsersResultType userManager::editUser(app::user &user, bool chang
             return app::rpcMessageUsersResultType::EMAIL_EXISTED;
         }
 
-        this->changeUserPass(user);
         it->second = user;
+        this->changeUserPass(user);
 
         if (this->writeToFile()) {
             syslog(LOG_ERR, "cannot update the user.conf");

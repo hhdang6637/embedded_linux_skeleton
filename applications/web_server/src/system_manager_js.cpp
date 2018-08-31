@@ -188,14 +188,14 @@ static app::rpcMessageUsersResultType do_add_user(app::user &user)
     return msg.getMsgResult();
 }
 
-static app::rpcMessageUsersResultType do_edit_user(app::user &user, bool check_edit_pwd)
+static app::rpcMessageUsersResultType do_edit_user(app::user &user, uint16_t changePasswd)
 {
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageUsers msg;
 
     msg.setMsgAction(app::rpcMessageUsersActionType::EDIT_USER);
     msg.setUser(user);
-    msg.setEditPwd(check_edit_pwd);
+    msg.setChangePasswd(changePasswd);
 
     if (rpcClient->doRpc(&msg) == false) {
         syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
@@ -272,8 +272,8 @@ std::string json_handle_users(FCGX_Request *request)
         if (get_post_data(request, data)) {
 
             app::user user;
-            std::string fullname, user_name, password, email, action, edit_pwd;
-            bool check_edit_pwd = true;
+            std::string action;
+            uint16_t changePasswd = 0;
             try {
                 MPFD::Parser POSTParser;
 
@@ -288,10 +288,8 @@ std::string json_handle_users(FCGX_Request *request)
                 action = POSTParser.GetField("action")->GetTextTypeContent();
 
                 if (action == "edit") {
-                    edit_pwd = POSTParser.GetField("edit_pwd")->GetTextTypeContent();
-
-                    if (edit_pwd == "disabled") {
-                        check_edit_pwd = false;
+                    if (POSTParser.GetField("edit_pwd")->GetTextTypeContent() == "enabled") {
+                        changePasswd = 1;
                     }
                 }
 
@@ -306,7 +304,7 @@ std::string json_handle_users(FCGX_Request *request)
             if (action == "add") {
                 result = do_add_user(user);
             } else {
-                result = do_edit_user(user, check_edit_pwd);
+                result = do_edit_user(user, changePasswd);
             }
 
             if (result == app::rpcMessageUsersResultType::SUCCEEDED) {

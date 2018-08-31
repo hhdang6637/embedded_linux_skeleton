@@ -158,7 +158,7 @@ static bool users_action_handler(int socket_fd)
             case app::rpcMessageUsersActionType::EDIT_USER:
             {
                 msgUsers.setMsgResult(app::userManager::getInstance()->editUser(msgUsers.getUser(),
-                                                                                msgUsers.getEditPwd()));
+                                                                                msgUsers.changePasswd()));
 
                 return msgUsers.serialize(socket_fd);
             }

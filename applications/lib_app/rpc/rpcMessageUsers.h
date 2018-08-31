@@ -42,8 +42,8 @@ class rpcMessageUsers: public rpcMessage
 {
     app::rpcMessageUsersActionType msgAction;
     app::rpcMessageUsersResultType msgResult;
-    bool editPwd;
-    std::list<app::user> users;
+    uint16_t                       m_changePasswd;
+    std::list<app::user>           users;
 
 public:
     virtual bool serialize(int fd);
@@ -57,8 +57,8 @@ public:
     app::user&                     getUser();
     void                           setUser(const app::user &user);
 
-    bool                           getEditPwd();
-    void                           setEditPwd(const bool editPwd_t);
+    uint16_t                       changePasswd();
+    void                           setChangePasswd(const uint16_t changePasswd);
 
     app::rpcMessageUsersActionType getMsgAction();
     void                           setMsgAction(const rpcMessageUsersActionType type);

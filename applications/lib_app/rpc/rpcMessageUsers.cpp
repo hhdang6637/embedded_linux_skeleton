@@ -66,7 +66,7 @@ bool rpcMessageUsers::serialize(int fd)
                 return false;
             }
 
-            if (rpcMessage::sendInterruptRetry(fd, &this->editPwd, sizeof(bool)) != true) {
+            if (rpcMessage::sendInterruptRetry(fd, &this->m_changePasswd, sizeof(this->m_changePasswd)) != true) {
                 return false;
             }
             break;
@@ -114,7 +114,7 @@ bool rpcMessageUsers::deserialize(int fd)
                 rpcMessage::ListFromBuff((app::user*) buff_ptr.get(), this->users, users_size);
             }
 
-            if (rpcMessage::recvInterruptRetry(fd, &this->editPwd, sizeof(bool)) != true) {
+            if (rpcMessage::recvInterruptRetry(fd, &this->m_changePasswd, sizeof(this->m_changePasswd)) != true) {
                 return false;
             }
 
@@ -149,14 +149,14 @@ void rpcMessageUsers::setUser(const app::user &user)
     this->users.push_back(user);
 }
 
-bool rpcMessageUsers::getEditPwd ()
+uint16_t rpcMessageUsers::changePasswd()
 {
-    return this->editPwd;
+    return this->m_changePasswd;
 }
 
-void rpcMessageUsers::setEditPwd(const bool editPwd_t)
+void rpcMessageUsers::setChangePasswd(const uint16_t changePasswd)
 {
-    this->editPwd = editPwd_t;
+    this->m_changePasswd = changePasswd;
 }
 
 app::rpcMessageUsersActionType rpcMessageUsers::getMsgAction()
