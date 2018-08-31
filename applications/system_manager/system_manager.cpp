@@ -154,18 +154,7 @@ static bool users_action_handler(int socket_fd)
             {
                 if (msgUsers.getUsers().size() > 0) {
 
-                    app::user user = msgUsers.getUsers().front();
-#if 0
-                    syslog(LOG_NOTICE, "%s: ADD_USERS, username : %s, password : %s, fullname : %s, email : %s", __FUNCTION__,
-                            user.getName().c_str(), user.getPassword().c_str(),
-                            user.getFullName().c_str(), user.getEmail().c_str());
-#endif
-                    app::rpcMessageUsersResultType result = app::userManager::getInstance()->addUser(user);
-                    if (app::userManager::getInstance()->writeToFile()) {
-                        syslog(LOG_ERR, "cannot update the user.conf");
-                    }
-
-                    msgUsers.setMsgResult(result);
+                    msgUsers.setMsgResult(app::userManager::getInstance()->addUser(msgUsers.getUsers().front()));
 
                 } else {
                     msgUsers.setMsgResult(app::rpcMessageUsersResultType::UNKNOWN_ERROR);
@@ -178,18 +167,8 @@ static bool users_action_handler(int socket_fd)
             {
                 if (msgUsers.getUsers().size() > 0) {
 
-                    app::user user = msgUsers.getUsers().front();
-#if 0
-                    syslog(LOG_NOTICE, "%s: EDIT_USERS, username : %s, password : %s, fullname : %s, email : %s", __FUNCTION__,
-                            user.getName().c_str(), user.getPassword().c_str(),
-                            user.getFullName().c_str(), user.getEmail().c_str());
-#endif
-                    app::rpcMessageUsersResultType result = app::userManager::getInstance()->editUser(user, msgUsers.getEditPwd());
-                    if (app::userManager::getInstance()->writeToFile()) {
-                        syslog(LOG_ERR, "cannot update the user.conf");
-                    }
-
-                    msgUsers.setMsgResult(result);
+                    msgUsers.setMsgResult(app::userManager::getInstance()->editUser(msgUsers.getUsers().front(),
+                                                                                    msgUsers.getEditPwd()));
 
                 } else {
                     msgUsers.setMsgResult(app::rpcMessageUsersResultType::UNKNOWN_ERROR);

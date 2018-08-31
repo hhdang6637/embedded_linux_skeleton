@@ -155,6 +155,10 @@ app::rpcMessageUsersResultType userManager::addUser(app::user &user)
         return app::rpcMessageUsersResultType::USER_INVALID;
     }
 
+    if (this->writeToFile()) {
+        syslog(LOG_ERR, "cannot update the user.conf");
+    }
+
     return app::rpcMessageUsersResultType::SUCCEEDED;
 }
 
@@ -193,6 +197,10 @@ app::rpcMessageUsersResultType userManager::editUser(app::user &user, bool is_ed
     } else {
         syslog(LOG_NOTICE, "user not valid for edit");
         return app::rpcMessageUsersResultType::USER_INVALID;
+    }
+
+    if (this->writeToFile()) {
+        syslog(LOG_ERR, "cannot update the user.conf");
     }
 
     syslog(LOG_NOTICE, "edit user %s succeed", user.getName().c_str());
