@@ -172,7 +172,7 @@ static int validate_password(const char* pass)
     if(pass == NULL)
         return -1;
 
-    if(strlen(pass) < 8 || strlen(pass) > 32)
+    if(strlen(pass) < 4 || strlen(pass) > 32)
         return -1;
 
     size_t i = 0;

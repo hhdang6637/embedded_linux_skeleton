@@ -66,6 +66,7 @@ void userManager::initDefaultUsers()
     user.setName("root");
     user.setFullName("root");
     user.setPassword("root");
+    user.setEmail("root@gmail.com");
     defaultUsers.push_back(user);
 
     user.setName("admin");
