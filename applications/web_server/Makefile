@@ -24,6 +24,12 @@ install:
 	@cp -aLr $(CSS)/*             $(CSS_DIR)
 	@cp -aLr $(JS)/*              $(JS_DIR)
 	@cp -aLr $(HTML)/*            $(PRIVATE_DIR)
+ifneq ("$(wildcard $(PRIVATE_DIR)/navbar_$(MODEL).html)","")
+	@cp $(PRIVATE_DIR)/navbar_$(MODEL).html $(PRIVATE_DIR)/navbar.html
+endif
+ifneq ("$(wildcard $(PRIVATE_DIR)/html_mapping_$(MODEL).txt)","")
+	@cp $(PRIVATE_DIR)/html_mapping_$(MODEL).txt $(PRIVATE_DIR)/html_mapping.txt
+endif
 
 all: $(BIN) install
 	@$(MAKE) -C src clean all

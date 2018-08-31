@@ -1,0 +1,35 @@
+<div class="container">
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <h3>Access Point Setting</h3>
+      <form action="/pages/wifisetting">
+        <div class="form-group">
+          <label for="ssid">Access Point SSID:</label>
+          <input type="text" class="form-control" placeholder="Enter Access Point SSID" name="ssid">
+        </div>
+        <div class="form-group">
+          <label for="preshared_key">Pre-Shared Key:</label>
+          <input type="text" class="form-control" placeholder="Enter Access Point Pre-Shared Key" name="preshared_key">
+        </div>
+        <div class="checkbox">
+          <label><input type="checkbox" data-toggle="collapse" data-target="#access_point_enable" class="collapsed" aria-expanded="false"> Enable Access Point</label>
+        </div>
+      </form>
+    </div>
+  </div>
+</div> <!-- /container -->
+<script>
+
+$(function () {
+    $("#myTopnav").find("a[href='/pages/wifisetting']").addClass("active")
+});
+
++ function($) {
+    'use strict';
+
+    $(document).ready(function(){
+    });
+
+}(jQuery);
+
+</script>

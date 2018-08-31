@@ -1,0 +1,10 @@
+/,dashboard.html
+/index.html,dashboard.html
+/pages/home,dashboard.html
+/pages/dashboard,dashboard.html
+/pages/firmware,firmware.html
+/pages/users,users.html
+/pages/adduser,adduser.html
+/pages/edituser,edituser.html
+/pages/syslog,syslog.html
+/pages/wifisetting,wifisetting.html
