@@ -144,9 +144,7 @@ static bool users_action_handler(int socket_fd)
         {
             case app::rpcMessageUsersActionType::GET_USERS:
             {
-                std::list<app::user> users;
-                app::userManager::getInstance()->getUsers(users);
-                msgUsers.setUsers(users);
+                msgUsers.setUsers(app::userManager::getInstance()->getUsers());
                 return msgUsers.serialize(socket_fd);
             }
 

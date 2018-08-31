@@ -301,8 +301,9 @@ bool userManager::writeToFile()
     return userConf.writeToFile("/data/users.conf");
 }
 
-void userManager::getUsers(std::list<app::user> &users)
+std::list<app::user> userManager::getUsers()
 {
+    std::list<app::user> users;
     for (auto it = this->users.begin(); it != this->users.end(); it++)
     {
         if (it->second.getName() == "root") {
@@ -310,6 +311,8 @@ void userManager::getUsers(std::list<app::user> &users)
         }
         users.push_back(it->second);
     }
+
+    return users;
 }
 
 } /* namespace app */

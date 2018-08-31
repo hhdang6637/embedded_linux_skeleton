@@ -46,7 +46,7 @@ public:
     void initFromFile();
     bool writeToFile();
 
-    void getUsers(std::list< app::user> &users);
+    std::list< app::user> getUsers();
 };
 
 } /* namespace app */
