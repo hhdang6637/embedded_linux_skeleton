@@ -177,11 +177,6 @@ static app::rpcMessageUsersResultType do_add_user(app::user &user)
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageUsers msg;
 
-    if (rpcClient->doRpc(&msg) == false) {
-        syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
-        return app::rpcMessageUsersResultType::UNKNOWN_ERROR;
-    }
-
     msg.setMsgAction(app::rpcMessageUsersActionType::ADD_USER);
     msg.setUser(user);
 
@@ -197,11 +192,6 @@ static app::rpcMessageUsersResultType do_edit_user(app::user &user, bool check_e
 {
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageUsers msg;
-
-    if (rpcClient->doRpc(&msg) == false) {
-        syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
-        return app::rpcMessageUsersResultType::UNKNOWN_ERROR;
-    }
 
     msg.setMsgAction(app::rpcMessageUsersActionType::EDIT_USER);
     msg.setUser(user);
@@ -311,22 +301,18 @@ std::string json_handle_users(FCGX_Request *request)
                 return build_user_rsp_json(failed_str, "Failed to get data from browser");
             }
 
+            app::rpcMessageUsersResultType result;
+
             if (action == "add") {
-                app::rpcMessageUsersResultType result = do_add_user(user);
-
-                if (result == app::rpcMessageUsersResultType::SUCCEEDED) {
-                    return build_user_rsp_json(userMsgResult2Str(result));
-                } else {
-                    return build_user_rsp_json(failed_str, userMsgResult2Str(result));
-                }
+                result = do_add_user(user);
             } else {
-                app::rpcMessageUsersResultType result = do_edit_user(user, check_edit_pwd);
+                result = do_edit_user(user, check_edit_pwd);
+            }
 
-                if (result == app::rpcMessageUsersResultType::SUCCEEDED) {
-                    return build_user_rsp_json(userMsgResult2Str(result));
-                } else {
-                    return build_user_rsp_json(failed_str, userMsgResult2Str(result));
-                }
+            if (result == app::rpcMessageUsersResultType::SUCCEEDED) {
+                return build_user_rsp_json(userMsgResult2Str(result));
+            } else {
+                return build_user_rsp_json(failed_str, userMsgResult2Str(result));
             }
 
         }
