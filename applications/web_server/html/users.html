@@ -42,21 +42,19 @@ $(function () {
     });
 
     function showUsers() {
-      $.getJSON( "/json/users", function(data) {
+        $.getJSON( "/json/users", function(data) {
         var html = "";
         var jsUsers = data.json_users_list;
         for (var i = 0; i < jsUsers.length; i++) {
-          var user = jsUsers[i];
-          if (user.name != "admin") {
-            html += "<tr><td>" + user.name + "</td><td>" + user.fullname + "</td><td>" + user.email +
-                    "</td><td><button type=\"button\"  onclick=\"editUser('" + user.name + "')\"" + "class=\"btn mr-1\">" + "Edit" + "</button><button type =\"button\" onclick=\"deleteUser('" + user.name + "')\"" + "class=\"btn btn-danger\">" + "Delete" + "</button</td></tr>";
-          } else {
-            html += "<tr><td>" + user.name + "</td><td>" + user.fullname + "</td><td>" + user.email +
-                    "</td><td><button type=\"button\"  onclick=\"editUser('" + user.name + "')\"" + "class=\"btn mr-1\">" + "Edit" + "</button></td></tr>";
-          }
+            var user = jsUsers[i];
+            if (user.name != "admin") {
+                html += "<tr><td>" + user.name + "</td><td>" + user.fullname + "</td><td>" + user.email + "</td><td><button type=\"button\"  onclick=\"editUser('" + user.name + "')\"" + "class=\"btn mr-1\">" + "Edit" + "</button><button type =\"button\" onclick=\"deleteUser('" + user.name + "')\"" + "class=\"btn btn-danger\">" + "Delete" + "</button</td></tr>";
+            } else {
+                html += "<tr><td>" + user.name + "</td><td>" + user.fullname + "</td><td>" + user.email + "</td><td><button type=\"button\"  onclick=\"editUser('" + user.name + "')\"" + "class=\"btn mr-1\">" + "Edit" + "</button></td></tr>";
+            }
         }
         $('#table > tbody:last-child').append(html);
-      });
+        });
     }
 }(jQuery);
 
@@ -68,8 +66,26 @@ function addUser() {
     window.location.href="/pages/adduser";
 }
 
-function deleteUser() {
+var deleteUser = function(name) {
+    var confirm_username = confirm("Do you want to delete username: " + name);
 
+    if (confirm_username) {
+        var xhr = new XMLHttpRequest();
+
+        xhr.open('POST', '/json/users', true);
+
+        var formData = new FormData();
+        formData.append('username', name);
+        formData.append('action', 'delete');
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                window.location.href = "/pages/users";
+            }
+        };
+
+        xhr.send(formData);
+    }
 }
 
 </script>

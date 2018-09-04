@@ -163,6 +163,13 @@ static bool users_action_handler(int socket_fd)
                 return msgUsers.serialize(socket_fd);
             }
 
+            case app::rpcMessageUsersActionType::DELETE_USER:
+            {
+                msgUsers.setMsgResult(app::userManager::getInstance()->deleteUser(msgUsers.getUser()));
+
+                return msgUsers.serialize(socket_fd);
+            }
+
             default:
                 break;
         }

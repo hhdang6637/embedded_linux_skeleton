@@ -205,6 +205,21 @@ static app::rpcMessageUsersResultType do_edit_user(app::user &user, uint16_t cha
     return msg.getMsgResult();
 }
 
+static app::rpcMessageUsersResultType do_delete_user(app::user &user) {
+    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+    app::rpcMessageUsers msg;
+
+    msg.setMsgAction(app::rpcMessageUsersActionType::DELETE_USER);
+    msg.setUser(user);
+
+    if (rpcClient->doRpc(&msg) == false) {
+        syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+        return app::rpcMessageUsersResultType::UNKNOWN_ERROR;
+    }
+
+    return msg.getMsgResult();
+}
+
 std::string json_handle_users(FCGX_Request *request)
 {
     const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
@@ -273,6 +288,7 @@ std::string json_handle_users(FCGX_Request *request)
 
             app::user user;
             std::string action;
+            std::string username;
             uint16_t changePasswd = 0;
             try {
                 MPFD::Parser POSTParser;
@@ -281,15 +297,22 @@ std::string json_handle_users(FCGX_Request *request)
 
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
-                user.setFullName(POSTParser.GetField("fullname")->GetTextTypeContent().c_str());
-                user.setName(POSTParser.GetField("user_name")->GetTextTypeContent().c_str());
-                user.setPassword(POSTParser.GetField("password")->GetTextTypeContent().c_str());
-                user.setEmail(POSTParser.GetField("email")->GetTextTypeContent().c_str());
                 action = POSTParser.GetField("action")->GetTextTypeContent();
 
-                if (action == "edit") {
-                    if (POSTParser.GetField("edit_pwd")->GetTextTypeContent() == "enabled") {
-                        changePasswd = 1;
+                if (action == "delete")
+                {
+                    user.setName(POSTParser.GetField("username")->GetTextTypeContent().c_str());
+
+                } else {
+                    user.setFullName(POSTParser.GetField("fullname")->GetTextTypeContent().c_str());
+                    user.setName(POSTParser.GetField("user_name")->GetTextTypeContent().c_str());
+                    user.setPassword(POSTParser.GetField("password")->GetTextTypeContent().c_str());
+                    user.setEmail(POSTParser.GetField("email")->GetTextTypeContent().c_str());
+
+                    if (action == "edit") {
+                        if (POSTParser.GetField("edit_pwd")->GetTextTypeContent() == "enabled") {
+                            changePasswd = 1;
+                        }
                     }
                 }
 
@@ -303,8 +326,10 @@ std::string json_handle_users(FCGX_Request *request)
 
             if (action == "add") {
                 result = do_add_user(user);
-            } else {
+            } else if (action == "edit") {
                 result = do_edit_user(user, changePasswd);
+            } else {
+                result = do_delete_user(user);
             }
 
             if (result == app::rpcMessageUsersResultType::SUCCEEDED) {
