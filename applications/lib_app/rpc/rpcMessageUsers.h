@@ -61,10 +61,10 @@ public:
     void                           setChangePasswd(const uint16_t changePasswd);
 
     app::rpcMessageUsersActionType getMsgAction();
-    void                           setMsgAction(const rpcMessageUsersActionType type);
+    void                           setMsgAction(const rpcMessageUsersActionType action);
 
     app::rpcMessageUsersResultType getMsgResult();
-    void                           setMsgResult(const rpcMessageUsersResultType type);
+    void                           setMsgResult(const rpcMessageUsersResultType result);
 
 };
 

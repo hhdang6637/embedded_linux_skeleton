@@ -164,9 +164,9 @@ app::rpcMessageUsersActionType rpcMessageUsers::getMsgAction()
     return this->msgAction;
 }
 
-void rpcMessageUsers::setMsgAction(const rpcMessageUsersActionType type)
+void rpcMessageUsers::setMsgAction(const rpcMessageUsersActionType action)
 {
-    this->msgAction = type;
+    this->msgAction = action;
 }
 
 app::rpcMessageUsersResultType rpcMessageUsers::getMsgResult()
@@ -174,9 +174,9 @@ app::rpcMessageUsersResultType rpcMessageUsers::getMsgResult()
     return this->msgResult;
 }
 
-void rpcMessageUsers::setMsgResult(const rpcMessageUsersResultType type)
+void rpcMessageUsers::setMsgResult(const rpcMessageUsersResultType result)
 {
-    this->msgResult = type;
+    this->msgResult = result;
 }
 
 
