@@ -41,7 +41,7 @@ public:
 
     app::rpcMessageUsersResultType addUser(app::user &user);
     app::rpcMessageUsersResultType editUser(app::user &user, uint16_t changPasswd);
-    bool                           deleteUser(app::user &user);
+    app::rpcMessageUsersResultType deleteUser(app::user &user);
 
     void initFromFile();
     bool writeToFile();

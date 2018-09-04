@@ -149,7 +149,7 @@ app::rpcMessageUsersResultType userManager::addUser(app::user &user)
         this->createUser(user);
         this->changeUserPass(user);
 
-        if (this->writeToFile()) {
+        if (this->writeToFile() == false) {
             syslog(LOG_ERR, "cannot update the user.conf");
         }
 
@@ -184,7 +184,7 @@ app::rpcMessageUsersResultType userManager::editUser(app::user &user, uint16_t c
         it->second = user;
         this->changeUserPass(user);
 
-        if (this->writeToFile()) {
+        if (this->writeToFile() == false) {
             syslog(LOG_ERR, "cannot update the user.conf");
         }
 
@@ -196,24 +196,30 @@ app::rpcMessageUsersResultType userManager::editUser(app::user &user, uint16_t c
     return app::rpcMessageUsersResultType::USER_INVALID;
 }
 
-bool userManager::deleteUser(app::user &user)
+app::rpcMessageUsersResultType userManager::deleteUser(app::user &user)
 {
     if (user.getName().compare("admin") == 0) {
         syslog(LOG_WARNING, "cannot delete user admin");
-        return false;
+        return app::rpcMessageUsersResultType::UNKNOWN_ERROR;
     }
 
     auto it = this->users.find(user.getName());
 
     if (it != this->users.end()) {
         this->users.erase(it);
-        return true;
+
+        if (this->writeToFile() == false) {
+            syslog(LOG_ERR, "cannot update the user.conf");
+        }
+
+        syslog(LOG_NOTICE, "delete user %s succeed", user.getName().c_str());
+        return app::rpcMessageUsersResultType::SUCCEEDED;
     } else {
-        syslog(LOG_NOTICE, "user existed");
-        return false;
+        syslog(LOG_NOTICE, "user don't existed");
+        return app::rpcMessageUsersResultType::USER_NOT_EXISTED;
     }
 
-    return false;
+    return app::rpcMessageUsersResultType::UNKNOWN_ERROR;
 }
 
 void userManager::initFromFile()
