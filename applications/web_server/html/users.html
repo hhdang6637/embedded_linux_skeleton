@@ -25,6 +25,7 @@
         <tbody>
         </tbody>
       </table>
+      <input type="hidden" name="action" value="delete">
     </div>
   </div>
 </div> <!-- /container -->
@@ -69,6 +70,8 @@ function addUser() {
 var deleteUser = function(name) {
     var confirm_username = confirm("Do you want to delete username: " + name);
 
+    var action_delete = document.getElementsByName("action")[0].value;
+
     if (confirm_username) {
         var xhr = new XMLHttpRequest();
 
@@ -76,7 +79,7 @@ var deleteUser = function(name) {
 
         var formData = new FormData();
         formData.append('username', name);
-        formData.append('action', 'delete');
+        formData.append('action', action_delete);
 
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4 && xhr.status == 200) {
