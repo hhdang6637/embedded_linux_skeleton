@@ -99,7 +99,7 @@ void userManager::removeUser(app::user &user)
 {
     char cmd[128];
     snprintf(cmd, sizeof(cmd), "deluser "
-            "--r "
+            "--remove-home "
             "%s >/dev/null 2>&1", user.getName().c_str());
 
     system(cmd);
