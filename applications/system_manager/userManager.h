@@ -29,6 +29,7 @@ private:
     void initDefaultUsers();
 
     void createUser(app::user &user);
+    void removeUser(app::user &user);
     void changeUserPass(app::user &user);
 public:
     virtual ~userManager();

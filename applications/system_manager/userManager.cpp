@@ -95,6 +95,16 @@ void userManager::createUser(app::user &user)
     system(cmd);
 }
 
+void userManager::removeUser(app::user &user)
+{
+    char cmd[128];
+    snprintf(cmd, sizeof(cmd), "deluser "
+            "--r "
+            "%s >/dev/null 2>&1", user.getName().c_str());
+
+    system(cmd);
+}
+
 void userManager::changeUserPass(app::user &user)
 {
     char cmd[128];
@@ -211,6 +221,8 @@ app::rpcMessageUsersResultType userManager::deleteUser(app::user &user)
         if (this->writeToFile() == false) {
             syslog(LOG_ERR, "cannot update the user.conf");
         }
+
+        this->removeUser(user);
 
         syslog(LOG_NOTICE, "delete user %s succeed", user.getName().c_str());
         return app::rpcMessageUsersResultType::SUCCEEDED;
