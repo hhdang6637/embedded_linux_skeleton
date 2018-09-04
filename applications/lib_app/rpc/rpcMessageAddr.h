@@ -26,7 +26,8 @@ public:
     enum rpcMessageAddrType {
         system_manager_addr_t,
         resource_manager_addr_t,
-        network_manager_addr_t
+        network_manager_addr_t,
+        event_manager_addr_t
     };
 
     virtual ~rpcMessageAddr();

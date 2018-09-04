@@ -17,6 +17,13 @@
 #include <netinet/in.h>
 #include <stdint.h>
 
+// groups definition
+#define NETLINK_EVENTS_GROUP 32 // bit 32nd
+
+#define MAX_EVENT_PAYLOAD 32
+
+#define SOL_NETLINK    270
+
 #define MAX_IFNAME_LEN 32
 #define MAX_IF_QDISC   32
 
@@ -50,7 +57,7 @@ struct net_interfaces_info {
     std::list<struct net_address_info> if_addrs;
 };
 
-int open_netlink_socket();
+int open_netlink_socket(int netlink_family);
 
 int bind_netlink_socket(int fd, struct sockaddr_nl *sa, int sa_size);
 
@@ -67,5 +74,7 @@ bool parse_netlink_address_info(char *buffer, int len, std::list<struct net_addr
 bool get_interfaces_stats(std::list<struct net_interface_stats> &stats);
 
 bool get_interfaces_info(struct net_interfaces_info &info);
+
+void send_multicast_events(const uint16_t groups, const uint16_t events);
 
 #endif /* APPLICATIONS_LIB_APP_NETLINK_SOCKET_H_ */

@@ -11,19 +11,40 @@
 #include <list>
 #include <map>
 #include <sys/sysinfo.h>
+#include <sys/time.h>
 
 #include "cpu_stat.h"
 #include "rpcMessage.h"
 #include "netlink_socket.h"
 
+#define MAX_DESC 128
+
 namespace app
 {
+    typedef struct {
+        cpu_stat_t     current_cpu;
+        struct sysinfo current_ram;
+        float          temperature; // expressed in degree Celsius
+        char           fw_description[MAX_DESC];
+        time_t         current_time;
+    } resourceGeneralInfo_t;
+
+    enum class rpcResourceActionType : uint16_t
+    {
+        GET_RESOURCE_HISTORY,
+        GET_GENERAL_INFO
+    };
+
 class rpcMessageResourceHistory: public rpcMessage
 {
+
 	std::list<cpu_stat_t>              cpu_history;
 	std::list<struct sysinfo>          ram_history;
 	std::list<struct rtnl_link_stats>  network_history;
 	std::string                        interface_name; // used for get network statistics
+	resourceGeneralInfo_t              general_info;
+
+	app::rpcResourceActionType         msgAction;
 public:
 	virtual bool serialize(int fd);
 	virtual bool deserialize(int);
@@ -34,11 +55,16 @@ public:
     std::list<struct sysinfo>          get_ram_history()     { return this->ram_history;};
     std::list<struct rtnl_link_stats>  get_network_history() { return this->network_history;}
     std::string                        get_interface_name()  { return this->interface_name;}
+    resourceGeneralInfo_t              get_general_info()    { return this->general_info;};
+
+    app::rpcResourceActionType getMsgAction()                { return this->msgAction;};
+    void                       setMsgAction(const app::rpcResourceActionType &action) { this->msgAction = action;};
 
     void set_cpu_history    (std::list<cpu_stat_t> &cpu_history)                  { this->cpu_history = cpu_history; };
     void set_ram_history    (std::list<struct sysinfo> &ram_history)              { this->ram_history = ram_history; };
     void set_network_history(std::list<struct rtnl_link_stats> &network_history)  { this->network_history = network_history; };
     void set_interface_name (std::string &interface_name)                         { this->interface_name = interface_name; };
+    void set_general_info   (const resourceGeneralInfo_t &info)                   { this->general_info = info;};
 };
 
 } /* namespace app */

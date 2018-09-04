@@ -37,9 +37,9 @@
 #define BUF_SIZE 1024*6
 
 /* Create the netlink socket with netlink_route */
-int open_netlink_socket()
+int open_netlink_socket(int netlink_family)
 {
-    int fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
+    int fd = socket(AF_NETLINK, SOCK_RAW, netlink_family);
     if (fd < 0) {
         syslog(LOG_ERR, "Create socket error: %s\n", strerror(errno));
         return -1;
@@ -424,7 +424,7 @@ bool get_interfaces_stats(std::list<struct net_interface_stats> &stats)
     int                nbytes;
     int                rc = true;
 
-    if ((fd = open_netlink_socket()) == -1) {
+    if ((fd = open_netlink_socket(NETLINK_ROUTE)) == -1) {
         syslog(LOG_ERR, "open_nl_socket failed\n");
         rc = false;
         goto error_exit;
@@ -481,7 +481,7 @@ bool get_interfaces_info(struct net_interfaces_info &info)
     int                nbytes;
     int                rc = true;
 
-    if ((fd = open_netlink_socket()) == -1) {
+    if ((fd = open_netlink_socket(NETLINK_ROUTE)) == -1) {
         syslog(LOG_ERR, "open_nl_socket failed\n");
         rc = false;
         goto error_exit;
@@ -549,3 +549,55 @@ error_exit:
     return rc;
 }
 
+void send_multicast_events(const uint16_t groups, const uint16_t events)
+{
+    int                fd;
+    struct sockaddr_nl sa;
+    struct iovec       iov;
+    struct msghdr      msg;
+    struct nlmsghdr    *nlh;
+
+    if ((fd = open_netlink_socket(NETLINK_USERSOCK)) == -1) {
+        syslog(LOG_ERR, "open_netlink_socket failed\n");
+        goto error_exit;
+    }
+
+    memset(&sa, 0, sizeof(sa));
+    sa.nl_family = AF_NETLINK;
+    sa.nl_pid = getpid();
+    sa.nl_groups = 1 << (groups - 1);
+
+    if (bind_netlink_socket(fd, &sa, sizeof(sa)) == -1) {
+        syslog(LOG_ERR, "bind_netlink_socket failed\n");
+        goto error_exit;
+    }
+
+    nlh = (struct nlmsghdr*) malloc(NLMSG_SPACE(MAX_EVENT_PAYLOAD));
+    memset(nlh, 0, NLMSG_SPACE(MAX_EVENT_PAYLOAD));
+
+    nlh->nlmsg_len = NLMSG_LENGTH(sizeof(nlh) + sizeof(events));
+
+    memset(&sa, 0, sizeof(sa));
+    sa.nl_family = AF_NETLINK;
+    sa.nl_pid    = 0;
+    sa.nl_groups = 1 << (groups - 1);
+
+    memcpy(NLMSG_DATA(nlh), (void*)&events, sizeof(events));
+
+    iov = {(void*)nlh, nlh->nlmsg_len};
+    msg = {&sa, sizeof(sa), &iov, 1, NULL, 0, 0};
+
+    if (sendmsg(fd, &msg, 0) < 0) {
+        // the ECONNREFUSED will be returned, but message still broadcast to the specified group
+        if (errno != ECONNREFUSED)
+            syslog(LOG_ERR, "Send msg error: %s\n", strerror(errno));
+    }
+
+    free(nlh);
+
+error_exit:
+
+    if (fd != -1) {
+        close(fd);
+    }
+}
