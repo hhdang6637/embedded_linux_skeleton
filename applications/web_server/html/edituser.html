@@ -2,8 +2,13 @@
     <h1 class="h2">Firmware</h1>
 </div-->
 <div class="container">
+  <div class="status"></div>
   <h3>Edit user infomation</h3>
-  <form action="/pages/users">
+  <form action="/json/users" method="post" id="js-edit_user-form">
+    <div class="form-group">
+      <label for="user_name">User name</label>
+      <input type="text" class="form-control" id="user_name" placeholder="Enter user name" name="user_name" disabled>
+    </div>
     <div class="form-group">
       <label for="fullname">Full Name:</label>
       <input type="text" class="form-control" id="fullname" placeholder="Enter full name" name="fullname">
@@ -12,9 +17,8 @@
       <label for="email">Email:</label>
       <input type="email" class="form-control" id="email" placeholder="Enter email" name="email">
     </div>
-
     <div class="checkbox">
-      <label><input type="checkbox" data-toggle="collapse" data-target="#edit_pwd"> Edit Password</label>
+      <label><input type="checkbox" id="checkbox_val" name="edit_pwd" data-toggle="collapse" data-target="#edit_pwd" > Edit Password</label>
     </div>
     <div id="edit_pwd" class="collapse">
       <div class="form-group" >
@@ -24,9 +28,11 @@
       <div class="form-group">
         <label for="repassword">Password Confirm:</label>
         <input type="password" class="form-control" id="repassword" placeholder="Enter password confirm" name="repassword">
+        <div id="checkpassword"></div>
       </div>
     </div>
-    <button type="submit" class="btn btn-default">Submit</button>
+    <input type="hidden" name="action" value="edit">
+    <button type="submit" class="btn btn-default" id="submit">Submit</button>
   </form>
 </div> <!-- /container -->
 
@@ -34,6 +40,35 @@
 
 $(function () {
     $("#myTopnav").find("a[href='/pages/users']").addClass("active")
+});
+
+function checkPasswordMatch() {
+    var password = $("#password").val();
+    var rePassword = $("#repassword").val();
+
+    $("#checkpassword").empty();
+    if (password != rePassword){
+        $("#checkpassword").html("Passwords do not match!");
+        $('#submit').prop('disabled', true);
+    } else {
+        $("#checkpassword").html("Passwords match!");
+        $('#submit').prop('disabled', false);
+    }
+}
+
+$(document).ready(function () {
+    $("#password, #repassword").keyup(checkPasswordMatch);
+});
+
+$('#checkbox_val').click(function() {
+    if ($(this).is(':checked')) {
+        $('#submit').attr('disabled', 'disabled');
+        $("#checkpassword").empty();
+        $("#password").val('');
+        $("#repassword").val('');
+    } else {
+        $('#submit').removeAttr('disabled');
+    }
 });
 
 function getParameterByName(name, url) {
@@ -46,8 +81,33 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
 }
 
-+ function($) {
-    'use strict';
+function post_form_data($, id, onSuccess) {
+
+    var formData = new FormData();
+    $.each($('#' + id +' [name]'), function(i, elem) {
+        if ($(elem).is(':checkbox')) {
+            formData.append($(elem).attr('name'), elem.checked ? 'enabled' : 'disabled');
+        }
+        else {
+            formData.append($(elem).attr('name'), $(elem).val());
+        }
+    });
+
+    $.ajax({
+        type: "POST",
+        url: $('#' + id).attr('action'),
+        data: formData,
+        enctype: 'multipart/form-data',
+        processData: false,
+        contentType: false,
+        cache: false,
+
+        success: onSuccess,
+    });
+}
+
+(function($) {
+    // 'use strict';
 
     $(document).ready(function(){
         loadUser();
@@ -56,10 +116,30 @@ function getParameterByName(name, url) {
     function loadUser() {
       $.getJSON( "/json/users?user=" + getParameterByName('user'), function(data) {
         var jsUsers = data.json_users_list;
+        $("#user_name").val(jsUsers[0].name);
         $("#fullname").val(jsUsers[0].fullname);
         $("#email").val(jsUsers[0].email);
       });
     }
-}(jQuery);
+
+    var addUserForm = document.getElementById('js-edit_user-form');
+
+    addUserForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      post_form_data($, 'js-edit_user-form', function(json) {
+        $(".status").empty();
+        if (json.status == "succeeded") {
+          $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+        } else {
+          $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+        }
+        setTimeout(function(){
+            $(".status").empty();
+        }, 2000);
+      });
+    })
+
+
+})(jQuery);
 
 </script>

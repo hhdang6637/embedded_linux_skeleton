@@ -144,42 +144,32 @@ static bool users_action_handler(int socket_fd)
         {
             case app::rpcMessageUsersActionType::GET_USERS:
             {
-                std::list<app::user> users;
-                app::userManager::getInstance()->getUsers(users);
-                msgUsers.setUsers(users);
+                msgUsers.setUsers(app::userManager::getInstance()->getUsers());
                 return msgUsers.serialize(socket_fd);
             }
-            break;
-            case app::rpcMessageUsersActionType::SET_USERS:
+
+            case app::rpcMessageUsersActionType::ADD_USER:
             {
-                if (msgUsers.getUsers().size() > 0) {
-
-                    app::user user = msgUsers.getUsers().front();
-
-#if 0
-                    syslog(LOG_NOTICE, "%s: SET_USERS, username : %s, password : %s, fullname : %s, email : %s", __FUNCTION__,
-                            user.getName().c_str(), user.getPassword().c_str(),
-                            user.getFullName().c_str(), user.getEmail().c_str());
-#endif
-
-                    if (app::userManager::getInstance()->addUser(user)) {
-
-                        if (!app::userManager::getInstance()->writeToFile()) {
-                            syslog(LOG_ERR, "cannot update the user.conf");
-                        }
-
-                        msgUsers.setMsgResult(app::rpcMessageUsersResultType::SUCCEEDED);
-
-                    } else {
-                        msgUsers.setMsgResult(app::rpcMessageUsersResultType::FAILED);
-                    }
-                } else {
-                    msgUsers.setMsgResult(app::rpcMessageUsersResultType::FAILED);
-                }
+                msgUsers.setMsgResult(app::userManager::getInstance()->addUser(msgUsers.getUser()));
 
                 return msgUsers.serialize(socket_fd);
             }
-            break;
+
+            case app::rpcMessageUsersActionType::EDIT_USER:
+            {
+                msgUsers.setMsgResult(app::userManager::getInstance()->editUser(msgUsers.getUser(),
+                                                                                msgUsers.changePasswd()));
+
+                return msgUsers.serialize(socket_fd);
+            }
+
+            case app::rpcMessageUsersActionType::DELETE_USER:
+            {
+                msgUsers.setMsgResult(app::userManager::getInstance()->deleteUser(msgUsers.getUser()));
+
+                return msgUsers.serialize(socket_fd);
+            }
+
             default:
                 break;
         }
