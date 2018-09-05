@@ -15,5 +15,6 @@
 #define EVENT_CPU_TEMP 0x01
 
 std::list<std::string> event2Strings(const uint16_t events);
+std::string time2String(const time_t &time);
 
 #endif /* APPLICATIONS_LIB_APP_CONVERSION_H_ */

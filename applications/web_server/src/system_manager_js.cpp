@@ -22,6 +22,7 @@
 #include "MPFDParser/Field.h"
 #include "MPFDParser/Exception.h"
 #include "user.h"
+#include "conversion.h"
 
 #define TO_KBIT(a) ((a * 8 ) / 1000)
 
@@ -360,9 +361,6 @@ std::string json_general_info(FCGX_Request *request)
 
     app::resourceGeneralInfo_t general_info = msg.get_general_info();
     std::ostringstream ss_json;
-    struct tm * p = localtime(&general_info.current_time);
-    char sys_time[48];
-    strftime(sys_time, 48, "%A, %B %d %H:%M:%S %Y", p);
 
     ss_json << "{\"json_general_info\": {";
 
@@ -393,7 +391,7 @@ std::string json_general_info(FCGX_Request *request)
 
     ss_json << "\"current_time\": ";
     ss_json << "\"";
-    ss_json << sys_time;
+    ss_json << time2String(general_info.current_time);
     ss_json << "\"";
 
     ss_json << "}}";

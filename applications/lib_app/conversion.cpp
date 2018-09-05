@@ -16,3 +16,12 @@ std::list<std::string> event2Strings(const uint16_t events)
 
     return strings;
 }
+
+std::string time2String(const time_t &time)
+{
+    struct tm * p = localtime(&time);
+    char timeStr[48];
+    strftime(timeStr, 48, "%A, %B %d %H:%M:%S %Y", p);
+
+    return std::string(timeStr);
+}
