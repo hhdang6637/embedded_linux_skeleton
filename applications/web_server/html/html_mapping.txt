@@ -1,5 +1,5 @@
 /,dashboard.html
-/login,login.html
+/pages/login,login.html
 /index.html,dashboard.html
 /pages/home,dashboard.html
 /pages/dashboard,dashboard.html
