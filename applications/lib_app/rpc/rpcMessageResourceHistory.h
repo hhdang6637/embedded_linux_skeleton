@@ -51,20 +51,20 @@ public:
 
     rpcMessageResourceHistory();
     virtual ~rpcMessageResourceHistory();
-    std::list<cpu_stat_t>              get_cpu_history()     { return this->cpu_history;};
-    std::list<struct sysinfo>          get_ram_history()     { return this->ram_history;};
-    std::list<struct rtnl_link_stats>  get_network_history() { return this->network_history;}
-    std::string                        get_interface_name()  { return this->interface_name;}
-    resourceGeneralInfo_t              get_general_info()    { return this->general_info;};
+    std::list<cpu_stat_t>              get_cpu_history() const     { return this->cpu_history;};
+    std::list<struct sysinfo>          get_ram_history() const     { return this->ram_history;};
+    std::list<struct rtnl_link_stats>  get_network_history() const { return this->network_history;}
+    std::string                        get_interface_name() const  { return this->interface_name;}
+    resourceGeneralInfo_t              get_general_info() const    { return this->general_info;};
 
-    app::rpcResourceActionType getMsgAction()                { return this->msgAction;};
+    app::rpcResourceActionType getMsgAction() const                { return this->msgAction;};
     void                       setMsgAction(const app::rpcResourceActionType &action) { this->msgAction = action;};
 
-    void set_cpu_history    (std::list<cpu_stat_t> &cpu_history)                  { this->cpu_history = cpu_history; };
-    void set_ram_history    (std::list<struct sysinfo> &ram_history)              { this->ram_history = ram_history; };
-    void set_network_history(std::list<struct rtnl_link_stats> &network_history)  { this->network_history = network_history; };
-    void set_interface_name (std::string &interface_name)                         { this->interface_name = interface_name; };
-    void set_general_info   (const resourceGeneralInfo_t &info)                   { this->general_info = info;};
+    void set_cpu_history    (const std::list<cpu_stat_t> &cpu_history)                  { this->cpu_history = cpu_history; };
+    void set_ram_history    (const std::list<struct sysinfo> &ram_history)              { this->ram_history = ram_history; };
+    void set_network_history(const std::list<struct rtnl_link_stats> &network_history)  { this->network_history = network_history; };
+    void set_interface_name (const std::string &interface_name)                         { this->interface_name = interface_name; };
+    void set_general_info   (const resourceGeneralInfo_t &info)                         { this->general_info = info;};
 };
 
 } /* namespace app */
