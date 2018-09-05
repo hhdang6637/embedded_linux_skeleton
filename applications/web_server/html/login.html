@@ -1,0 +1,56 @@
+<div class="container">
+    <form class="form-horizontal" role="form" method="POST" action="/login">
+        <div class="row">
+            <div class="col-md-5"></div>
+            <div class="col-xs-6">
+                <h1>Welcome</h1>
+                <hr>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+                <div class="form-group has-danger">
+                    <label class="sr-only" for="username">User name</label>
+                    <div class="input-group mb-2 mr-sm-2 mb-sm-0">
+                        <input type="text" name="username" class="form-control" id="username" placeholder="User name" required autofocus>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="sr-only" for="password">Password</label>
+                    <div class="input-group mb-2 mr-sm-2 mb-sm-0">
+                        <input type="password" name="password" class="form-control" id="password" placeholder="Password" required>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-control-feedback">
+                    <span class="text-danger align-middle"></span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6" style="padding-top: .35rem">
+                <div class="form-check mb-2 mr-sm-2 mb-sm-0">
+                    <label class="form-check-label">
+                        <input class="form-check-input" name="remember"
+                               type="checkbox" >
+                        <span style="padding-bottom: .15rem">Remember me</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="padding-top: 1rem">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+                <button type="submit" class="btn btn-success btn-lg btn-block">Login</button>
+            </div>
+        </div>
+    </form>
+</div>

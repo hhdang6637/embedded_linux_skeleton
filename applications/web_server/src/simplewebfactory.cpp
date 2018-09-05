@@ -110,7 +110,9 @@ const char* simpleWebFactory::get_html_str(const char * url)
 
     ss_html << "<body>\n";
 
-    ss_html << this->html_navbar_str;
+    if (it->first.compare("/login") != 0) {
+        ss_html << this->html_navbar_str;
+    }
 
     // container begin
     ss_html << "<div class=\"container-fluid\"><div class=\"row\">\n";
