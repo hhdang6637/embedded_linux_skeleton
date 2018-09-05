@@ -35,9 +35,6 @@ enum rpcMessageUsersResultType : uint16_t
     UNKNOWN_ERROR
 };
 
-// we should move this function to conversion.cpp after the netlink_event branch merged into master
-std::string userMsgResult2Str(const app::rpcMessageUsersResultType type);
-
 class rpcMessageUsers: public rpcMessage
 {
     app::rpcMessageUsersActionType msgAction;

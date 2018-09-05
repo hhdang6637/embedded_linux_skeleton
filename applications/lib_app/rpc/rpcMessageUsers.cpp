@@ -179,28 +179,4 @@ void rpcMessageUsers::setMsgResult(const rpcMessageUsersResultType result)
     this->msgResult = result;
 }
 
-
-// we should move this function to conversion.cpp after the netlink_event branch merged into master
-std::string userMsgResult2Str(const app::rpcMessageUsersResultType type)
-{
-    std::string str;
-    if (type == app::rpcMessageUsersResultType::SUCCEEDED) {
-        str = "succeeded";
-    } else if (type == app::rpcMessageUsersResultType::ERROR_MAX_USER) {
-        str = "Error max user";
-    } else if (type == app::rpcMessageUsersResultType::USER_INVALID) {
-        str = "User information not valid";
-    } else if (type == app::rpcMessageUsersResultType::USER_NOT_EXISTED) {
-        str = "User doesn't exist";
-    } else if (type == app::rpcMessageUsersResultType::USERNAME_EXISTED) {
-        str = "User name existed";
-    } else if (type == app::rpcMessageUsersResultType::EMAIL_EXISTED) {
-        str = "Email existed";
-    } else if (type == app::rpcMessageUsersResultType::UNKNOWN_ERROR) {
-        str = "Unknown error";
-    }
-
-    return str;
-}
-
 } /* namespace app */
