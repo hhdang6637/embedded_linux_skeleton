@@ -73,11 +73,11 @@ simpleWebFactory* simpleWebFactory::getInstance()
 
 void simpleWebFactory::handle_request(FCGX_Request *request)
 {
-    const char *response_content = this->get_html_str(FCGX_GetParam("SCRIPT_NAME", request->envp));
+    static bool session_valid = false;
 
-    bool session_valid = true;
+    if (session_valid) {
+        const char *response_content = this->get_html_str(FCGX_GetParam("SCRIPT_NAME", request->envp));
 
-    if (!session_valid) {
         if (response_content != NULL) {
 
             FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n\r\n");
@@ -93,9 +93,9 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
 
         }
     } else {
-        FCGX_FPrintF(request->out, "HTTP/1.1 302 Found\r\n");
-        FCGX_FPrintF(request->out, "Location: http://127.0.0.1:2080/pages/login\r\n");
-        FCGX_FPrintF(request->out, "Content-Type: text/html\r\n\r\n");
+        FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
+        FCGX_FPrintF(request->out, "Location: http://127.0.0.1:2080/pages/login\r\n\r\n");
+        session_valid = true;
     }
 
 }
