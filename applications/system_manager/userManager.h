@@ -13,6 +13,7 @@
 
 #include "ini.h"
 #include "user.h"
+#include "rpcMessageUsers.h"
 
 namespace app
 {
@@ -27,25 +28,26 @@ private:
 
     void initDefaultUsers();
 
-    void createUser(app::user &user);
-    void changeUserPass(app::user &user);
+    void createUser(const app::user &user);
+    void removeUser(const app::user &user);
+    void changeUserPass(const app::user &user);
 public:
     virtual ~userManager();
 
     static userManager* getInstance();
     static const int MAX_USERS;
 
-    bool is_username_existed(std::string user_name);
-    bool is_email_existed(std::string email);
+    bool usernameExisted(const std::string &user_name);
+    bool emailExisted(const std::string &email);
 
-    bool addOrEditUser(app::user &user);
-    bool addUser(app::user &user);
-    bool editUser(app::user &user);
-    bool deleteUser(app::user &user);
+    app::rpcMessageUsersResultType addUser(const app::user &user);
+    app::rpcMessageUsersResultType editUser(app::user &user, const uint16_t changPasswd);
+    app::rpcMessageUsersResultType deleteUser(const app::user &user);
+
     void initFromFile();
     bool writeToFile();
 
-    void getUsers(std::list< app::user> &users);
+    std::list< app::user> getUsers();
 };
 
 } /* namespace app */

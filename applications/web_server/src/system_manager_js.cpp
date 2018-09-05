@@ -6,24 +6,22 @@
  */
 #include <string>
 #include <sstream>
-#include <stdlib.h>
 #include <list>          // std::queue
+
+#include <stdlib.h>
+#include <fcgiapp.h>
+#include <syslog.h>
 
 #include "fcgi.h"
 #include "simplewebfactory.h"
 #include "rpcUnixClient.h"
 #include "rpcMessageResourceHistory.h"
 #include "rpcMessageUsers.h"
-
-#include <fcgiapp.h>
-#include <syslog.h>
-
 #include "firmware_manager_js.h"
 #include "MPFDParser/Parser.h"
 #include "MPFDParser/Field.h"
 #include "MPFDParser/Exception.h"
 #include "user.h"
-#include "user_error_code.h"
 
 #define TO_KBIT(a) ((a * 8 ) / 1000)
 
@@ -163,78 +161,63 @@ std::string json_resource_usage_history(FCGX_Request *request)
     return ss_json.str();
 }
 
-static inline std::string build_user_rsp_json(std::string status, std::string message = "") {
+static inline std::string build_user_rsp_json(const std::string &status, const std::string &message = "")
+{
     std::ostringstream ss_json;
     ss_json << "{";
-    ss_json << "\"status\": \"" << status <<"\",";
-    ss_json << "\"message\": \""<< message <<"\"";
+    ss_json << "\"status\": \"" << status << "\",";
+    ss_json << "\"message\": \"" << message << "\"";
     ss_json << "}";
 
     return ss_json.str();
 }
 
-static user_error_t validate_user(std::string fullname, std::string user_name, std::string password, std::string repassword,
-                        std::string email)
-{
-    //compare password and repassword
-    if (password.compare(repassword) != 0) {
-        return USER_PWD_NOT_MATCH;
-    }
-
-    return USER_SUCCESS;
-}
-
-static int do_add_user(app::user &user)
+static app::rpcMessageUsersResultType do_add_user(app::user &user)
 {
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageUsers msg;
 
-    if (rpcClient->doRpc(&msg) == false) {
-        syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
-        return 0;
-    }
-
-    std::list<app::user> users = msg.getUsers();
-
-    for(auto &u : users) {
-        if (user.getName().compare(u.getName()) == 0) {
-            return 0;
-        }
-    }
-
+    msg.setMsgAction(app::rpcMessageUsersActionType::ADD_USER);
     msg.setUser(user);
 
     if (rpcClient->doRpc(&msg) == false) {
         syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
-        return 0;
+        return app::rpcMessageUsersResultType::UNKNOWN_ERROR;
     }
 
-    return 1;
+    return msg.getMsgResult();
 }
 
-static bool get_post_data(FCGX_Request *request, std::string &data)
+static app::rpcMessageUsersResultType do_edit_user(app::user &user, uint16_t changePasswd)
 {
-    const char *contentLenStr = FCGX_GetParam("CONTENT_LENGTH", request->envp);
-    int         contentLength = 0;
+    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+    app::rpcMessageUsers msg;
 
-    if (contentLenStr) {
-        contentLength = strtol(contentLenStr, NULL, 10);
+    msg.setMsgAction(app::rpcMessageUsersActionType::EDIT_USER);
+    msg.setUser(user);
+    msg.setChangePasswd(changePasswd);
+
+    if (rpcClient->doRpc(&msg) == false) {
+        syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+        return app::rpcMessageUsersResultType::UNKNOWN_ERROR;
     }
 
-    for (int len = 0; len < contentLength; len++) {
-        int ch = FCGX_GetChar(request->in);
+    return msg.getMsgResult();
+}
 
-        if (ch < 0) {
+static app::rpcMessageUsersResultType do_delete_user(app::user &user) {
+    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+    app::rpcMessageUsers msg;
 
-            syslog(LOG_ERR, "Failed to get user information\n");
-            return false;
+    msg.setMsgAction(app::rpcMessageUsersActionType::DELETE_USER);
+    msg.setUser(user);
 
-        } else {
-            data += ch;
-        }
+    if (rpcClient->doRpc(&msg) == false) {
+        syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+        return app::rpcMessageUsersResultType::UNKNOWN_ERROR;
     }
 
-    return true;
+    return msg.getMsgResult();
 }
 
 std::string json_handle_users(FCGX_Request *request)
@@ -242,9 +225,7 @@ std::string json_handle_users(FCGX_Request *request)
     const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
     const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
     std::ostringstream ss_json;
-    std::string status;
-
-    status.assign("failed");
+    const std::string failed_str = "failed";
 
     if (method && (strcmp(method, "GET") == 0)) {
         char filterUser[32];
@@ -261,7 +242,7 @@ std::string json_handle_users(FCGX_Request *request)
             ss_json << "{\"json_users_list\": ";
             ss_json << "[";
             size_t counter = 0;
-            for(auto &u : users) {
+            for (auto &u : users) {
 
                 if (filterUser[0] != '\0') {
 
@@ -286,7 +267,7 @@ std::string json_handle_users(FCGX_Request *request)
                     ss_json << "\"email\":\"" << u.getEmail() << "\"";
                     ss_json << "}";
 
-                    if(++counter < users.size()) {
+                    if (++counter < users.size()) {
                         ss_json << ",";
                     }
                 }
@@ -303,59 +284,66 @@ std::string json_handle_users(FCGX_Request *request)
 
         std::string data;
 
-        if (get_post_data(request, data))
-        {
+        if (get_post_data(request, data)) {
 
             app::user user;
-            std::string fullname, user_name, password, repassword, email;
-            try
-            {
+            std::string action;
+            std::string username;
+            uint16_t changePasswd = 0;
+            try {
                 MPFD::Parser POSTParser;
 
                 POSTParser.SetContentType(contentType);
 
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
-                fullname = POSTParser.GetField("fullname")->GetTextTypeContent();
-                user_name = POSTParser.GetField("user_name")->GetTextTypeContent();
-                password = POSTParser.GetField("password")->GetTextTypeContent();
-                repassword = POSTParser.GetField("repassword")->GetTextTypeContent();
-                email = POSTParser.GetField("email")->GetTextTypeContent();
+                action = POSTParser.GetField("action")->GetTextTypeContent();
+
+                if (action == "delete")
+                {
+                    user.setName(POSTParser.GetField("username")->GetTextTypeContent().c_str());
+
+                } else {
+                    user.setFullName(POSTParser.GetField("fullname")->GetTextTypeContent().c_str());
+                    user.setName(POSTParser.GetField("user_name")->GetTextTypeContent().c_str());
+                    user.setPassword(POSTParser.GetField("password")->GetTextTypeContent().c_str());
+                    user.setEmail(POSTParser.GetField("email")->GetTextTypeContent().c_str());
+
+                    if (action == "edit") {
+                        if (POSTParser.GetField("edit_pwd")->GetTextTypeContent() == "enabled") {
+                            changePasswd = 1;
+                        }
+                    }
+                }
 
             } catch (MPFD::Exception &e) {
                 syslog(LOG_ERR, "%s\n", e.GetError().c_str());
 
-                return build_user_rsp_json(status, "Failed to get data from browser");
+                return build_user_rsp_json(failed_str, "Failed to get data from browser");
             }
 
-            user_error_t validate_status = validate_user(fullname, user_name, password, repassword, email);
-            if (validate_status == USER_SUCCESS)
-            {
-                user.setFullName(fullname.c_str());
-                user.setName(user_name.c_str());
-                user.setPassword(password.c_str());
-                user.setEmail(email.c_str());
+            app::rpcMessageUsersResultType result;
 
-                if (do_add_user(user)) {
-                    status.assign("succeeded");
+            if (action == "add") {
+                result = do_add_user(user);
+            } else if (action == "edit") {
+                result = do_edit_user(user, changePasswd);
+            } else {
+                result = do_delete_user(user);
+            }
 
-                    return build_user_rsp_json(status);
-                }
-                else
-                {
-                    return build_user_rsp_json(status, "User name exist");
-                }
+            if (result == app::rpcMessageUsersResultType::SUCCEEDED) {
+                return build_user_rsp_json(userMsgResult2Str(result));
+            } else {
+                return build_user_rsp_json(failed_str, userMsgResult2Str(result));
             }
-            else if (validate_status == USER_PWD_NOT_MATCH)
-            {
-                return build_user_rsp_json(status, "Password does not match");
-            }
+
         }
     }
 
     syslog(LOG_ERR, "Failed to add user\n");
 
-    return build_user_rsp_json(status, "Failed to add users");
+    return build_user_rsp_json(failed_str, userMsgResult2Str(app::rpcMessageUsersResultType::UNKNOWN_ERROR));
 }
 
 std::string json_general_info(FCGX_Request *request)

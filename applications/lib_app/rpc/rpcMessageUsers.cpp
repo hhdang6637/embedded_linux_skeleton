@@ -45,7 +45,9 @@ bool rpcMessageUsers::serialize(int fd)
 
     switch (this->msgAction) {
         case app::rpcMessageUsersActionType::GET_USERS:
-        case app::rpcMessageUsersActionType::SET_USERS:
+        case app::rpcMessageUsersActionType::ADD_USER:
+        case app::rpcMessageUsersActionType::EDIT_USER:
+        case app::rpcMessageUsersActionType::DELETE_USER:
         {
             buff_len += sizeof(uint16_t) + this->users.size() * sizeof(app::user);
 
@@ -61,6 +63,10 @@ bool rpcMessageUsers::serialize(int fd)
             }
 
             if (rpcMessage::sendInterruptRetry(fd, buff_ptr.get(), offset) != true) {
+                return false;
+            }
+
+            if (rpcMessage::sendInterruptRetry(fd, &this->m_changePasswd, sizeof(this->m_changePasswd)) != true) {
                 return false;
             }
             break;
@@ -88,7 +94,9 @@ bool rpcMessageUsers::deserialize(int fd)
     switch (this->msgAction)
     {
         case app::rpcMessageUsersActionType::GET_USERS:
-        case app::rpcMessageUsersActionType::SET_USERS:
+        case app::rpcMessageUsersActionType::ADD_USER:
+        case app::rpcMessageUsersActionType::EDIT_USER:
+        case app::rpcMessageUsersActionType::DELETE_USER:
         {
             uint16_t users_size;
 
@@ -106,6 +114,10 @@ bool rpcMessageUsers::deserialize(int fd)
                 rpcMessage::ListFromBuff((app::user*) buff_ptr.get(), this->users, users_size);
             }
 
+            if (rpcMessage::recvInterruptRetry(fd, &this->m_changePasswd, sizeof(this->m_changePasswd)) != true) {
+                return false;
+            }
+
             break;
         }
 
@@ -116,36 +128,79 @@ bool rpcMessageUsers::deserialize(int fd)
     return true;
 }
 
-std::list<app::user> rpcMessageUsers::getUsers()
+std::list<app::user> rpcMessageUsers::getUsers() const
 {
     return this->users;
 }
 
-void rpcMessageUsers::setUsers(std::list<app::user> &users)
+app::user& rpcMessageUsers::getUser()
 {
-    this->msgAction = rpcMessageUsersActionType::SET_USERS;
+    return this->users.front();
+}
+
+void rpcMessageUsers::setUsers(const std::list<app::user> &users)
+{
+    this->msgAction = rpcMessageUsersActionType::ADD_USER;
     this->users = users;
 }
-void rpcMessageUsers::setUser(app::user &user)
+void rpcMessageUsers::setUser(const app::user &user)
 {
-    this->msgAction = rpcMessageUsersActionType::SET_USERS;
     this->users.clear();
     this->users.push_back(user);
 }
 
-app::rpcMessageUsersActionType rpcMessageUsers::getMsgAction()
+uint16_t rpcMessageUsers::changePasswd() const
+{
+    return this->m_changePasswd;
+}
+
+void rpcMessageUsers::setChangePasswd(const uint16_t changePasswd)
+{
+    this->m_changePasswd = changePasswd;
+}
+
+app::rpcMessageUsersActionType rpcMessageUsers::getMsgAction() const
 {
     return this->msgAction;
 }
 
-app::rpcMessageUsersResultType rpcMessageUsers::getMsgResult()
+void rpcMessageUsers::setMsgAction(const rpcMessageUsersActionType action)
+{
+    this->msgAction = action;
+}
+
+app::rpcMessageUsersResultType rpcMessageUsers::getMsgResult() const
 {
     return this->msgResult;
 }
 
-void rpcMessageUsers::setMsgResult(rpcMessageUsersResultType type)
+void rpcMessageUsers::setMsgResult(const rpcMessageUsersResultType result)
 {
-    this->msgResult = type;
+    this->msgResult = result;
+}
+
+
+// we should move this function to conversion.cpp after the netlink_event branch merged into master
+std::string userMsgResult2Str(const app::rpcMessageUsersResultType type)
+{
+    std::string str;
+    if (type == app::rpcMessageUsersResultType::SUCCEEDED) {
+        str = "succeeded";
+    } else if (type == app::rpcMessageUsersResultType::ERROR_MAX_USER) {
+        str = "Error max user";
+    } else if (type == app::rpcMessageUsersResultType::USER_INVALID) {
+        str = "User information not valid";
+    } else if (type == app::rpcMessageUsersResultType::USER_NOT_EXISTED) {
+        str = "User doesn't exist";
+    } else if (type == app::rpcMessageUsersResultType::USERNAME_EXISTED) {
+        str = "User name existed";
+    } else if (type == app::rpcMessageUsersResultType::EMAIL_EXISTED) {
+        str = "Email existed";
+    } else if (type == app::rpcMessageUsersResultType::UNKNOWN_ERROR) {
+        str = "Unknown error";
+    }
+
+    return str;
 }
 
 } /* namespace app */

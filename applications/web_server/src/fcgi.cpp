@@ -99,3 +99,28 @@ unsigned int fcgi_form_varable_str(FCGX_Request *request, const char *name, char
 
     return datalen;
 }
+
+bool get_post_data(FCGX_Request *request, std::string &data)
+{
+    const char *contentLenStr = FCGX_GetParam("CONTENT_LENGTH", request->envp);
+    int         contentLength = 0;
+
+    if (contentLenStr) {
+        contentLength = strtol(contentLenStr, NULL, 10);
+    }
+
+    for (int len = 0; len < contentLength; len++) {
+        int ch = FCGX_GetChar(request->in);
+
+        if (ch < 0) {
+
+            syslog(LOG_ERR, "Failed to get file content\n");
+            return false;
+
+        } else {
+            data += ch;
+        }
+    }
+
+    return true;
+}

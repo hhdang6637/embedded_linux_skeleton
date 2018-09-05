@@ -66,6 +66,7 @@ void userManager::initDefaultUsers()
     user.setName("root");
     user.setFullName("root");
     user.setPassword("root");
+    user.setEmail("root@gmail.com");
     defaultUsers.push_back(user);
 
     user.setName("admin");
@@ -79,7 +80,7 @@ void userManager::initDefaultUsers()
     }
 }
 
-void userManager::createUser(app::user &user)
+void userManager::createUser(const app::user &user)
 {
     char cmd[128];
     snprintf(cmd, sizeof(cmd), "adduser "
@@ -94,7 +95,17 @@ void userManager::createUser(app::user &user)
     system(cmd);
 }
 
-void userManager::changeUserPass(app::user &user)
+void userManager::removeUser(const app::user &user)
+{
+    char cmd[128];
+    snprintf(cmd, sizeof(cmd), "deluser "
+            "--remove-home "
+            "%s >/dev/null 2>&1", user.getName().c_str());
+
+    system(cmd);
+}
+
+void userManager::changeUserPass(const app::user &user)
 {
     char cmd[128];
     snprintf(cmd, sizeof(cmd), "echo -e \"%s\\n%s\" | passwd %s >/dev/null 2>&1",
@@ -105,129 +116,122 @@ void userManager::changeUserPass(app::user &user)
     system(cmd);
 }
 
-bool userManager::is_username_existed(std::string user_name) {
-    bool check = false;
-
-    for(auto &u : this->users) {
-        if (u.first.compare(user_name) == 0) {
-            check = true;
-            return check;
-        }
-    }
-
-    return check;
-}
-
-bool userManager::is_email_existed(std::string email) {
-    bool check = false;
-
-    for(auto &u : this->users) {
-        if(u.second.getEmail().compare(email) == 0) {
-            check = true;
-            return check;
-        }
-    }
-
-    return check;
-}
-
-bool userManager::addOrEditUser(app::user &user)
+bool userManager::usernameExisted(const std::string &user_name)
 {
-    bool rc = false;
-
-    if (this->addUser(user) == false) {
-        rc = this->editUser(user);
-    } else {
-        rc = true;
+    for (auto &u : this->users) {
+        if (u.first.compare(user_name) == 0) {
+            return true;
+        }
     }
 
-    return rc;
+    return false;
 }
 
-bool userManager::addUser(app::user &user) {
-     bool rc = false;
+bool userManager::emailExisted(const std::string &email)
+{
+    for (auto &u : this->users) {
+        if (u.second.getEmail().compare(email) == 0) {
+            return true;
+        }
+    }
 
-     if (users.size() >= userManager::MAX_USERS) {
-         syslog(LOG_NOTICE, "maximum user is reached %d, cannot add more", userManager::MAX_USERS);
-         return false;
-     }
-
-     if (user.isValid()) {
-         if(is_username_existed(user.getName()) == false)
-         {
-             if (is_email_existed(user.getEmail()) == false)
-             {
-                 this->users.insert(std::pair<std::string, app::user>(user.getName(), user));
-                 this->createUser(user);
-                 syslog(LOG_NOTICE, "create new user %s", user.getName().c_str());
-             } else
-             {
-                 syslog(LOG_NOTICE, "email existed");
-                 return rc;
-             }
-         } else {
-             syslog(LOG_NOTICE, "user existed");
-             return rc;
-         }
-
-         this->changeUserPass(user);
-         rc = true;
-     } else {
-         syslog(LOG_NOTICE, "user not valid for add");
-     }
-
-     return rc;
+    return false;
 }
 
-bool userManager::editUser(app::user &user) {
-     bool rc = false;
+app::rpcMessageUsersResultType userManager::addUser(const app::user &user)
+{
+    if (users.size() >= userManager::MAX_USERS) {
+        syslog(LOG_NOTICE, "maximum user is reached %d, cannot add more", userManager::MAX_USERS);
+        return app::rpcMessageUsersResultType::ERROR_MAX_USER;
+    }
 
-     if (user.isValid()) {
-         if (is_email_existed(user.getEmail()) == false) {
-             auto it = this->users.find(user.getName());
+    if (user.isValid()) {
+        if (usernameExisted(user.getName())) {
+            syslog(LOG_NOTICE, "user existed");
+            return app::rpcMessageUsersResultType::USERNAME_EXISTED;
 
-             if (it != this->users.end()) {
-                it->second = user;
-             } else {
-                 syslog(LOG_NOTICE, "user be editted not existed");
-                 return rc;
-             }
-         } else {
-             syslog(LOG_NOTICE, "email be editted not existed");
-             return rc;
-         }
+        } else if (emailExisted(user.getEmail())) {
+            syslog(LOG_NOTICE, "email existed");
+            return app::rpcMessageUsersResultType::EMAIL_EXISTED;
+        }
 
-         syslog(LOG_NOTICE, "edit user %s", user.getName().c_str());
+        this->users.insert(std::pair<std::string, app::user>(user.getName(), user));
+        this->createUser(user);
+        this->changeUserPass(user);
 
-         this->changeUserPass(user);
-         rc = true;
-     } else {
-         syslog(LOG_NOTICE, "user not valid for edit");
-     }
+        if (this->writeToFile() == false) {
+            syslog(LOG_ERR, "cannot update the user.conf");
+        }
 
-     return rc;
+        syslog(LOG_NOTICE, "created user %s successfully", user.getName().c_str());
+        return app::rpcMessageUsersResultType::SUCCEEDED;
+    }
+
+    syslog(LOG_NOTICE, "user not valid for add");
+    return app::rpcMessageUsersResultType::USER_INVALID;
 }
 
-bool userManager::deleteUser(app::user &user) {
-    bool check = false;
+app::rpcMessageUsersResultType userManager::editUser(app::user &user, const uint16_t changPasswd)
+{
+    auto it = this->users.find(user.getName());
 
+    if (it == this->users.end()) {
+        syslog(LOG_NOTICE, "user doesn't exist");
+        return app::rpcMessageUsersResultType::USER_NOT_EXISTED;
+    }
+
+    if (!changPasswd) {
+        user.setPassword(it->second.getPassword().c_str());
+    }
+
+    if (user.isValid()) {
+
+        if (it->second.getEmail() != user.getEmail() && emailExisted(user.getEmail())) {
+            syslog(LOG_NOTICE, "email existed");
+            return app::rpcMessageUsersResultType::EMAIL_EXISTED;
+        }
+
+        it->second = user;
+        this->changeUserPass(user);
+
+        if (this->writeToFile() == false) {
+            syslog(LOG_ERR, "cannot update the user.conf");
+        }
+
+        syslog(LOG_NOTICE, "edit user %s succeed", user.getName().c_str());
+        return app::rpcMessageUsersResultType::SUCCEEDED;
+    }
+
+    syslog(LOG_NOTICE, "user not valid for edit");
+    return app::rpcMessageUsersResultType::USER_INVALID;
+}
+
+app::rpcMessageUsersResultType userManager::deleteUser(const app::user &user)
+{
     if (user.getName().compare("admin") == 0) {
         syslog(LOG_WARNING, "cannot delete user admin");
-        return false;
+        return app::rpcMessageUsersResultType::UNKNOWN_ERROR;
     }
 
     auto it = this->users.find(user.getName());
 
-    if (it != this->users.end())
-    {
+    if (it != this->users.end()) {
         this->users.erase(it);
-        check = true;
+
+        if (this->writeToFile() == false) {
+            syslog(LOG_ERR, "cannot update the user.conf");
+        }
+
+        this->removeUser(user);
+
+        syslog(LOG_NOTICE, "delete user %s succeed", user.getName().c_str());
+        return app::rpcMessageUsersResultType::SUCCEEDED;
     } else {
-        syslog(LOG_NOTICE, "user existed");
-        return check;
+        syslog(LOG_NOTICE, "user don't existed");
+        return app::rpcMessageUsersResultType::USER_NOT_EXISTED;
     }
 
-    return check;
+    return app::rpcMessageUsersResultType::UNKNOWN_ERROR;
 }
 
 void userManager::initFromFile()
@@ -263,7 +267,7 @@ void userManager::initFromFile()
                     user.setEmail(value.c_str());
                 }
 
-                this->addOrEditUser(user);
+                this->addUser(user);
             }
         }
 
@@ -303,8 +307,9 @@ bool userManager::writeToFile()
     return userConf.writeToFile("/data/users.conf");
 }
 
-void userManager::getUsers(std::list<app::user> &users)
+std::list<app::user> userManager::getUsers()
 {
+    std::list<app::user> users;
     for (auto it = this->users.begin(); it != this->users.end(); it++)
     {
         if (it->second.getName() == "root") {
@@ -312,6 +317,8 @@ void userManager::getUsers(std::list<app::user> &users)
         }
         users.push_back(it->second);
     }
+
+    return users;
 }
 
 } /* namespace app */
