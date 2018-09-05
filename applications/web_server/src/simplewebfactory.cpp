@@ -75,19 +75,29 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
 {
     const char *response_content = this->get_html_str(FCGX_GetParam("SCRIPT_NAME", request->envp));
 
-    if (response_content != NULL) {
+    bool session_valid = true;
 
-        FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n\r\n");
-        FCGX_FPrintF(request->out, "%s", response_content);
+    if (!session_valid) {
+        if (response_content != NULL) {
 
-    } else if ((response_content = this->get_js_str(request)) != NULL) {
+            FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n\r\n");
+            FCGX_FPrintF(request->out, "%s", response_content);
 
-        FCGX_FPrintF(request->out, "Content-Type: application/json; charset=utf-8\r\n\r\n");
-        FCGX_FPrintF(request->out, "%s", response_content);
+        } else if ((response_content = this->get_js_str(request)) != NULL) {
 
+            FCGX_FPrintF(request->out, "Content-Type: application/json; charset=utf-8\r\n\r\n");
+            FCGX_FPrintF(request->out, "%s", response_content);
+
+        } else {
+            FCGX_FPrintF(request->out, "HTTP/1.1 404 Not Found\r\n\r\n");
+
+        }
     } else {
-        FCGX_FPrintF(request->out, "HTTP/1.1 404 Not Found\r\n\r\n");
+        FCGX_FPrintF(request->out, "HTTP/1.1 302 Found\r\n");
+        FCGX_FPrintF(request->out, "Location: http://127.0.0.1:2080/pages/login\r\n");
+        FCGX_FPrintF(request->out, "Content-Type: text/html\r\n\r\n");
     }
+
 }
 
 const char* simpleWebFactory::get_html_str(const char * url)
