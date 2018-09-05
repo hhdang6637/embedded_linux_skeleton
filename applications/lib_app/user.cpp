@@ -45,7 +45,7 @@ void user::setName(const char *name)
     snprintf(this->name, sizeof(this->name), "%s", name);
 }
 
-std::string user::getName()
+std::string user::getName() const
 {
     return std::string(this->name);
 }
@@ -55,7 +55,7 @@ void user::setFullName(const char *fullName)
     snprintf(this->fullName, sizeof(this->fullName), "%s", fullName);
 }
 
-std::string user::getFullName()
+std::string user::getFullName() const
 {
     return std::string(this->fullName);
 }
@@ -65,7 +65,7 @@ void user::setPassword(const char *pass)
     snprintf(this->password, sizeof(this->password), "%s", pass);
 }
 
-std::string user::getPassword()
+std::string user::getPassword() const
 {
     return std::string(this->password);
 }
@@ -75,7 +75,7 @@ void user::setEmail(const char *email)
     snprintf(this->email, sizeof(this->email), "%s", email);
 }
 
-std::string user::getEmail()
+std::string user::getEmail() const
 {
     return std::string(this->email);
 }
@@ -203,7 +203,7 @@ static int validatePassword(const char* pass)
     return 0;
 }
 
-bool user::isValid()
+bool user::isValid() const
 {
     bool rc = true;
     size_t index;

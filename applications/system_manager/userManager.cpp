@@ -80,7 +80,7 @@ void userManager::initDefaultUsers()
     }
 }
 
-void userManager::createUser(app::user &user)
+void userManager::createUser(const app::user &user)
 {
     char cmd[128];
     snprintf(cmd, sizeof(cmd), "adduser "
@@ -95,7 +95,7 @@ void userManager::createUser(app::user &user)
     system(cmd);
 }
 
-void userManager::removeUser(app::user &user)
+void userManager::removeUser(const app::user &user)
 {
     char cmd[128];
     snprintf(cmd, sizeof(cmd), "deluser "
@@ -105,7 +105,7 @@ void userManager::removeUser(app::user &user)
     system(cmd);
 }
 
-void userManager::changeUserPass(app::user &user)
+void userManager::changeUserPass(const app::user &user)
 {
     char cmd[128];
     snprintf(cmd, sizeof(cmd), "echo -e \"%s\\n%s\" | passwd %s >/dev/null 2>&1",
@@ -116,7 +116,7 @@ void userManager::changeUserPass(app::user &user)
     system(cmd);
 }
 
-bool userManager::usernameExisted(std::string user_name)
+bool userManager::usernameExisted(const std::string &user_name)
 {
     for (auto &u : this->users) {
         if (u.first.compare(user_name) == 0) {
@@ -127,7 +127,7 @@ bool userManager::usernameExisted(std::string user_name)
     return false;
 }
 
-bool userManager::emailExisted(std::string email)
+bool userManager::emailExisted(const std::string &email)
 {
     for (auto &u : this->users) {
         if (u.second.getEmail().compare(email) == 0) {
@@ -138,7 +138,7 @@ bool userManager::emailExisted(std::string email)
     return false;
 }
 
-app::rpcMessageUsersResultType userManager::addUser(app::user &user)
+app::rpcMessageUsersResultType userManager::addUser(const app::user &user)
 {
     if (users.size() >= userManager::MAX_USERS) {
         syslog(LOG_NOTICE, "maximum user is reached %d, cannot add more", userManager::MAX_USERS);
@@ -171,7 +171,7 @@ app::rpcMessageUsersResultType userManager::addUser(app::user &user)
     return app::rpcMessageUsersResultType::USER_INVALID;
 }
 
-app::rpcMessageUsersResultType userManager::editUser(app::user &user, uint16_t changPasswd)
+app::rpcMessageUsersResultType userManager::editUser(app::user &user, const uint16_t changPasswd)
 {
     auto it = this->users.find(user.getName());
 
@@ -206,7 +206,7 @@ app::rpcMessageUsersResultType userManager::editUser(app::user &user, uint16_t c
     return app::rpcMessageUsersResultType::USER_INVALID;
 }
 
-app::rpcMessageUsersResultType userManager::deleteUser(app::user &user)
+app::rpcMessageUsersResultType userManager::deleteUser(const app::user &user)
 {
     if (user.getName().compare("admin") == 0) {
         syslog(LOG_WARNING, "cannot delete user admin");

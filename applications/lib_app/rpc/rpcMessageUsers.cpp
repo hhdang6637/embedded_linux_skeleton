@@ -128,7 +128,7 @@ bool rpcMessageUsers::deserialize(int fd)
     return true;
 }
 
-std::list<app::user> rpcMessageUsers::getUsers()
+std::list<app::user> rpcMessageUsers::getUsers() const
 {
     return this->users;
 }
@@ -149,7 +149,7 @@ void rpcMessageUsers::setUser(const app::user &user)
     this->users.push_back(user);
 }
 
-uint16_t rpcMessageUsers::changePasswd()
+uint16_t rpcMessageUsers::changePasswd() const
 {
     return this->m_changePasswd;
 }
@@ -159,7 +159,7 @@ void rpcMessageUsers::setChangePasswd(const uint16_t changePasswd)
     this->m_changePasswd = changePasswd;
 }
 
-app::rpcMessageUsersActionType rpcMessageUsers::getMsgAction()
+app::rpcMessageUsersActionType rpcMessageUsers::getMsgAction() const
 {
     return this->msgAction;
 }
@@ -169,7 +169,7 @@ void rpcMessageUsers::setMsgAction(const rpcMessageUsersActionType action)
     this->msgAction = action;
 }
 
-app::rpcMessageUsersResultType rpcMessageUsers::getMsgResult()
+app::rpcMessageUsersResultType rpcMessageUsers::getMsgResult() const
 {
     return this->msgResult;
 }

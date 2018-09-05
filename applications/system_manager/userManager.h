@@ -28,21 +28,21 @@ private:
 
     void initDefaultUsers();
 
-    void createUser(app::user &user);
-    void removeUser(app::user &user);
-    void changeUserPass(app::user &user);
+    void createUser(const app::user &user);
+    void removeUser(const app::user &user);
+    void changeUserPass(const app::user &user);
 public:
     virtual ~userManager();
 
     static userManager* getInstance();
     static const int MAX_USERS;
 
-    bool usernameExisted(std::string user_name);
-    bool emailExisted(std::string email);
+    bool usernameExisted(const std::string &user_name);
+    bool emailExisted(const std::string &email);
 
-    app::rpcMessageUsersResultType addUser(app::user &user);
-    app::rpcMessageUsersResultType editUser(app::user &user, uint16_t changPasswd);
-    app::rpcMessageUsersResultType deleteUser(app::user &user);
+    app::rpcMessageUsersResultType addUser(const app::user &user);
+    app::rpcMessageUsersResultType editUser(app::user &user, const uint16_t changPasswd);
+    app::rpcMessageUsersResultType deleteUser(const app::user &user);
 
     void initFromFile();
     bool writeToFile();

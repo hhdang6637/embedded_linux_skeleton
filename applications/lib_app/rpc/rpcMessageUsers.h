@@ -52,18 +52,18 @@ public:
     rpcMessageUsers();
     virtual ~rpcMessageUsers();
 
-    std::list<app::user>           getUsers();
+    std::list<app::user>           getUsers() const;
     void                           setUsers(const std::list<app::user> &users);
     app::user&                     getUser();
     void                           setUser(const app::user &user);
 
-    uint16_t                       changePasswd();
+    uint16_t                       changePasswd() const;
     void                           setChangePasswd(const uint16_t changePasswd);
 
-    app::rpcMessageUsersActionType getMsgAction();
+    app::rpcMessageUsersActionType getMsgAction() const;
     void                           setMsgAction(const rpcMessageUsersActionType action);
 
-    app::rpcMessageUsersResultType getMsgResult();
+    app::rpcMessageUsersResultType getMsgResult() const;
     void                           setMsgResult(const rpcMessageUsersResultType result);
 
 };
