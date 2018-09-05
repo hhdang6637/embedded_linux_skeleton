@@ -26,14 +26,14 @@ public:
     virtual ~user();
 
     void setName(const char *name);
-    std::string getName();
+    std::string getName() const;
     void setFullName(const char *fullName);
-    std::string getFullName();
+    std::string getFullName() const;
     void setPassword(const char *pass);
-    std::string getPassword();
+    std::string getPassword() const;
     void setEmail(const char *email);
-    std::string getEmail();
-    bool isValid();     // verify user information
+    std::string getEmail() const;
+    bool isValid() const;     // verify user information
 };
 
 } /* namespace app */

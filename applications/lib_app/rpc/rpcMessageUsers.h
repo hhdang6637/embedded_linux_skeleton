@@ -16,23 +16,34 @@
 namespace app
 {
 
-enum class rpcMessageUsersActionType : uint16_t
+enum rpcMessageUsersActionType : uint16_t
 {
     GET_USERS,
-    SET_USERS
+    ADD_USER,
+    EDIT_USER,
+    DELETE_USER
 };
 
-enum class rpcMessageUsersResultType : uint16_t
+enum rpcMessageUsersResultType : uint16_t
 {
     SUCCEEDED,
-    FAILED
+    USER_INVALID,
+    USERNAME_EXISTED,
+    USER_NOT_EXISTED,
+    EMAIL_EXISTED,
+    ERROR_MAX_USER,
+    UNKNOWN_ERROR
 };
+
+// we should move this function to conversion.cpp after the netlink_event branch merged into master
+std::string userMsgResult2Str(const app::rpcMessageUsersResultType type);
 
 class rpcMessageUsers: public rpcMessage
 {
     app::rpcMessageUsersActionType msgAction;
     app::rpcMessageUsersResultType msgResult;
-    std::list<app::user> users;
+    uint16_t                       m_changePasswd;
+    std::list<app::user>           users;
 
 public:
     virtual bool serialize(int fd);
@@ -41,12 +52,20 @@ public:
     rpcMessageUsers();
     virtual ~rpcMessageUsers();
 
-    std::list<app::user> getUsers();
-    void setUsers(std::list<app::user> &users);
-    void setUser(app::user &user);
-    app::rpcMessageUsersActionType getMsgAction();
-    app::rpcMessageUsersResultType getMsgResult();
-    void setMsgResult(rpcMessageUsersResultType type);
+    std::list<app::user>           getUsers() const;
+    void                           setUsers(const std::list<app::user> &users);
+    app::user&                     getUser();
+    void                           setUser(const app::user &user);
+
+    uint16_t                       changePasswd() const;
+    void                           setChangePasswd(const uint16_t changePasswd);
+
+    app::rpcMessageUsersActionType getMsgAction() const;
+    void                           setMsgAction(const rpcMessageUsersActionType action);
+
+    app::rpcMessageUsersResultType getMsgResult() const;
+    void                           setMsgResult(const rpcMessageUsersResultType result);
+
 };
 
 } /* namespace app */
