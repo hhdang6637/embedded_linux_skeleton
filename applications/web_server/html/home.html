@@ -57,7 +57,9 @@
         $.getJSON( "/json/general_info", function(data) {
             $('#firmware_description').html(data.json_general_info.fw_description);
             $('#system_time').html(data.json_general_info.current_time);
-            $('#temperature').html(data.json_general_info.temperature);
+            if (data.json_general_info.temperature != 0)
+                $('#temperature').html(data.json_general_info.temperature + "&#x2103;");
+
             $('#cpu').html(data.json_general_info.current_cpu +" %");
             $('#memory').html(data.json_general_info.current_usage_ram+" MB / "+data.json_general_info.current_total_ram+" MB");
         });
