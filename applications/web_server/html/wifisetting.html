@@ -1,19 +1,21 @@
 <div class="container">
+  <div class="status"></div>
   <div class="panel panel-default">
     <div class="panel-body">
       <h3>Access Point Setting</h3>
-      <form action="/pages/wifisetting">
+      <form action="/json/wifisetting" id="js-wifi_setting-form">
         <div class="form-group">
           <label for="ssid">Access Point SSID:</label>
-          <input type="text" class="form-control" placeholder="Enter Access Point SSID" name="ssid">
+          <input type="text" class="form-control" placeholder="Enter Access Point SSID" name="ssid" id="ssid">
         </div>
         <div class="form-group">
           <label for="preshared_key">Pre-Shared Key:</label>
-          <input type="text" class="form-control" placeholder="Enter Access Point Pre-Shared Key" name="preshared_key">
+          <input type="text" class="form-control" placeholder="Enter Access Point Pre-Shared Key" name="preshared_key" id="preshared_key">
         </div>
         <div class="checkbox">
-          <label><input type="checkbox" data-toggle="collapse" data-target="#access_point_enable" class="collapsed" aria-expanded="false"> Enable Access Point</label>
+          <label><input type="checkbox" data-toggle="collapse" data-target="#access_point_enable" class="collapsed" aria-expanded="false" id="access_point" name="access_point"> Enable Access Point</label>
         </div>
+        <button type="submit" class="btn btn-default bg-primary text-white">Save</button>
       </form>
     </div>
   </div>
@@ -28,8 +30,56 @@ $(function () {
     'use strict';
 
     $(document).ready(function(){
+        loadWifiSetting();
     });
 
+    function loadWifiSetting() {
+      
+    }
+
 }(jQuery);
+
+(function($) {
+
+  var wifiSettingForm = document.getElementById('js-wifi_setting-form');
+
+  wifiSettingForm.addEventListener('submit', function(e) {
+    var ssid = $('#ssid').val();
+    var preshared_key = $('#preshared_key').val();
+    var access_point = 0;
+    if ($('#access_point').is(":checked"))
+    {
+      access_point = 1;
+    }
+
+    e.preventDefault();
+
+    var formData = new FormData();
+    formData.append('ssid', ssid);
+    formData.append('preshared_key', preshared_key);
+    formData.append('access_point', access_point);
+
+    $.ajax ({
+      type: "POST",
+      url: $(wifiSettingForm).attr('action'),
+      data: formData,
+      enctype: 'multipart/form-data',
+      processData: false,  // Important!
+      contentType: false,
+      cache: false,
+
+      success: function(json) {
+        console.log(json);
+        $(".status").empty();
+        if (json.status == "succeeded") {
+          $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+        } else {
+          $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+        }
+      },
+    });
+  })
+
+})(jQuery);
 
 </script>
