@@ -1,0 +1,38 @@
+<div class="container">
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <h3>System Log</h3>
+      <textarea class="form-control" rows="20" id="text_log" readonly></textarea>
+      <br>
+      <div class="col-md-12 text-center">
+        <button type="button" class="btn btn-info " id="syslog-refresh">Refresh</button>
+      </div>
+    </div>
+  </div>
+</div> <!-- /container -->
+<script>
+
+$(function () {
+    $("#myTopnav").find("a[href='/pages/syslog']").addClass("active")
+});
+
++ function($) {
+    'use strict';
+
+    $(document).ready(function(){
+        showSyslog();
+        $( "#syslog-refresh" ).click(function() {
+            showSyslog();
+        });
+    });
+
+    function showSyslog() {
+        $.getJSON( "/json/syslog", function(data) {
+            var text_log = $('#text_log')[0];
+            text_log.value = data.syslog;
+            text_log.scrollTop = text_log.scrollHeight;
+        });
+    }
+}(jQuery);
+
+</script>

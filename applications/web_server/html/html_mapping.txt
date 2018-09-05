@@ -6,3 +6,4 @@
 /pages/users,users.html
 /pages/adduser,adduser.html
 /pages/edituser,edituser.html
+/pages/syslog,syslog.html
