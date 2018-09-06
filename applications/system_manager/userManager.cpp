@@ -76,7 +76,8 @@ void userManager::initDefaultUsers()
     defaultUsers.push_back(user);
 
     for(auto &u : defaultUsers) {
-        this->addUser(u);
+        this->users.insert(std::pair<std::string, app::user>(u.getName(), u));
+        this->changeUserPass(u);
     }
 }
 
