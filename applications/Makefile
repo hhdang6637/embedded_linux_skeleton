@@ -42,6 +42,7 @@ endif
 	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean all
 	@$(MAKE) -C lib_fastcgi clean all
 	@$(MAKE) -C lib_app clean all
+	@$(MAKE) -C event_manager clean all
 	@$(MAKE) -C web_server clean all
 	@$(MAKE) -C network_manager clean all
 	@$(MAKE) -C system_manager clean all
@@ -54,6 +55,7 @@ ifeq ($(BUILD_TYPE),DEBUG)
 endif
 
 clean:
+	@$(MAKE) -C event_manager clean
 	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean
 	@$(MAKE) -C lib_fastcgi/fcgi-2.4.0 clean
 	@$(MAKE) -C lib_rpc clean

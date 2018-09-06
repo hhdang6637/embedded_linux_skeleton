@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 void write_pid(const char*pidfile, pid_t pid);
+pid_t get_pid_from_pidfile(const char *pidfile);
 int build_fd_sets(fd_set *read_fds, std::list<int> &fds);
 bool copy_file(const char *src, const char*dst);
 void *file_to_addr(const char*file_name, long int *outsize);
