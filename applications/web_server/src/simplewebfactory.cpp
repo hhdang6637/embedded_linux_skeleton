@@ -73,6 +73,9 @@ simpleWebFactory* simpleWebFactory::getInstance()
 
 void simpleWebFactory::handle_request(FCGX_Request *request)
 {
+    // TODO: skip validation for JS and CSS request
+
+    // TODO: check session is valid
     static bool session_valid = false;
 
     if (session_valid) {
@@ -94,7 +97,7 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
         }
     } else {
         FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
-        FCGX_FPrintF(request->out, "Location: http://127.0.0.1:2080/pages/login\r\n\r\n");
+        FCGX_FPrintF(request->out, "Location: /pages/login\r\n\r\n");
         session_valid = true;
     }
 
