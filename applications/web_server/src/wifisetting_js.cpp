@@ -84,7 +84,7 @@ static inline bool validatePresharedKey(const char* pwd)
     if(lengthPwd < 8 || lengthPwd > 64)
         return false;
 
-    for(; i < lengthPwd; i++)
+    for(i = 0; i < lengthPwd; i++)
     {
         //in range [0-9]
         if(pwd[i] >= '0' && pwd[i] <= '9')
