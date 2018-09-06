@@ -82,7 +82,9 @@ static void resourceHistoryCollect() {
     app::resourceCollector::getInstance()->cpu_do_collect();
     app::resourceCollector::getInstance()->ram_do_collect();
     app::resourceCollector::getInstance()->network_do_collect();
+#if (defined pi_b_plus) || (defined pi_3_b)
     app::resourceCollector::getInstance()->temperature_collect();
+#endif
 }
 
 void resource_manager_service_loop()

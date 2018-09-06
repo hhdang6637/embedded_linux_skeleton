@@ -142,7 +142,7 @@ void resourceCollector::network_do_collect()
 
 void resourceCollector::temperature_collect()
 {
-#ifdef pi_b_plus
+#if (defined pi_b_plus) || (defined pi_3_b)
     std::string temp_file = "/sys/class/thermal/thermal_zone0/temp";
 #else
     std::string temp_file;
