@@ -74,13 +74,15 @@ simpleWebFactory* simpleWebFactory::getInstance()
 
 void simpleWebFactory::redirect(FCGX_Request *request, std::string url_redirect)
 {
+    std::string http_post(FCGX_GetParam("HTTP_HOST", request->envp));
+
     std::string redirect_location;
     std::string content_length;
     std::ostringstream ss_html;
 
     FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
 
-    redirect_location = "Location: " + url_redirect + "\r\n\r\n";
+    redirect_location = "Location: " + url_redirect + "\r\n";
     FCGX_FPrintF(request->out, redirect_location.c_str());
 
     FCGX_FPrintF(request->out, "Content-Type: text/html\r\n");
@@ -94,7 +96,9 @@ void simpleWebFactory::redirect(FCGX_Request *request, std::string url_redirect)
     ss_html << "<body>\n";
     ss_html << "<h1>Moved</h1>\n";
 
-    ss_html << "<p>This page has moved to <a href=\"http://localhost:2080" + url_redirect + "\">http://localhost:2080" + url_redirect + "</a>.</p>\n";
+    ss_html << "<p>This page has moved to";
+    ss_html << "<a href=\"http://" + http_post + url_redirect + "\">http://" + http_post + url_redirect + "</a>";
+    ss_html << "</p>\n";
 
     ss_html << "</body>\n";
     ss_html << "</html> \n";
