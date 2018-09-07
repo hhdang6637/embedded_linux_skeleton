@@ -1,5 +1,5 @@
 <div class="container">
-    <form class="form-horizontal" role="form" method="POST" action="/login">
+    <form class="form-horizontal" id="js-login-form" method="post" action="/json/login">
         <div class="row">
             <div class="col-md-5"></div>
             <div class="col-xs-6">
@@ -10,6 +10,7 @@
         <div class="row">
             <div class="col-md-3"></div>
             <div class="col-md-6">
+                <div class="status"></div>
                 <div class="form-group has-danger">
                     <label class="sr-only" for="username">User name</label>
                     <div class="input-group mb-2 mr-sm-2 mb-sm-0">
@@ -54,3 +55,37 @@
         </div>
     </form>
 </div>
+
+<script>
+    function post_form_data($, id, onSuccess) {
+        var formData = new FormData();
+        $.each($('#' + id +' [name]'), function(i, elem) {
+            formData.append($(elem).attr('name'), $(elem).val());
+        });
+        $.ajax({
+            type: "POST",
+            url: $('#' + id).attr('action'),
+            data: formData,
+            enctype: 'multipart/form-data',
+            processData: false,
+            contentType: false,
+            cache: false,
+            success: onSuccess,
+        });
+    }
+
+    (function($) {
+        var loginForm = document.getElementById('js-login-form');
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            post_form_data($, 'js-login-form', function(json) {
+            $(".status").empty();
+            if (json.status == "succeeded") {
+                window.location.href = "/pages/home";
+            } else {
+                $(".status").append("<p class=\"text-danger\">" + json.message + "</p>");
+            }
+            });
+        })
+    })(jQuery);
+</script>
