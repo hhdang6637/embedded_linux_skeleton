@@ -40,6 +40,7 @@ public:
     void handle_request(FCGX_Request *request);
     const char* get_html_str(const char* url);
     const char* get_js_str(FCGX_Request *request);
+    void redirect(FCGX_Request *request, std::string url);
 
     static bool file_to_string(std::string filename, std::string &output);
 };

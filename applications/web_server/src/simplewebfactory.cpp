@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <string>
 
 #include "simplewebfactory.h"
 
@@ -71,15 +72,51 @@ simpleWebFactory* simpleWebFactory::getInstance()
     return s_instance;
 }
 
+void simpleWebFactory::redirect(FCGX_Request *request, std::string url_redirect)
+{
+    std::string redirect_location;
+    std::string content_length;
+    std::ostringstream ss_html;
+
+    FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
+
+    redirect_location = "Location: " + url_redirect + "\r\n\r\n";
+    FCGX_FPrintF(request->out, redirect_location.c_str());
+
+    FCGX_FPrintF(request->out, "Content-Type: text/html\r\n");
+
+    ss_html << "<html>\n";
+    ss_html << "<head>\n";
+
+    ss_html << "<title>Moved</title>\n";
+
+    ss_html << "</head>\n";
+    ss_html << "<body>\n";
+    ss_html << "<h1>Moved</h1>\n";
+
+    ss_html << "<p>This page has moved to <a href=\"http://localhost:2080" + url_redirect + "\">http://localhost:2080" + url_redirect + "</a>.</p>\n";
+
+    ss_html << "</body>\n";
+    ss_html << "</html> \n";
+
+    content_length = "Content-Length: " + std::to_string(ss_html.str().length()) + "\r\n\r\n";
+
+    FCGX_FPrintF(request->out, content_length.c_str());
+
+    FCGX_FPrintF(request->out, "%s", ss_html.str().c_str());
+}
+
 void simpleWebFactory::handle_request(FCGX_Request *request)
 {
     // TODO: skip validation for JS and CSS request
 
     // TODO: check session is valid
-    static bool session_valid = false;
+    bool session_valid = true;
 
-    if (session_valid) {
-        const char *response_content = this->get_html_str(FCGX_GetParam("SCRIPT_NAME", request->envp));
+    const char *script = FCGX_GetParam("SCRIPT_NAME", request->envp);
+
+    if (session_valid || strcmp(script, "/pages/login") == 0) {
+        const char *response_content = this->get_html_str(script);
 
         if (response_content != NULL) {
 
@@ -96,9 +133,7 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
 
         }
     } else {
-        FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
-        FCGX_FPrintF(request->out, "Location: /pages/login\r\n\r\n");
-        session_valid = true;
+        redirect(request, "/pages/login");
     }
 
 }
