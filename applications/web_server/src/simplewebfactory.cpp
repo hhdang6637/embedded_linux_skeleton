@@ -112,22 +112,89 @@ static void redirect(FCGX_Request *request, std::string url_redirect)
     FCGX_FPrintF(request->out, "%s", ss_html.str().c_str());
 }
 
-static void login_header_reponse(FCGX_Request *request, bool validate_login)
+typedef struct {
+    char username[32];
+    long int session_id;
+} session_entry;
+
+static session_entry session_entries[10];
+
+static bool session_valid(FCGX_Request *request)
 {
-    if (validate_login) {
+    char *cookie;
+    char *session_text_tmp;
+    char *session_text;
+    long int session_id = 0;
+    int i;
 
-        FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
-        FCGX_FPrintF(request->out, "Location: /pages/home\r\n");
-        FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n\r\n");
+    cookie = FCGX_GetParam("HTTP_COOKIE", request->envp);
+    if (cookie) {
+        session_text_tmp = strstr(cookie, "session_id=");
+        if (session_text_tmp) {
+            session_text_tmp += (sizeof("session_id=") - 1);
+            session_text = strtok(session_text_tmp, ";");
+            if (session_text) {
+                session_id = strtol(session_text, NULL, 10);
+            }
+            syslog(LOG_DEBUG, "session_id = %ld\n", session_id);
+        }
 
-    } else {
-        redirect(request, "/pages/login");
+        if (session_id > 0) {
+            for (i = 0; i < 10; i++) {
+                if (session_entries[i].session_id == session_id) {
+                    return true;
+                }
+            }
+        }
     }
+
+    return false;
+}
+
+static long int session_id_generator(const char *username)
+{
+    long int session_id, i;
+    bool unique = false;
+
+    srandom(time(NULL));
+
+    do {
+        session_id = random();
+
+        if (session_id > 0xFFFF) {
+            unique = true;
+
+            for (i = 0; i < 10; i++) {
+                if (session_entries[i].session_id == session_id) {
+                    unique = false;
+                    break;
+                }
+            }
+        }
+    } while (unique == false);
+
+    for (i = 0; i < 10; i++) {
+        if (session_entries[i].session_id == 0) {
+            session_entries[i].session_id = session_id;
+            snprintf(session_entries[i].username, 32, "%s", username);
+            return session_id;
+        }
+    }
+
+    return -1;
+}
+
+
+static long int authenticate(std::string &username, std::string &password)
+{
+    if (username.compare("admin") == 0 && password.compare("admin") == 0) {
+        return session_id_generator(username.c_str());
+    }
+    return -1;
 }
 
 static void hanlde_login_request(FCGX_Request *request)
 {
-    bool validate_login = true;
     const char *method = FCGX_GetParam("REQUEST_METHOD", request->envp);
     const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
 
@@ -152,13 +219,14 @@ static void hanlde_login_request(FCGX_Request *request)
                 syslog(LOG_ERR, "%s\n", e.GetError().c_str());
             }
 
-            if (username.compare("admin") == 0 && password.compare("admin") == 0)
-            {
-                login_header_reponse(request, validate_login);
-            } else
-            {
-                validate_login = false;
-                login_header_reponse(request, validate_login);
+            long int session_id = authenticate(username, password);
+            if (session_id > 0) {
+                FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
+                FCGX_FPrintF(request->out, "Location: /pages/home\r\n");
+                FCGX_FPrintF(request->out, "Set-Cookie: session_id=%d; path=/\r\n", session_id);
+                FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n\r\n");
+            } else {
+                redirect(request, "/pages/login");
             }
         }
     }
@@ -191,18 +259,13 @@ bool simpleWebFactory::get_post_data(FCGX_Request *request, std::string &data)
 
 void simpleWebFactory::handle_request(FCGX_Request *request)
 {
-    // TODO: skip validation for JS and CSS request
-
-    // TODO: check session is valid
-    bool session_valid = true;
-
     const char *script = FCGX_GetParam("SCRIPT_NAME", request->envp);
 
     if (strcmp(script, "/login") == 0) {
 
         hanlde_login_request(request);
 
-    } else if (session_valid || strcmp(script, "/pages/login") == 0) {
+    } else if (session_valid(request) || strcmp(script, "/pages/login") == 0) {
         const char *response_content = this->get_html_str(script);
 
         if (response_content != NULL) {
@@ -217,7 +280,6 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
 
         } else {
             FCGX_FPrintF(request->out, "HTTP/1.1 404 Not Found\r\n\r\n");
-
         }
     } else {
         redirect(request, "/pages/login");
