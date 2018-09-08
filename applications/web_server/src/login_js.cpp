@@ -10,31 +10,6 @@
 #include "fcgi.h"
 #include "simplewebfactory.h"
 
-static bool get_post_data(FCGX_Request *request, std::string &data)
-{
-    const char *contentLenStr = FCGX_GetParam("CONTENT_LENGTH", request->envp);
-    int         contentLength = 0;
-
-    if (contentLenStr) {
-        contentLength = strtol(contentLenStr, NULL, 10);
-    }
-
-    for (int len = 0; len < contentLength; len++) {
-        int ch = FCGX_GetChar(request->in);
-
-        if (ch < 0) {
-
-            syslog(LOG_ERR, "Failed to get user information\n");
-            return false;
-
-        } else {
-            data += ch;
-        }
-    }
-
-    return true;
-}
-
 static inline std::string build_user_rsp_json(std::string status, std::string message = "") {
     std::ostringstream ss_json;
     ss_json << "{";
@@ -56,7 +31,7 @@ std::string json_handle_login(FCGX_Request *request)
     if (method && (strcmp(method, "POST") == 0)) {
         std::string data;
 
-        if (get_post_data(request, data)) {
+        if (simpleWebFactory::get_post_data(request, data)) {
 
             std::string username, password;
             try

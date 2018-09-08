@@ -74,7 +74,7 @@ simpleWebFactory* simpleWebFactory::getInstance()
     return s_instance;
 }
 
-void simpleWebFactory::redirect(FCGX_Request *request, std::string url_redirect)
+static void redirect(FCGX_Request *request, std::string url_redirect)
 {
     std::string http_post(FCGX_GetParam("HTTP_HOST", request->envp));
 
@@ -112,24 +112,59 @@ void simpleWebFactory::redirect(FCGX_Request *request, std::string url_redirect)
     FCGX_FPrintF(request->out, "%s", ss_html.str().c_str());
 }
 
-void simpleWebFactory::login_header_reponse(FCGX_Request *request, bool validate_login)
+static void login_header_reponse(FCGX_Request *request, bool validate_login)
 {
-    if (validate_login)
-    {
-        const char *response_content = this->get_html_str("/pages/home");
+    if (validate_login) {
 
         FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
         FCGX_FPrintF(request->out, "Location: /pages/home\r\n");
-
         FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n\r\n");
 
-        FCGX_FPrintF(request->out, "%s", response_content);
     } else {
         redirect(request, "/pages/login");
     }
 }
 
-static bool get_post_data(FCGX_Request *request, std::string &data)
+static void hanlde_login_request(FCGX_Request *request)
+{
+    bool validate_login = true;
+    const char *method = FCGX_GetParam("REQUEST_METHOD", request->envp);
+    const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
+
+    if (method && (strcmp(method, "POST") == 0)) {
+        std::string data;
+
+        if (simpleWebFactory::get_post_data(request, data)) {
+
+            std::string username, password;
+            try
+            {
+                MPFD::Parser POSTParser;
+
+                POSTParser.SetContentType(contentType);
+
+                POSTParser.AcceptSomeData(data.c_str(), data.size());
+
+                username = POSTParser.GetField("username")->GetTextTypeContent();
+                password = POSTParser.GetField("password")->GetTextTypeContent();
+
+            } catch (MPFD::Exception &e) {
+                syslog(LOG_ERR, "%s\n", e.GetError().c_str());
+            }
+
+            if (username.compare("admin") == 0 && password.compare("admin") == 0)
+            {
+                login_header_reponse(request, validate_login);
+            } else
+            {
+                validate_login = false;
+                login_header_reponse(request, validate_login);
+            }
+        }
+    }
+}
+
+bool simpleWebFactory::get_post_data(FCGX_Request *request, std::string &data)
 {
     const char *contentLenStr = FCGX_GetParam("CONTENT_LENGTH", request->envp);
     int         contentLength = 0;
@@ -160,46 +195,12 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
 
     // TODO: check session is valid
     bool session_valid = true;
-    bool validate_login = true;
 
     const char *script = FCGX_GetParam("SCRIPT_NAME", request->envp);
 
-    if (strcmp(script, "/login") == 0)
-    {
-        const char *method = FCGX_GetParam("REQUEST_METHOD", request->envp);
-        const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
+    if (strcmp(script, "/login") == 0) {
 
-        if (method && (strcmp(method, "POST") == 0)) {
-            std::string data;
-
-            if (get_post_data(request, data)) {
-
-                std::string username, password;
-                try
-                {
-                    MPFD::Parser POSTParser;
-
-                    POSTParser.SetContentType(contentType);
-
-                    POSTParser.AcceptSomeData(data.c_str(), data.size());
-
-                    username = POSTParser.GetField("username")->GetTextTypeContent();
-                    password = POSTParser.GetField("password")->GetTextTypeContent();
-
-                } catch (MPFD::Exception &e) {
-                    syslog(LOG_ERR, "%s\n", e.GetError().c_str());
-                }
-
-                if (username.compare("admin") == 0 && password.compare("admin") == 0)
-                {
-                    login_header_reponse(request, validate_login);
-                } else
-                {
-                    validate_login = false;
-                    login_header_reponse(request, validate_login);
-                }
-            }
-        }
+        hanlde_login_request(request);
 
     } else if (session_valid || strcmp(script, "/pages/login") == 0) {
         const char *response_content = this->get_html_str(script);

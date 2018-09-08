@@ -10,6 +10,7 @@
 #include <fcgiapp.h>
 #include <syslog.h>
 
+#include "simplewebfactory.h"
 #include "firmware_manager_js.h"
 #include "MPFDParser/Parser.h"
 #include "MPFDParser/Field.h"
@@ -69,31 +70,6 @@ static int parse_and_save_file(const char *data, const char *contentType, const 
     return 1;
 }
 
-static bool get_post_data(FCGX_Request *request, std::string &data)
-{
-    const char *contentLenStr = FCGX_GetParam("CONTENT_LENGTH", request->envp);
-    int         contentLength = 0;
-
-    if (contentLenStr) {
-        contentLength = strtol(contentLenStr, NULL, 10);
-    }
-
-    for (int len = 0; len < contentLength; len++) {
-        int ch = FCGX_GetChar(request->in);
-
-        if (ch < 0) {
-
-            syslog(LOG_ERR, "Failed to get file content\n");
-            return false;
-
-        } else {
-            data += ch;
-        }
-    }
-
-    return true;
-}
-
 std::string json_handle_firmware_upgrade(FCGX_Request *request)
 {
     const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
@@ -103,7 +79,7 @@ std::string json_handle_firmware_upgrade(FCGX_Request *request)
 
         std::string data;
 
-        if (get_post_data(request, data)) {
+        if (simpleWebFactory::get_post_data(request, data)) {
 
             std::string filename;
             bool reboot;
