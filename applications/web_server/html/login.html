@@ -1,5 +1,5 @@
 <div class="container">
-    <form class="form-horizontal" id="js-login-form" method="post" action="/json/login">
+    <form class="form-horizontal" id="js-login-form" method="POST" action="/login" enctype="multipart/form-data">
         <div class="row">
             <div class="col-md-5"></div>
             <div class="col-xs-6">
@@ -55,37 +55,3 @@
         </div>
     </form>
 </div>
-
-<script>
-    function post_form_data($, id, onSuccess) {
-        var formData = new FormData();
-        $.each($('#' + id +' [name]'), function(i, elem) {
-            formData.append($(elem).attr('name'), $(elem).val());
-        });
-        $.ajax({
-            type: "POST",
-            url: $('#' + id).attr('action'),
-            data: formData,
-            enctype: 'multipart/form-data',
-            processData: false,
-            contentType: false,
-            cache: false,
-            success: onSuccess,
-        });
-    }
-
-    (function($) {
-        var loginForm = document.getElementById('js-login-form');
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            post_form_data($, 'js-login-form', function(json) {
-            $(".status").empty();
-            if (json.status == "succeeded") {
-                window.location.href = "/pages/home";
-            } else {
-                $(".status").append("<p class=\"text-danger\">" + json.message + "</p>");
-            }
-            });
-        })
-    })(jQuery);
-</script>
