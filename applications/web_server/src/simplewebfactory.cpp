@@ -5,13 +5,15 @@
  *      Author: hhdang
  */
 #include <string.h>
-
+#include <syslog.h>
 #include <iostream>
-#include <vector>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <string>
+#include "MPFDParser/Parser.h"
+#include "MPFDParser/Field.h"
+#include "MPFDParser/Exception.h"
 
 #include "simplewebfactory.h"
 
@@ -110,16 +112,96 @@ void simpleWebFactory::redirect(FCGX_Request *request, std::string url_redirect)
     FCGX_FPrintF(request->out, "%s", ss_html.str().c_str());
 }
 
+void simpleWebFactory::login_header_reponse(FCGX_Request *request, bool validate_login)
+{
+    if (validate_login)
+    {
+        const char *response_content = this->get_html_str("/pages/home");
+
+        FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
+        FCGX_FPrintF(request->out, "Location: /pages/home\r\n");
+
+        FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n\r\n");
+
+        FCGX_FPrintF(request->out, "%s", response_content);
+    } else {
+        redirect(request, "/pages/login");
+    }
+}
+
+static bool get_post_data(FCGX_Request *request, std::string &data)
+{
+    const char *contentLenStr = FCGX_GetParam("CONTENT_LENGTH", request->envp);
+    int         contentLength = 0;
+
+    if (contentLenStr) {
+        contentLength = strtol(contentLenStr, NULL, 10);
+    }
+
+    for (int len = 0; len < contentLength; len++) {
+        int ch = FCGX_GetChar(request->in);
+
+        if (ch < 0) {
+
+            syslog(LOG_ERR, "Failed to get user information\n");
+            return false;
+
+        } else {
+            data += ch;
+        }
+    }
+
+    return true;
+}
+
 void simpleWebFactory::handle_request(FCGX_Request *request)
 {
     // TODO: skip validation for JS and CSS request
 
     // TODO: check session is valid
     bool session_valid = true;
+    bool validate_login = true;
 
     const char *script = FCGX_GetParam("SCRIPT_NAME", request->envp);
 
-    if (session_valid || strcmp(script, "/pages/login") == 0) {
+    if (strcmp(script, "/login") == 0)
+    {
+        const char *method = FCGX_GetParam("REQUEST_METHOD", request->envp);
+        const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
+
+        if (method && (strcmp(method, "POST") == 0)) {
+            std::string data;
+
+            if (get_post_data(request, data)) {
+
+                std::string username, password;
+                try
+                {
+                    MPFD::Parser POSTParser;
+
+                    POSTParser.SetContentType(contentType);
+
+                    POSTParser.AcceptSomeData(data.c_str(), data.size());
+
+                    username = POSTParser.GetField("username")->GetTextTypeContent();
+                    password = POSTParser.GetField("password")->GetTextTypeContent();
+
+                } catch (MPFD::Exception &e) {
+                    syslog(LOG_ERR, "%s\n", e.GetError().c_str());
+                }
+
+                if (username.compare("admin") == 0 && password.compare("admin") == 0)
+                {
+                    login_header_reponse(request, validate_login);
+                } else
+                {
+                    validate_login = false;
+                    login_header_reponse(request, validate_login);
+                }
+            }
+        }
+
+    } else if (session_valid || strcmp(script, "/pages/login") == 0) {
         const char *response_content = this->get_html_str(script);
 
         if (response_content != NULL) {

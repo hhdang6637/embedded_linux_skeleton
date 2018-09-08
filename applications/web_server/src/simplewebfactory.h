@@ -41,6 +41,7 @@ public:
     const char* get_html_str(const char* url);
     const char* get_js_str(FCGX_Request *request);
     void redirect(FCGX_Request *request, std::string url);
+    void login_header_reponse(FCGX_Request *request, bool validate_login);
 
     static bool file_to_string(std::string filename, std::string &output);
 };
