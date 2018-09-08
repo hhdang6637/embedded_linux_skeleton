@@ -136,7 +136,7 @@ static bool session_valid(FCGX_Request *request)
             if (session_text) {
                 session_id = strtol(session_text, NULL, 10);
             }
-            syslog(LOG_DEBUG, "session_id = %ld\n", session_id);
+            // syslog(LOG_DEBUG, "session_id = %ld\n", session_id);
         }
 
         if (session_id > 0) {
