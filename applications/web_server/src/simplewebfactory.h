@@ -42,6 +42,7 @@ public:
     const char* get_js_str(FCGX_Request *request);
 
     static bool file_to_string(std::string filename, std::string &output);
+    static bool get_post_data(FCGX_Request *request, std::string &data);
 };
 
 #endif /* _SIMPLE_WEB_FACTORY_H_ */

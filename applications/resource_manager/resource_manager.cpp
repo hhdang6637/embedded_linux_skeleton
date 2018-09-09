@@ -7,7 +7,9 @@
 
 #include "resource_manager.h"
 #include "rpcUnixServer.h"
+#include "rpcUnixClient.h"
 #include "rpcMessageResourceHistory.h"
+#include "rpcMessageFirmware.h"
 #include "simpleTimerSync.h"
 #include "resourceCollector.h"
 #include "utilities.h"
@@ -26,14 +28,51 @@ void resource_manager_init()
 static bool get_resource_history_handler(int socker_fd) {
     app::rpcMessageResourceHistory msgResourceHistory;
     if (msgResourceHistory.deserialize(socker_fd)) {
-        std::list<cpu_stat_t> cpu_history     = app::resourceCollector::getInstance()->get_cpu_history();
-        std::list<struct sysinfo> ram_history = app::resourceCollector::getInstance()->get_ram_history();
-        std::string interface_name            = msgResourceHistory.get_interface_name();
-        std::list<struct rtnl_link_stats> network_history = app::resourceCollector::getInstance()->get_network_history(interface_name);
+        switch (msgResourceHistory.getMsgAction())
+        {
+            case app::rpcResourceActionType::GET_RESOURCE_HISTORY:
+            {
+                std::list<cpu_stat_t> cpu_history = app::resourceCollector::getInstance()->get_cpu_history();
+                std::list<struct sysinfo> ram_history = app::resourceCollector::getInstance()->get_ram_history();
+                std::string interface_name = msgResourceHistory.get_interface_name();
+                std::list<struct rtnl_link_stats> network_history = app::resourceCollector::getInstance()
+                        ->get_network_history(interface_name);
 
-        msgResourceHistory.set_cpu_history(cpu_history);
-        msgResourceHistory.set_ram_history(ram_history);
-        msgResourceHistory.set_network_history(network_history);
+                msgResourceHistory.set_cpu_history(cpu_history);
+                msgResourceHistory.set_ram_history(ram_history);
+                msgResourceHistory.set_network_history(network_history);
+
+                break;
+            }
+            case app::rpcResourceActionType::GET_GENERAL_INFO:
+            {
+                app::resourceGeneralInfo_t info;
+                info.current_cpu = app::resourceCollector::getInstance()->get_current_cpu();
+                info.current_ram = app::resourceCollector::getInstance()->get_current_ram();
+                info.temperature = app::resourceCollector::getInstance()->get_temperature();
+
+                {
+                    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+                    app::rpcMessageFirmware msg;
+
+                    msg.setFirmwareMsgAction(app::rpcFirmwareActionType::GET_INFO);
+
+                    if (rpcClient->doRpc(&msg) == false) {
+                        syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+                        return false;
+                    }
+
+                    strncpy(info.fw_description, msg.getFirmwareMsgData().fwDesc.c_str(), sizeof(info.fw_description));
+                    info.fw_description[sizeof(info.fw_description) -1] = '\0';
+                }
+
+                info.current_time = time(NULL);;
+                msgResourceHistory.set_general_info(info);
+
+                break;
+            }
+        }
+
         return msgResourceHistory.serialize(socker_fd);
     }
     return false;
@@ -43,6 +82,9 @@ static void resourceHistoryCollect() {
     app::resourceCollector::getInstance()->cpu_do_collect();
     app::resourceCollector::getInstance()->ram_do_collect();
     app::resourceCollector::getInstance()->network_do_collect();
+#if (defined pi_b_plus) || (defined pi_3_b)
+    app::resourceCollector::getInstance()->temperature_collect();
+#endif
 }
 
 void resource_manager_service_loop()

@@ -22,6 +22,7 @@
 
 #include "firmwareManager.h"
 #include "utilities.h"
+#include "conversion.h"
 #include "fdt.h"
 
 #define FIRMWARE_NAME_F             "/boot/firmware_%d"
@@ -130,10 +131,7 @@ namespace app
         if (fit_get_timestamp((const fdt32_t *)header, 0, &timestamp) == 0) {
             syslog(LOG_NOTICE,"Fw created:%s", ctime(&timestamp));
 
-            struct tm * p = localtime(&timestamp);
-            char str[48];
-            strftime(str, 48, "%A, %B %d %H:%M:%S %Y", p);
-            this->fwDate = str;
+            this->fwDate = time2String(timestamp);
         }
 
         if (header != NULL) {

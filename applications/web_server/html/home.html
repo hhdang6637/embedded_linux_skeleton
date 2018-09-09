@@ -1,0 +1,69 @@
+<!--div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Firmware</h1>
+</div-->
+<div class="container">
+    <div class="card ">
+        <div class="card-header p-3 mb-2 bg-info text-white align-middle" style="padding:0">
+            <h5 class="align-middle">Welcome</h5>
+        </div>
+
+        <div class="card-body" style="padding:0">
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <th class="align-middle" scope="row" style="text-align: right; border:0; width: 50%; padding:3px;">Firmware description:</th>
+                        <td class="align-middle" style="border:0; padding:3px;"> <a id="firmware_description">N/A</a> </td>
+                    </tr>
+
+                    <tr>
+                        <th class="align-middle" scope="row" style="text-align: right; border:0; width: 50%; padding:3px;">System time:</th>
+                        <td class="align-middle"  style="border:0; padding:3px;"> <a id="system_time">N/A</a> </td>
+                    </tr>
+
+                    <tr>
+                        <th class="align-middle" scope="row" style="text-align: right; border:0; width: 50%; padding:3px;">Temperature:</th>
+                        <td class="align-middle" style="border:0; padding:3px;"> <a id="temperature">N/A</a> </td>
+                    </tr>
+
+                    <tr>
+                        <th class="align-middle" scope="row" style="text-align: right; border:0; width: 50%; padding:3px;">CPU:</th>
+                        <td class="align-middle" style="border:0; padding:3px;"> <a id="cpu">N/A</a> </td>
+                    </tr>
+
+                    <tr>
+                        <th class="align-middle" scope="row" style="text-align: right; border:0; width: 50%; padding:3px;">Memory:</th>
+                        <td class="align-middle" style="border:0; padding:3px;"> <a id="memory">N/A</a> </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div> <!-- /container -->
+
+<script>
+    $(function () {
+        $("#myTopnav").find("a[href='/pages/home']").addClass("active")
+    });
+
+    + function($) {
+        'use strict';
+
+        $(document).ready(function(){
+            showGeneralInfo();
+        });
+
+        function showGeneralInfo() {
+        $.getJSON( "/json/general_info", function(data) {
+            $('#firmware_description').html(data.json_general_info.fw_description);
+            $('#system_time').html(data.json_general_info.current_time);
+            if (data.json_general_info.temperature != 0)
+                $('#temperature').html(data.json_general_info.temperature + "&#x2103;");
+
+            $('#cpu').html(data.json_general_info.current_cpu +" %");
+            $('#memory').html(data.json_general_info.current_usage_ram+" MB / "+data.json_general_info.current_total_ram+" MB");
+        });
+        }
+
+    }(jQuery);
+</script>

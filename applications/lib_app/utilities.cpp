@@ -35,6 +35,22 @@ void write_pid(const char*pidfile, pid_t pid)
     }
 }
 
+pid_t get_pid_from_pidfile(const char *pidfile)
+{
+    FILE *fp;
+    pid_t pid;
+
+    if ((fp = fopen(pidfile, "r")) == NULL) {
+        fprintf(stderr, "Warning: can't read PID file %s.\n", pidfile);
+        return -1;
+    }
+
+    fscanf(fp, "%d", (int*)&pid);
+    fclose(fp);
+
+    return pid;
+}
+
 bool copy_file(const char *src, const char*dst)
 {
     int     src_fd, dst_fd;

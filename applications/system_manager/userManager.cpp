@@ -76,7 +76,9 @@ void userManager::initDefaultUsers()
     defaultUsers.push_back(user);
 
     for(auto &u : defaultUsers) {
-        this->addUser(u);
+        this->users.insert(std::pair<std::string, app::user>(u.getName(), u));
+        this->createUser(user);
+        this->changeUserPass(u);
     }
 }
 
@@ -171,7 +173,7 @@ app::rpcMessageUsersResultType userManager::addUser(const app::user &user)
     return app::rpcMessageUsersResultType::USER_INVALID;
 }
 
-app::rpcMessageUsersResultType userManager::editUser(app::user &user, const uint16_t changPasswd)
+app::rpcMessageUsersResultType userManager::editUser(app::user &user, bool changPasswd)
 {
     auto it = this->users.find(user.getName());
 
@@ -267,7 +269,9 @@ void userManager::initFromFile()
                     user.setEmail(value.c_str());
                 }
 
-                this->addUser(user);
+                if (this->addUser(user) == USERNAME_EXISTED) {
+                    this->editUser(user, true);
+                }
             }
         }
 

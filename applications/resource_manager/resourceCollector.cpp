@@ -15,9 +15,13 @@
 
 #include <list>
 #include <algorithm>
+#include <fstream>
 
 #include "resourceCollector.h"
 #include "netlink_socket.h"
+#include "conversion.h"
+
+#define CPU_TEMP_THRESHOLD 40
 
 namespace app {
 
@@ -47,6 +51,11 @@ std::list<cpu_stat_t> resourceCollector::get_cpu_history()
     return this->cpu_history;
 }
 
+cpu_stat_t resourceCollector::get_current_cpu()
+{
+    return this->cpu_history.back();
+}
+
 void resourceCollector::cpu_do_collect()
 {
     cpu_stat_t stat = { 0 };
@@ -64,6 +73,16 @@ void resourceCollector::cpu_do_collect()
 std::list<struct sysinfo> resourceCollector::get_ram_history()
 {
     return this->ram_history;
+}
+
+struct sysinfo resourceCollector::get_current_ram()
+{
+    return this->ram_history.back();
+}
+
+float resourceCollector::get_temperature()
+{
+    return this->temperature/1000;
 }
 
 std::list<struct rtnl_link_stats> resourceCollector::get_network_history(const std::string &if_name)
@@ -119,6 +138,25 @@ void resourceCollector::network_do_collect()
 
         std::for_each(stats.cbegin(), stats.cend(), append_to_network_history);
     }
+}
+
+void resourceCollector::temperature_collect()
+{
+#if (defined pi_b_plus) || (defined pi_3_b)
+    std::string temp_file = "/sys/class/thermal/thermal_zone0/temp";
+#else
+    std::string temp_file;
+    syslog(LOG_ERR, "Device not support thermal management!!!");
+    return;
+#endif
+    std::ifstream file(temp_file);
+    if (file.is_open()) {
+        file >> this->temperature;
+        file.close();
+    }
+
+    if (this->temperature/1000 > CPU_TEMP_THRESHOLD)
+        send_multicast_events(NETLINK_EVENTS_GROUP, EVENT_CPU_TEMP);
 }
 
 } /* namespace app */
