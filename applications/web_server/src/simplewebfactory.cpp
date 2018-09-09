@@ -275,6 +275,8 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
 
         } else if ((response_content = this->get_js_str(request)) != NULL) {
 
+            FCGX_FPrintF(request->out, "Cache-Control: no-cache\r\n");
+            FCGX_FPrintF(request->out, "Cache-Control: no-store\r\n");
             FCGX_FPrintF(request->out, "Content-Type: application/json; charset=utf-8\r\n\r\n");
             FCGX_FPrintF(request->out, "%s", response_content);
 
