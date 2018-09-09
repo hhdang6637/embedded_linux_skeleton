@@ -41,7 +41,7 @@ public:
     bool emailExisted(const std::string &email);
 
     app::rpcMessageUsersResultType addUser(const app::user &user);
-    app::rpcMessageUsersResultType editUser(app::user &user, const uint16_t changPasswd);
+    app::rpcMessageUsersResultType editUser(app::user &user, bool changPasswd);
     app::rpcMessageUsersResultType deleteUser(const app::user &user);
 
     void initFromFile();

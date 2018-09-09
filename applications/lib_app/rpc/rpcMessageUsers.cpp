@@ -49,11 +49,12 @@ bool rpcMessageUsers::serialize(int fd)
         case app::rpcMessageUsersActionType::EDIT_USER:
         case app::rpcMessageUsersActionType::DELETE_USER:
         {
-            buff_len += sizeof(uint16_t) + this->users.size() * sizeof(app::user);
+            buff_len += sizeof(uint16_t) + this->users.size() * sizeof(app::user) + sizeof(uint16_t);
 
             std::unique_ptr<char> buff_ptr(new char[buff_len]);
 
             offset += rpcMessage::bufferAppendList(buff_ptr.get() + offset, this->users);
+            offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->m_changePasswd);
 
             if (buff_len != offset) {
 
@@ -66,9 +67,6 @@ bool rpcMessageUsers::serialize(int fd)
                 return false;
             }
 
-            if (rpcMessage::sendInterruptRetry(fd, &this->m_changePasswd, sizeof(this->m_changePasswd)) != true) {
-                return false;
-            }
             break;
         }
         default:
