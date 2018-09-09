@@ -10,6 +10,7 @@
 #include <fcgiapp.h>
 #include <syslog.h>
 
+#include "simplewebfactory.h"
 #include "firmware_manager_js.h"
 #include "MPFDParser/Parser.h"
 #include "MPFDParser/Field.h"
@@ -79,7 +80,7 @@ std::string json_handle_firmware_upgrade(FCGX_Request *request)
 
         std::string data;
 
-        if (get_post_data(request, data)) {
+        if (simpleWebFactory::get_post_data(request, data)) {
 
             std::string filename;
             bool reboot;

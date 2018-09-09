@@ -5,12 +5,15 @@
  *      Author: hhdang
  */
 #include <string.h>
-
+#include <syslog.h>
 #include <iostream>
-#include <vector>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <string>
+#include "MPFDParser/Parser.h"
+#include "MPFDParser/Field.h"
+#include "MPFDParser/Exception.h"
 
 #include "simplewebfactory.h"
 
@@ -71,23 +74,217 @@ simpleWebFactory* simpleWebFactory::getInstance()
     return s_instance;
 }
 
+static void redirect(FCGX_Request *request, std::string url_redirect)
+{
+    std::string http_post(FCGX_GetParam("HTTP_HOST", request->envp));
+
+    std::string redirect_location;
+    std::string content_length;
+    std::ostringstream ss_html;
+
+    FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
+
+    redirect_location = "Location: " + url_redirect + "\r\n";
+    FCGX_FPrintF(request->out, redirect_location.c_str());
+
+    FCGX_FPrintF(request->out, "Content-Type: text/html\r\n");
+
+    ss_html << "<html>\n";
+    ss_html << "<head>\n";
+
+    ss_html << "<title>Moved</title>\n";
+
+    ss_html << "</head>\n";
+    ss_html << "<body>\n";
+    ss_html << "<h1>Moved</h1>\n";
+
+    ss_html << "<p>This page has moved to";
+    ss_html << "<a href=\"http://" + http_post + url_redirect + "\">http://" + http_post + url_redirect + "</a>";
+    ss_html << "</p>\n";
+
+    ss_html << "</body>\n";
+    ss_html << "</html> \n";
+
+    content_length = "Content-Length: " + std::to_string(ss_html.str().length()) + "\r\n\r\n";
+
+    FCGX_FPrintF(request->out, content_length.c_str());
+
+    FCGX_FPrintF(request->out, "%s", ss_html.str().c_str());
+}
+
+typedef struct {
+    char username[32];
+    long int session_id;
+} session_entry;
+
+static session_entry session_entries[10];
+
+static bool session_valid(FCGX_Request *request)
+{
+    char *cookie;
+    char *session_text_tmp;
+    char *session_text;
+    long int session_id = 0;
+    int i;
+
+    cookie = FCGX_GetParam("HTTP_COOKIE", request->envp);
+    if (cookie) {
+        session_text_tmp = strstr(cookie, "session_id=");
+        if (session_text_tmp) {
+            session_text_tmp += (sizeof("session_id=") - 1);
+            session_text = strtok(session_text_tmp, ";");
+            if (session_text) {
+                session_id = strtol(session_text, NULL, 10);
+            }
+            // syslog(LOG_DEBUG, "session_id = %ld\n", session_id);
+        }
+
+        if (session_id > 0) {
+            for (i = 0; i < 10; i++) {
+                if (session_entries[i].session_id == session_id) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+static long int session_id_generator(const char *username)
+{
+    long int session_id, i;
+    bool unique = false;
+
+    srandom(time(NULL));
+
+    do {
+        session_id = random();
+
+        if (session_id > 0xFFFF) {
+            unique = true;
+
+            for (i = 0; i < 10; i++) {
+                if (session_entries[i].session_id == session_id) {
+                    unique = false;
+                    break;
+                }
+            }
+        }
+    } while (unique == false);
+
+    for (i = 0; i < 10; i++) {
+        if (session_entries[i].session_id == 0) {
+            session_entries[i].session_id = session_id;
+            snprintf(session_entries[i].username, 32, "%s", username);
+            return session_id;
+        }
+    }
+
+    return -1;
+}
+
+
+static long int authenticate(std::string &username, std::string &password)
+{
+    if (username.compare("admin") == 0 && password.compare("admin") == 0) {
+        return session_id_generator(username.c_str());
+    }
+    return -1;
+}
+
+static void hanlde_login_request(FCGX_Request *request)
+{
+    const char *method = FCGX_GetParam("REQUEST_METHOD", request->envp);
+    const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
+
+    if (method && (strcmp(method, "POST") == 0)) {
+        std::string data;
+
+        if (simpleWebFactory::get_post_data(request, data)) {
+
+            std::string username, password;
+            try
+            {
+                MPFD::Parser POSTParser;
+
+                POSTParser.SetContentType(contentType);
+
+                POSTParser.AcceptSomeData(data.c_str(), data.size());
+
+                username = POSTParser.GetField("username")->GetTextTypeContent();
+                password = POSTParser.GetField("password")->GetTextTypeContent();
+
+            } catch (MPFD::Exception &e) {
+                syslog(LOG_ERR, "%s\n", e.GetError().c_str());
+            }
+
+            long int session_id = authenticate(username, password);
+            if (session_id > 0) {
+                FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
+                FCGX_FPrintF(request->out, "Location: /pages/home\r\n");
+                FCGX_FPrintF(request->out, "Set-Cookie: session_id=%d; path=/\r\n", session_id);
+                FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n\r\n");
+            } else {
+                redirect(request, "/pages/login");
+            }
+        }
+    }
+}
+
+bool simpleWebFactory::get_post_data(FCGX_Request *request, std::string &data)
+{
+    const char *contentLenStr = FCGX_GetParam("CONTENT_LENGTH", request->envp);
+    int         contentLength = 0;
+
+    if (contentLenStr) {
+        contentLength = strtol(contentLenStr, NULL, 10);
+    }
+
+    for (int len = 0; len < contentLength; len++) {
+        int ch = FCGX_GetChar(request->in);
+
+        if (ch < 0) {
+
+            syslog(LOG_ERR, "Failed to get user information\n");
+            return false;
+
+        } else {
+            data += ch;
+        }
+    }
+
+    return true;
+}
+
 void simpleWebFactory::handle_request(FCGX_Request *request)
 {
-    const char *response_content = this->get_html_str(FCGX_GetParam("SCRIPT_NAME", request->envp));
+    const char *script = FCGX_GetParam("SCRIPT_NAME", request->envp);
 
-    if (response_content != NULL) {
+    if (strcmp(script, "/login") == 0) {
 
-        FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n\r\n");
-        FCGX_FPrintF(request->out, "%s", response_content);
+        hanlde_login_request(request);
 
-    } else if ((response_content = this->get_js_str(request)) != NULL) {
+    } else if (session_valid(request) || strcmp(script, "/pages/login") == 0) {
+        const char *response_content = this->get_html_str(script);
 
-        FCGX_FPrintF(request->out, "Content-Type: application/json; charset=utf-8\r\n\r\n");
-        FCGX_FPrintF(request->out, "%s", response_content);
+        if (response_content != NULL) {
 
+            FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n\r\n");
+            FCGX_FPrintF(request->out, "%s", response_content);
+
+        } else if ((response_content = this->get_js_str(request)) != NULL) {
+
+            FCGX_FPrintF(request->out, "Content-Type: application/json; charset=utf-8\r\n\r\n");
+            FCGX_FPrintF(request->out, "%s", response_content);
+
+        } else {
+            FCGX_FPrintF(request->out, "HTTP/1.1 404 Not Found\r\n\r\n");
+        }
     } else {
-        FCGX_FPrintF(request->out, "HTTP/1.1 404 Not Found\r\n\r\n");
+        redirect(request, "/pages/login");
     }
+
 }
 
 const char* simpleWebFactory::get_html_str(const char * url)
@@ -110,7 +307,9 @@ const char* simpleWebFactory::get_html_str(const char * url)
 
     ss_html << "<body>\n";
 
-    ss_html << this->html_navbar_str;
+    if (it->first.compare("/pages/login") != 0) {
+        ss_html << this->html_navbar_str;
+    }
 
     // container begin
     ss_html << "<div class=\"container-fluid\"><div class=\"row\">\n";

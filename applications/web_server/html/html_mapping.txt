@@ -1,6 +1,7 @@
 /,home.html
 /index.html,home.html
 /pages/home,home.html
+/pages/login,login.html
 /pages/dashboard,dashboard.html
 /pages/firmware,firmware.html
 /pages/users,users.html

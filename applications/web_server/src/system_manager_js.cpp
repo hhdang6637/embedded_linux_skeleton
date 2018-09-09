@@ -285,8 +285,8 @@ std::string json_handle_users(FCGX_Request *request)
 
         std::string data;
 
-        if (get_post_data(request, data)) {
-
+        if (simpleWebFactory::get_post_data(request, data))
+        {
             app::user user;
             std::string action;
             std::string username;
