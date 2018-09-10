@@ -5,7 +5,7 @@ namespace app
 {
     rpcMessageAuthentication::rpcMessageAuthentication() :
         rpcMessage(rpcMessageType::handle_users_login, rpcMessageAddr::system_manager_addr_t),
-        msgResult(rpcMessageAuthenticationResultType::SUCCEEDED)
+        msgResult(rpcMessageAuthenticationResultType::SUCCEEDED_LOGIN)
     {
         // TODO Auto-generated constructor stub
 
@@ -99,6 +99,26 @@ namespace app
     void rpcMessageAuthentication::setAuthenticationMsgResult(const rpcMessageAuthenticationResultType result)
     {
         this->msgResult = result;
+    }
+
+    std::string rpcMessageAuthentication::getUsername()
+    {
+        return this->username;
+    }
+
+    void rpcMessageAuthentication::setUsername(std::string username)
+    {
+        this->username = username;
+    }
+
+    std::string rpcMessageAuthentication::getPasswd()
+    {
+        return this->password;
+    }
+
+    void rpcMessageAuthentication::setPasswd(std::string passwd)
+    {
+        this->password = passwd;
     }
 
 } /* namespace app */
