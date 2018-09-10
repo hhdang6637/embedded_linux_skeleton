@@ -16,6 +16,8 @@
 #include "MPFDParser/Exception.h"
 
 #include "simplewebfactory.h"
+#include "rpcUnixClient.h"
+#include "rpcMessageAuthentication.h"
 
 #include "firmware_manager_js.h"
 
@@ -184,12 +186,23 @@ static long int session_id_generator(const char *username)
     return -1;
 }
 
-
 static long int authenticate(std::string &username, std::string &password)
 {
-    if (username.compare("admin") == 0 && password.compare("admin") == 0) {
+    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+    app::rpcMessageAuthentication msg;
+
+    msg.setUsername(username);
+    msg.setPasswd(password);
+
+    if (rpcClient->doRpc(&msg) == false) {
+        syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+        return -1;
+    }
+
+    if (msg.getAuthenticationMsgResult() == app::rpcMessageAuthenticationResultType::SUCCEEDED_LOGIN) {
         return session_id_generator(username.c_str());
     }
+
     return -1;
 }
 
