@@ -7,6 +7,7 @@
 #include <string.h>
 #include <syslog.h>
 #include <iostream>
+#include <time.h>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -20,6 +21,8 @@
 #include "rpcMessageAuthentication.h"
 
 #include "firmware_manager_js.h"
+
+#define TIME_OUT 5
 
 bool simpleWebFactory::file_to_string(std::string filename, std::string &output)
 {
@@ -117,6 +120,7 @@ static void redirect(FCGX_Request *request, std::string url_redirect)
 typedef struct {
     char username[32];
     long int session_id;
+    time_t timeline;
 } session_entry;
 
 static session_entry session_entries[10];
@@ -130,6 +134,7 @@ static bool session_valid(FCGX_Request *request)
     int i;
 
     cookie = FCGX_GetParam("HTTP_COOKIE", request->envp);
+
     if (cookie) {
         session_text_tmp = strstr(cookie, "session_id=");
         if (session_text_tmp) {
@@ -143,7 +148,9 @@ static bool session_valid(FCGX_Request *request)
 
         if (session_id > 0) {
             for (i = 0; i < 10; i++) {
-                if (session_entries[i].session_id == session_id) {
+                time_t last_time = time(NULL);
+                if (session_entries[i].session_id == session_id && (last_time - session_entries[session_id].timeline) < TIME_OUT) {
+                    session_entries[session_id].timeline = last_time;
                     return true;
                 }
             }
@@ -179,6 +186,7 @@ static long int session_id_generator(const char *username)
         if (session_entries[i].session_id == 0) {
             session_entries[i].session_id = session_id;
             snprintf(session_entries[i].username, 32, "%s", username);
+            session_entries[i].timeline = time(NULL);
             return session_id;
         }
     }
