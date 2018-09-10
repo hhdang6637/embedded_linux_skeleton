@@ -20,8 +20,8 @@ namespace app
     class rpcMessageAuthentication: public rpcMessage
     {
         app::rpcMessageAuthenticationResultType msgResult;
-        std::string username;
-        std::string password;
+        std::string userName;
+        std::string passWord;
 
         public:
             virtual bool serialize(int fd);

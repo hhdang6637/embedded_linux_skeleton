@@ -27,13 +27,13 @@ namespace app
             return false;
         }
 
-        buff_len += sizeof(uint16_t) + this->username.length();
-        buff_len += sizeof(uint16_t) + this->password.length();
+        buff_len += sizeof(uint16_t) + this->userName.length();
+        buff_len += sizeof(uint16_t) + this->passWord.length();
 
         std::unique_ptr<char> buff_ptr(new char[buff_len]);
 
-        offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, this->username);
-        offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, this->password);
+        offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, this->userName);
+        offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, this->passWord);
 
         if (buff_len != offset) {
 
@@ -71,7 +71,7 @@ namespace app
                 return false;
             }
 
-            this->username = buff_ptr.get();
+            this->userName = buff_ptr.get();
         }
 
         if (rpcMessage::recvInterruptRetry(fd, &password_size, sizeof(password_size)) != true) {
@@ -85,7 +85,7 @@ namespace app
                 return false;
             }
 
-            this->password = buff_ptr.get();
+            this->passWord = buff_ptr.get();
         }
 
         return true;
@@ -103,22 +103,22 @@ namespace app
 
     std::string rpcMessageAuthentication::getUsername()
     {
-        return this->username;
+        return this->userName;
     }
 
     void rpcMessageAuthentication::setUsername(std::string username)
     {
-        this->username = username;
+        this->userName = username;
     }
 
     std::string rpcMessageAuthentication::getPasswd()
     {
-        return this->password;
+        return this->passWord;
     }
 
     void rpcMessageAuthentication::setPasswd(std::string passwd)
     {
-        this->password = passwd;
+        this->passWord = passwd;
     }
 
 } /* namespace app */
