@@ -22,7 +22,7 @@
 
 #include "firmware_manager_js.h"
 
-#define TIME_OUT 5
+#define TIME_OUT 60*10
 
 bool simpleWebFactory::file_to_string(std::string filename, std::string &output)
 {
@@ -148,10 +148,8 @@ static bool session_valid(FCGX_Request *request)
 
         if (session_id > 0) {
             for (i = 0; i < 10; i++) {
-                time_t last_time = time(NULL);
-
-                if (session_entries[i].session_id == session_id && (last_time - session_entries[i].timeline) < TIME_OUT) {
-                    session_entries[i].timeline = last_time;
+                if (session_entries[i].session_id == session_id && (time(NULL) - session_entries[i].timeline) < TIME_OUT) {
+                    session_entries[i].timeline = time(NULL);
                     return true;
                 }
             }
