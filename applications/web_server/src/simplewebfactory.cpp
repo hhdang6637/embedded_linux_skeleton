@@ -149,8 +149,9 @@ static bool session_valid(FCGX_Request *request)
         if (session_id > 0) {
             for (i = 0; i < 10; i++) {
                 time_t last_time = time(NULL);
-                if (session_entries[i].session_id == session_id && (last_time - session_entries[session_id].timeline) < TIME_OUT) {
-                    session_entries[session_id].timeline = last_time;
+
+                if (session_entries[i].session_id == session_id && (last_time - session_entries[i].timeline) < TIME_OUT) {
+                    session_entries[i].timeline = last_time;
                     return true;
                 }
             }
