@@ -15,7 +15,7 @@
 #include "MPFDParser/Parser.h"
 #include "MPFDParser/Field.h"
 #include "MPFDParser/Exception.h"
-
+#include "user.h"
 #include "simplewebfactory.h"
 #include "rpcUnixClient.h"
 #include "rpcMessageAuthentication.h"
@@ -118,7 +118,7 @@ static void redirect(FCGX_Request *request, std::string url_redirect)
 }
 
 typedef struct {
-    char username[32];
+    char username[USR_NAME_LENGTH];
     long int session_id;
     time_t timeline;
 } session_entry;
