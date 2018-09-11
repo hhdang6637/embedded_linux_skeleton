@@ -185,7 +185,12 @@ static app::rpcMessageAuthenticationResultType recognize_account(std::string use
 
     for (auto &u : list_users) {
         if (username.compare(u.getName()) == 0 && password.compare(u.getPassword()) == 0) {
+
+            syslog(LOG_DEBUG, "Login succeeded with username: %s & password: %s", username.c_str(), password.c_str());
             return app::rpcMessageAuthenticationResultType::SUCCEEDED_LOGIN;
+        } else {
+
+            syslog(LOG_ERR, "Login failed with username: %s & password: %s", username.c_str(), password.c_str());
         }
     }
 
