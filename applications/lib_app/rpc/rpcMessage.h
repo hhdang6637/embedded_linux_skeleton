@@ -31,7 +31,8 @@ public:
         get_resource_history,
         get_event_notification,
         handle_firmware_action,
-        handle_users_action
+        handle_users_action,
+        handle_users_login
     };
 protected:
     rpcMessageType  msgType;

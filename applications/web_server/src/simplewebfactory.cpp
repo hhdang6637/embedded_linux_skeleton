@@ -7,6 +7,7 @@
 #include <string.h>
 #include <syslog.h>
 #include <iostream>
+#include <time.h>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -14,10 +15,14 @@
 #include "MPFDParser/Parser.h"
 #include "MPFDParser/Field.h"
 #include "MPFDParser/Exception.h"
-
+#include "user.h"
 #include "simplewebfactory.h"
+#include "rpcUnixClient.h"
+#include "rpcMessageAuthentication.h"
 
 #include "firmware_manager_js.h"
+
+#define TIME_OUT 60*10
 
 bool simpleWebFactory::file_to_string(std::string filename, std::string &output)
 {
@@ -113,8 +118,9 @@ static void redirect(FCGX_Request *request, std::string url_redirect)
 }
 
 typedef struct {
-    char username[32];
+    char username[USR_NAME_LENGTH];
     long int session_id;
+    time_t timeline;
 } session_entry;
 
 static session_entry session_entries[10];
@@ -128,6 +134,7 @@ static bool session_valid(FCGX_Request *request)
     int i;
 
     cookie = FCGX_GetParam("HTTP_COOKIE", request->envp);
+
     if (cookie) {
         session_text_tmp = strstr(cookie, "session_id=");
         if (session_text_tmp) {
@@ -141,7 +148,8 @@ static bool session_valid(FCGX_Request *request)
 
         if (session_id > 0) {
             for (i = 0; i < 10; i++) {
-                if (session_entries[i].session_id == session_id) {
+                if (session_entries[i].session_id == session_id && (time(NULL) - session_entries[i].timeline) < TIME_OUT) {
+                    session_entries[i].timeline = time(NULL);
                     return true;
                 }
             }
@@ -177,6 +185,7 @@ static long int session_id_generator(const char *username)
         if (session_entries[i].session_id == 0) {
             session_entries[i].session_id = session_id;
             snprintf(session_entries[i].username, 32, "%s", username);
+            session_entries[i].timeline = time(NULL);
             return session_id;
         }
     }
@@ -184,13 +193,58 @@ static long int session_id_generator(const char *username)
     return -1;
 }
 
-
 static long int authenticate(std::string &username, std::string &password)
 {
-    if (username.compare("admin") == 0 && password.compare("admin") == 0) {
+    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+    app::rpcMessageAuthentication msg;
+
+    msg.setUsername(username);
+    msg.setPasswd(password);
+
+    if (rpcClient->doRpc(&msg) == false) {
+        syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+        return -1;
+    }
+
+    if (msg.getAuthenticationMsgResult() == app::rpcMessageAuthenticationResultType::SUCCEEDED_LOGIN) {
         return session_id_generator(username.c_str());
     }
+
     return -1;
+}
+
+static bool hanlde_logout_request (FCGX_Request *request)
+{
+    char *cookie;
+    char *session_text_tmp;
+    char *session_text;
+    long int session_id = 0;
+    int i;
+
+    cookie = FCGX_GetParam("HTTP_COOKIE", request->envp);
+
+    if (cookie) {
+        session_text_tmp = strstr(cookie, "session_id=");
+        if (session_text_tmp) {
+            session_text_tmp += (sizeof("session_id=") - 1);
+            session_text = strtok(session_text_tmp, ";");
+            if (session_text) {
+                session_id = strtol(session_text, NULL, 10);
+            }
+            // syslog(LOG_DEBUG, "session_id = %ld\n", session_id);
+        }
+
+        if (session_id > 0) {
+            for (i = 0; i < 10; i++) {
+                if (session_entries[i].session_id == session_id) {
+                    session_entries[i].session_id = 0;
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
 }
 
 static void hanlde_login_request(FCGX_Request *request)
@@ -265,11 +319,20 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
 
         hanlde_login_request(request);
 
+    } else if (strcmp(script, "/logout") == 0) {
+
+        if (hanlde_logout_request(request)) {
+
+            redirect(request, "/pages/login");
+        }
+
     } else if (session_valid(request) || strcmp(script, "/pages/login") == 0) {
         const char *response_content = this->get_html_str(script);
 
         if (response_content != NULL) {
 
+            FCGX_FPrintF(request->out, "Cache-Control: no-cache\r\n");
+            FCGX_FPrintF(request->out, "Cache-Control: no-store\r\n");
             FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n\r\n");
             FCGX_FPrintF(request->out, "%s", response_content);
 
