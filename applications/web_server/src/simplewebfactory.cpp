@@ -331,6 +331,8 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
 
         if (response_content != NULL) {
 
+            FCGX_FPrintF(request->out, "Cache-Control: no-cache\r\n");
+            FCGX_FPrintF(request->out, "Cache-Control: no-store\r\n");
             FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n\r\n");
             FCGX_FPrintF(request->out, "%s", response_content);
 
