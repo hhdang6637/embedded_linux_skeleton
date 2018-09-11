@@ -213,6 +213,40 @@ static long int authenticate(std::string &username, std::string &password)
     return -1;
 }
 
+static bool hanlde_logout_request (FCGX_Request *request)
+{
+    char *cookie;
+    char *session_text_tmp;
+    char *session_text;
+    long int session_id = 0;
+    int i;
+
+    cookie = FCGX_GetParam("HTTP_COOKIE", request->envp);
+
+    if (cookie) {
+        session_text_tmp = strstr(cookie, "session_id=");
+        if (session_text_tmp) {
+            session_text_tmp += (sizeof("session_id=") - 1);
+            session_text = strtok(session_text_tmp, ";");
+            if (session_text) {
+                session_id = strtol(session_text, NULL, 10);
+            }
+            // syslog(LOG_DEBUG, "session_id = %ld\n", session_id);
+        }
+
+        if (session_id > 0) {
+            for (i = 0; i < 10; i++) {
+                if (session_entries[i].session_id == session_id) {
+                    session_entries[i].session_id = 0;
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 static void hanlde_login_request(FCGX_Request *request)
 {
     const char *method = FCGX_GetParam("REQUEST_METHOD", request->envp);
@@ -284,6 +318,13 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
     if (strcmp(script, "/login") == 0) {
 
         hanlde_login_request(request);
+
+    } else if (strcmp(script, "/logout") == 0) {
+
+        if (hanlde_logout_request(request)) {
+
+            redirect(request, "/pages/login");
+        }
 
     } else if (session_valid(request) || strcmp(script, "/pages/login") == 0) {
         const char *response_content = this->get_html_str(script);
