@@ -188,12 +188,10 @@ static app::rpcMessageAuthenticationResultType recognize_account(std::string use
 
             syslog(LOG_DEBUG, "Login succeeded with username: %s & password: %s", username.c_str(), password.c_str());
             return app::rpcMessageAuthenticationResultType::SUCCEEDED_LOGIN;
-        } else {
-
-            syslog(LOG_ERR, "Login failed with username: %s & password: %s", username.c_str(), password.c_str());
         }
     }
 
+    syslog(LOG_ERR, "Login failed with username: %s & password: %s", username.c_str(), password.c_str());
     return app::rpcMessageAuthenticationResultType::FAILED_LOGIN;
 }
 
