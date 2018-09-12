@@ -203,7 +203,7 @@ static app::rpcMessageUsersResultType validatePassword(const char* pass)
     return rpcMessageUsersResultType::SUCCEEDED;
 }
 
-app::rpcMessageUsersResultType user::isValid()
+app::rpcMessageUsersResultType user::isValid() const
 {
     app::rpcMessageUsersResultType rc = rpcMessageUsersResultType::SUCCEEDED;
     size_t index;

@@ -52,8 +52,8 @@ public:
     void setPassword(const char *pass);
     std::string getPassword() const;
     void setEmail(const char *email);
-    std::string getEmail();
-    app::rpcMessageUsersResultType isValid();     // verify user information
+    std::string getEmail() const;
+    app::rpcMessageUsersResultType isValid() const;     // verify user information
 };
 
 } /* namespace app */
