@@ -31,8 +31,17 @@
         <div id="checkpassword"></div>
       </div>
     </div>
-    <input type="hidden" name="action" value="edit">
-    <button type="submit" class="btn btn-default" id="submit">Submit</button>
+    
+    
+    <div class="row">
+            <div class="col d-flex justify-content-end">
+                <input type="hidden" name="action" value="edit">
+                <button type="submit" class="btn btn-primary" id="submit">Save</button>
+            </div>
+            <div class="col d-flex justify-content-start">
+                <button class="btn btn-primary" id="btnCancel" onclick="cancelEditUser()" >Cancel</button>
+            </div>
+        </div>
   </form>
 </div> <!-- /container -->
 
@@ -41,6 +50,10 @@
 $(function () {
     $("#myTopnav").find("a[href='/pages/users']").addClass("active")
 });
+
+function cancelEditUser() {
+    window.location.href="/pages/users";
+}
 
 function checkPasswordMatch() {
     var password = $("#password").val();

@@ -196,6 +196,20 @@ std::string userMsgResult2Str(const app::rpcMessageUsersResultType type)
         str = "Email existed";
     } else if (type == app::rpcMessageUsersResultType::UNKNOWN_ERROR) {
         str = "Unknown error";
+    } else if (type == app::rpcMessageUsersResultType::EMAIL_EMPTY) {
+        str = "Email NOT empty";
+    } else if (type == app::rpcMessageUsersResultType::EMAIL_INVALID) {
+        str = "Email Invalid";
+    } else if (type == app::rpcMessageUsersResultType::USER_NAME_EMPTY) {
+        str = "User name NOT empty";
+    } else if (type == app::rpcMessageUsersResultType::USER_NAME_INVALID) {
+        str = "User name Invalid";
+    } else if (type == app::rpcMessageUsersResultType::PASSWORD_NULL) {
+        str = "Password NOT empty";
+    } else if (type == app::rpcMessageUsersResultType::PASSWORD_LENGTH_INVALID) {
+        str = "Password length Invalid";
+    } else if (type == app::rpcMessageUsersResultType::PASSWORD_CHARACTER_INVALID) {
+        str = "Password exists character NOT allow";
     }
 
     return str;

@@ -14,6 +14,25 @@
 namespace app
 {
 
+enum rpcMessageUsersResultType : uint16_t
+{
+    SUCCEEDED,
+    VALID,
+    USER_INVALID,
+    USERNAME_EXISTED,
+    USER_NOT_EXISTED,
+    EMAIL_EXISTED,
+    EMAIL_EMPTY,
+    EMAIL_INVALID,
+    USER_NAME_INVALID,
+    USER_NAME_EMPTY,
+    PASSWORD_LENGTH_INVALID,
+    PASSWORD_CHARACTER_INVALID,
+    PASSWORD_NULL,
+    ERROR_MAX_USER,
+    UNKNOWN_ERROR
+};
+
 class user
 {
     char name[USR_NAME_LENGTH];
@@ -33,8 +52,8 @@ public:
     void setPassword(const char *pass);
     std::string getPassword() const;
     void setEmail(const char *email);
-    std::string getEmail() const;
-    bool isValid() const;     // verify user information
+    std::string getEmail();
+    app::rpcMessageUsersResultType isValid();     // verify user information
 };
 
 } /* namespace app */

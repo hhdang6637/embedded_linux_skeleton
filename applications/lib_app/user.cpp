@@ -80,7 +80,7 @@ std::string user::getEmail() const
     return std::string(this->email);
 }
 
-static int validateEmail(const char* email)
+static app::rpcMessageUsersResultType validateEmail(const char* email)
 {
     const char *permis_special_local = "!#$&*~`?_-/{}|=.";
     const char *permis_special_domain = ".";
@@ -89,16 +89,16 @@ static int validateEmail(const char* email)
     char *c;
 
     if(email == NULL)
-        return -1;
+        return rpcMessageUsersResultType::EMAIL_EMPTY;
 
     if(strlen(email) > 32)
-        return -1;
+        return rpcMessageUsersResultType::EMAIL_INVALID;
 
     if(email[0] == '@') /* @example.com */
-        return -1;
+        return rpcMessageUsersResultType::EMAIL_INVALID;
 
     if(email[strlen(email)-1] == '@') /* abc@ */
-        return -1;
+        return rpcMessageUsersResultType::EMAIL_INVALID;
 
     int i =  strlen(email);
     for(; i >= 0; i--)
@@ -111,15 +111,15 @@ static int validateEmail(const char* email)
     }
 
     if(index_isolate == -1)
-        return -1;
+        return rpcMessageUsersResultType::EMAIL_INVALID;
 
     if(email[ index_isolate + 1 ] == '.' || email[ strlen(email) - 1 ] == '.') /* abc@.example.vn*/
-        return -1;
+        return rpcMessageUsersResultType::EMAIL_INVALID;
 
     /* valid domain */
     for(i = index_isolate + 1; i < (int)strlen(email); i++)
     {
-        c = strchr(permis_special_domain, email[i]);
+        c = (char*) strchr(permis_special_domain, email[i]);
 
         if(c == NULL)
         {
@@ -135,14 +135,14 @@ static int validateEmail(const char* email)
             if(email[i] >= 97 && email[i] <= 122)
                 continue;
 
-            return -1;
+            return rpcMessageUsersResultType::EMAIL_INVALID;
         }
     }
 
     /* valid local */
     for(i = 0; i < index_isolate; i++)
     {
-        c = strchr(permis_special_local, email[i]);
+        c = (char*) strchr(permis_special_local, email[i]);
 
         if(c == NULL)
         {
@@ -158,29 +158,29 @@ static int validateEmail(const char* email)
             if(email[i] >= 97 && email[i] <= 122)
                 continue;
 
-            return -1;
+            return rpcMessageUsersResultType::EMAIL_INVALID;
         }
     }
 
-    return 0;
+    return rpcMessageUsersResultType::SUCCEEDED;
 }
 
-static int validatePassword(const char* pass)
+static app::rpcMessageUsersResultType validatePassword(const char* pass)
 {
     const char *permis_special = "!@#$^&()_-+={}[];:<>,.?/";
 
     if(pass == NULL)
-        return -1;
+        return rpcMessageUsersResultType::PASSWORD_NULL;
 
     if(strlen(pass) < 4 || strlen(pass) > 32)
-        return -1;
+        return rpcMessageUsersResultType::PASSWORD_LENGTH_INVALID;
 
     size_t i = 0;
     char *c = NULL;
 
     for(; i < strlen(pass); i++)
     {
-        c = strchr(permis_special, pass[i]);
+        c = (char*) strchr(permis_special, pass[i]);
 
         if(c == NULL)
         {
@@ -196,37 +196,35 @@ static int validatePassword(const char* pass)
             if(pass[i] >= 97 && pass[i] <= 122)
                 continue;
 
-            return -1;
+            return rpcMessageUsersResultType::PASSWORD_CHARACTER_INVALID;
         }
     }
 
-    return 0;
+    return rpcMessageUsersResultType::SUCCEEDED;
 }
 
-bool user::isValid() const
+app::rpcMessageUsersResultType user::isValid()
 {
-    bool rc = true;
+    app::rpcMessageUsersResultType rc = rpcMessageUsersResultType::SUCCEEDED;
     size_t index;
 
     for(index = 0; index < strlen(this->name); index++) {
         if (this->name[index] == ' ') {
-            rc = false;
+            return rpcMessageUsersResultType::USER_NAME_INVALID;
         }
     }
 
-    if (this->name[0] == '\0' || this->password[0] == '\0') {
-        rc = false;
+    if (this->name[0] == '\0') {
+        return rpcMessageUsersResultType::USER_NAME_EMPTY;
     }
 
-    if(validateEmail(this->email) == -1)
-    {
-        rc = false;
-    }
+    rc = validateEmail(this->email);
+    if(rc != rpcMessageUsersResultType::SUCCEEDED)
+        return rc;
 
-    if(validatePassword(this->password) == -1)
-    {
-        rc = false;
-    }
+    rc = validatePassword(this->password);
+    if(rc != rpcMessageUsersResultType::SUCCEEDED)
+        return rc;
 
     return rc;
 }
