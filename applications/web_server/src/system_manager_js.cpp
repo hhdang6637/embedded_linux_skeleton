@@ -298,20 +298,20 @@ std::string json_handle_users(FCGX_Request *request)
 
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
-                action = POSTParser.GetField("action")->GetTextTypeContent();
+                action = POSTParser.GetFieldText("action");
 
                 if (action == "delete")
                 {
-                    user.setName(POSTParser.GetField("username")->GetTextTypeContent().c_str());
+                    user.setName(POSTParser.GetFieldText("username").c_str());
 
                 } else {
-                    user.setFullName(POSTParser.GetField("fullname")->GetTextTypeContent().c_str());
-                    user.setName(POSTParser.GetField("user_name")->GetTextTypeContent().c_str());
-                    user.setPassword(POSTParser.GetField("password")->GetTextTypeContent().c_str());
-                    user.setEmail(POSTParser.GetField("email")->GetTextTypeContent().c_str());
+                    user.setFullName(POSTParser.GetFieldText("fullname").c_str());
+                    user.setName(POSTParser.GetFieldText("user_name").c_str());
+                    user.setPassword(POSTParser.GetFieldText("password").c_str());
+                    user.setEmail(POSTParser.GetFieldText("email").c_str());
 
                     if (action == "edit") {
-                        if (POSTParser.GetField("edit_pwd")->GetTextTypeContent() == "enabled") {
+                        if (POSTParser.GetFieldText("edit_pwd") == "enabled") {
                             changePasswd = 1;
                         }
                     }

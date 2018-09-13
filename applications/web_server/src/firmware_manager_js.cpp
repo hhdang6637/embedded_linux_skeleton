@@ -58,9 +58,9 @@ static int parse_and_save_file(const char *data, const char *contentType, const 
 
         POSTParser.AcceptSomeData(data, len);
 
-        reboot = (POSTParser.GetField("reboot")->GetTextTypeContent() == "true" ? true : false);
+        reboot = (POSTParser.GetFieldText("reboot") == "true" ? true : false);
 
-        filename = POSTParser.GetField("filename")->GetTempFileName();
+        filename = POSTParser.GetFieldText("filename");
     } catch (MPFD::Exception &e) {
 
         syslog(LOG_ERR, "%s\n", e.GetError().c_str());

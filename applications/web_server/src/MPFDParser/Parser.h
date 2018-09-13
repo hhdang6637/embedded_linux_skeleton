@@ -39,6 +39,8 @@ namespace MPFD {
         const std::unordered_map<std::string, Field *>& GetFieldsMap()const;
         Field * GetField(const std::string& Name);
 
+        std::string GetFieldText(const std::string& Name);
+
     private:
         int WhereToStoreUploadedFiles;
 

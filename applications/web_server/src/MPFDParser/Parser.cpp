@@ -18,6 +18,14 @@ MPFD::Field * MPFD::Parser::GetField(const std::string& Name) {
     }
 }
 
+std::string MPFD::Parser::GetFieldText(const std::string& Name) {
+    if (Fields.count(Name)) {
+        return Fields[Name]->GetTextTypeContent();
+    } else {
+        return std::string();
+    }
+}
+
 MPFD::Parser::Parser() {
     _HeadersOfTheFieldAreProcessed = false;
     CurrentStatus = Status_LookingForStartingBoundary;

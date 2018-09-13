@@ -302,8 +302,8 @@ static void hanlde_login_request(FCGX_Request *request)
 
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
-                username = POSTParser.GetField("username")->GetTextTypeContent();
-                password = POSTParser.GetField("password")->GetTextTypeContent();
+                username = POSTParser.GetFieldText("username");
+                password = POSTParser.GetFieldText("password");
 
             } catch (MPFD::Exception &e) {
                 syslog(LOG_ERR, "%s\n", e.GetError().c_str());
