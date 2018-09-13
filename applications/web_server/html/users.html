@@ -1,34 +1,35 @@
 <!--div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
     <h1 class="h2">Firmware</h1>
 </div-->
-<div class="container">
 
-    <div class="card text-center">
-        <div class="card-header bg-default">
-            Users information
+<div class="container">
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <div class="row">
+          <div class="col-lg-8">
+            <h3>Users information</h3>
+          </div>
         </div>
-        
-        <div class="card-body">
-            <table id='table' class="table table-hover">
-                <thead>
-                  <tr>
-                    <th>User Name</th>
-                    <th>Full Name</th>
-                    <th>Email</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                </tbody>
-              </table>
-              <input type="hidden" name="action" value="delete">
-        </div>
-        
-        <div class="card-footer text-muted bg-default">
-            <button type="button" onclick="addUser()"  class="btn btn-primary">Add User</button>
+        <br>
+        <table id='table' class="table table-hover">
+          <thead>
+            <tr>
+              <th>User Name</th>
+              <th>Full Name</th>
+              <th>Email</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+        <input type="hidden" name="action" value="delete">
+        <div class="row d-flex justify-content-center">
+            <button type="button" onclick="addUser()"  class="btn btn-lg">Add User</button>
         </div>
       </div>
-</div> <!-- /container -->
+    </div>
+  </div> <!-- /container -->
 <script>
 
 $(function () {
