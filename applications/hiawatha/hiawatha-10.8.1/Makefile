@@ -3,6 +3,8 @@ MBEDTLS_LIB   := build/mbedtls/library
 CONFIG_FILE   := config/hiawatha.conf.in
 MIMETYPE_FILE := config/mimetype.conf
 INDEX_FILE    := config/index.xslt
+SERVER_PEM    := config/server.pem
+
 
 export CFLAGS  = -Wall
 export INCLUDE = $(BUILD_DIR)/buildroot/host/usr/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/include
@@ -20,6 +22,8 @@ install:
 	@cp     $(CONFIG_FILE)           $(ROOTFS_DIR)/etc/hiawatha/hiawatha.conf
 	@cp     $(MIMETYPE_FILE)         $(ROOTFS_DIR)/etc/hiawatha
 	@cp     $(INDEX_FILE)            $(ROOTFS_DIR)/var/www/hiawatha/ # example page
+	@cp     $(SERVER_PEM)            $(ROOTFS_DIR)/etc/hiawatha/ # example page
+
 
 all: $(BIN) install
 
