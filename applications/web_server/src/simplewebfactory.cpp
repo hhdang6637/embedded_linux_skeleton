@@ -89,7 +89,7 @@ static void redirect(FCGX_Request *request, std::string url_redirect)
 
     FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
 
-    redirect_location = "Location: " + url_redirect + "\r\n";
+    redirect_location = "Location: https://" + http_post + url_redirect + "\r\n";
     FCGX_FPrintF(request->out, redirect_location.c_str());
 
     FCGX_FPrintF(request->out, "Content-Type: text/html\r\n");
@@ -104,7 +104,7 @@ static void redirect(FCGX_Request *request, std::string url_redirect)
     ss_html << "<h1>Moved</h1>\n";
 
     ss_html << "<p>This page has moved to";
-    ss_html << "<a href=\"http://" + http_post + url_redirect + "\">http://" + http_post + url_redirect + "</a>";
+    ss_html << "<a href=\"https://" + http_post + url_redirect + "\">https://" + http_post + url_redirect + "</a>";
     ss_html << "</p>\n";
 
     ss_html << "</body>\n";
@@ -314,6 +314,12 @@ bool simpleWebFactory::get_post_data(FCGX_Request *request, std::string &data)
 void simpleWebFactory::handle_request(FCGX_Request *request)
 {
     const char *script = FCGX_GetParam("SCRIPT_NAME", request->envp);
+    const char *http_scheme = FCGX_GetParam("HTTP_SCHEME", request->envp);
+    const char *request_uri = FCGX_GetParam("REQUEST_URI", request->envp);
+
+    if (http_scheme && strcmp(http_scheme, "https") != 0) {
+        redirect(request, request_uri);
+    }
 
     if (strcmp(script, "/login") == 0) {
 
