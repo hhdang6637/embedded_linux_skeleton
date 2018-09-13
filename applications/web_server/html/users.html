@@ -1,34 +1,35 @@
 <!--div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
     <h1 class="h2">Firmware</h1>
 </div-->
+
 <div class="container">
-  <div class="panel panel-default">
-    <div class="panel-body">
-      <div class="row">
-        <div class="col-lg-8">
-          <h3>Users information</h3>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <div class="row">
+          <div class="col-lg-8">
+            <h3>Users information</h3>
+          </div>
         </div>
-        <div class="col-lg-3">
-          <button type="button" onclick="addUser()"  class="btn btn-lg">Add User</button>
+        <br>
+        <table id='table' class="table table-hover">
+          <thead>
+            <tr>
+              <th>User Name</th>
+              <th>Full Name</th>
+              <th>Email</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+        <input type="hidden" name="action" value="delete">
+        <div class="row d-flex justify-content-center">
+            <button type="button" onclick="addUser()"  class="btn btn-lg">Add User</button>
         </div>
       </div>
-      <br>
-      <table id='table' class="table table-hover">
-        <thead>
-          <tr>
-            <th>User Name</th>
-            <th>Full Name</th>
-            <th>Email</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-        </tbody>
-      </table>
-      <input type="hidden" name="action" value="delete">
     </div>
-  </div>
-</div> <!-- /container -->
+  </div> <!-- /container -->
 <script>
 
 $(function () {
@@ -47,12 +48,14 @@ $(function () {
         var html = "";
         var jsUsers = data.json_users_list;
         for (var i = 0; i < jsUsers.length; i++) {
-            var user = jsUsers[i];
-            if (user.name != "admin") {
-                html += "<tr><td>" + user.name + "</td><td>" + user.fullname + "</td><td>" + user.email + "</td><td><button type=\"button\"  onclick=\"editUser('" + user.name + "')\"" + "class=\"btn mr-1\">" + "Edit" + "</button><button type =\"button\" onclick=\"deleteUser('" + user.name + "')\"" + "class=\"btn btn-danger\">" + "Delete" + "</button</td></tr>";
-            } else {
-                html += "<tr><td>" + user.name + "</td><td>" + user.fullname + "</td><td>" + user.email + "</td><td><button type=\"button\"  onclick=\"editUser('" + user.name + "')\"" + "class=\"btn mr-1\">" + "Edit" + "</button></td></tr>";
-            }
+          var user = jsUsers[i];
+          if (user.name != "admin") {
+            html += "<tr><td>" + user.name + "</td><td>" + user.fullname + "</td><td>" + user.email +
+                    "</td><td><button type=\"button\"  onclick=\"editUser('" + user.name + "')\"" + "class=\"btn btn-primary\">" + "Edit" + "</button>  <button type =\"button\" onclick=\"deleteUser('" + user.name + "')\"" + "class=\"btn btn-danger\"> " + "Delete" + "</button</td></tr>";
+          } else {
+            html += "<tr><td>" + user.name + "</td><td>" + user.fullname + "</td><td>" + user.email +
+                    "</td><td><button type=\"button\"  onclick=\"editUser('" + user.name + "')\"" + "class=\"btn btn-primary\">" + "Edit" + "</button></td></tr>";
+          }
         }
         $('#table > tbody:last-child').append(html);
         });
