@@ -24,6 +24,16 @@
 
 #define TIME_OUT 60*10
 
+typedef struct {
+    char username[USR_NAME_LENGTH];
+    long int session_id;
+    time_t timeline;
+} session_entry;
+
+static session_entry session_entries[10];
+
+static bool https_redirect = true;
+
 bool simpleWebFactory::file_to_string(std::string filename, std::string &output)
 {
     std::string line;
@@ -81,30 +91,26 @@ simpleWebFactory* simpleWebFactory::getInstance()
 
 static void redirect(FCGX_Request *request, std::string url_redirect)
 {
-    std::string http_post(FCGX_GetParam("HTTP_HOST", request->envp));
+    std::string http_host(FCGX_GetParam("HTTP_HOST", request->envp));
+    std::string http_scheme(FCGX_GetParam("HTTP_SCHEME", request->envp));
 
     std::string redirect_location;
     std::string content_length;
     std::ostringstream ss_html;
 
-    FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
-
-    redirect_location = "Location: https://" + http_post + url_redirect + "\r\n";
-    FCGX_FPrintF(request->out, redirect_location.c_str());
-
-    FCGX_FPrintF(request->out, "Content-Type: text/html\r\n");
+    redirect_location = "Location: " + http_scheme + "://" + http_host + url_redirect + "\r\n";
 
     ss_html << "<html>\n";
+
     ss_html << "<head>\n";
-
     ss_html << "<title>Moved</title>\n";
-
     ss_html << "</head>\n";
+
     ss_html << "<body>\n";
     ss_html << "<h1>Moved</h1>\n";
 
     ss_html << "<p>This page has moved to";
-    ss_html << "<a href=\"https://" + http_post + url_redirect + "\">https://" + http_post + url_redirect + "</a>";
+    ss_html << "<a href=\"" + http_scheme + "://" + http_host + url_redirect + "\">" + http_scheme + "://" + http_host + url_redirect + "</a>";
     ss_html << "</p>\n";
 
     ss_html << "</body>\n";
@@ -112,18 +118,48 @@ static void redirect(FCGX_Request *request, std::string url_redirect)
 
     content_length = "Content-Length: " + std::to_string(ss_html.str().length()) + "\r\n\r\n";
 
+    FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
+    FCGX_FPrintF(request->out, redirect_location.c_str());
+    FCGX_FPrintF(request->out, "Content-Type: text/html\r\n");
     FCGX_FPrintF(request->out, content_length.c_str());
-
     FCGX_FPrintF(request->out, "%s", ss_html.str().c_str());
 }
 
-typedef struct {
-    char username[USR_NAME_LENGTH];
-    long int session_id;
-    time_t timeline;
-} session_entry;
+static void redirect_to_https(FCGX_Request *request)
+{
+    std::string http_host(FCGX_GetParam("HTTP_HOST", request->envp));
+    std::string request_uri(FCGX_GetParam("REQUEST_URI", request->envp));
 
-static session_entry session_entries[10];
+    std::string redirect_location;
+    std::string content_length;
+    std::ostringstream ss_html;
+
+    redirect_location = "Location: https://" + http_host + request_uri + "\r\n";
+
+    ss_html << "<html>\n";
+
+    ss_html << "<head>\n";
+    ss_html << "<title>Moved</title>\n";
+    ss_html << "</head>\n";
+
+    ss_html << "<body>\n";
+    ss_html << "<h1>Moved</h1>\n";
+
+    ss_html << "<p>This page has moved to";
+    ss_html << "<a href=\"https://" + http_host + request_uri + "\">https://" + http_host + request_uri + "</a>";
+    ss_html << "</p>\n";
+
+    ss_html << "</body>\n";
+    ss_html << "</html> \n";
+
+    content_length = "Content-Length: " + std::to_string(ss_html.str().length()) + "\r\n\r\n";
+
+    FCGX_FPrintF(request->out, "HTTP/1.1 301 Moved Permanently\r\n");
+    FCGX_FPrintF(request->out, redirect_location.c_str());
+    FCGX_FPrintF(request->out, "Content-Type: text/html\r\n");
+    FCGX_FPrintF(request->out, content_length.c_str());
+    FCGX_FPrintF(request->out, "%s", ss_html.str().c_str());
+}
 
 static bool session_valid(FCGX_Request *request)
 {
@@ -213,7 +249,7 @@ static long int authenticate(std::string &username, std::string &password)
     return -1;
 }
 
-static bool hanlde_logout_request (FCGX_Request *request)
+static bool hanlde_logout_request(FCGX_Request *request)
 {
     char *cookie;
     char *session_text_tmp;
@@ -315,11 +351,14 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
 {
     const char *script = FCGX_GetParam("SCRIPT_NAME", request->envp);
     const char *http_scheme = FCGX_GetParam("HTTP_SCHEME", request->envp);
-    const char *request_uri = FCGX_GetParam("REQUEST_URI", request->envp);
 
-    if (http_scheme && strcmp(http_scheme, "https") != 0) {
-        redirect(request, request_uri);
-        return;
+    if (https_redirect) {
+
+        if (http_scheme && strcmp(http_scheme, "https") != 0) {
+
+            redirect_to_https(request);
+            return;
+        }
     }
 
     if (strcmp(script, "/login") == 0) {
