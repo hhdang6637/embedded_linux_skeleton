@@ -319,6 +319,7 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
 
     if (http_scheme && strcmp(http_scheme, "https") != 0) {
         redirect(request, request_uri);
+        return;
     }
 
     if (strcmp(script, "/login") == 0) {
