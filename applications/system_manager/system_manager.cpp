@@ -21,6 +21,7 @@
 #include "rpcMessageAddr.h"
 #include "rpcMessageFirmware.h"
 #include "rpcMessageUsers.h"
+#include "rpcMessageAuthentication.h"
 
 #define CONFIG_DIR "/tmp/configs"
 
@@ -178,6 +179,35 @@ static bool users_action_handler(int socket_fd)
     return false;
 }
 
+static app::rpcMessageAuthenticationResultType recognize_account(std::string username, std::string password)
+{
+    std::list<app::user> list_users = app::userManager::getInstance()->getUsers();
+
+    for (auto &u : list_users) {
+        if (username.compare(u.getName()) == 0 && password.compare(u.getPassword()) == 0) {
+
+            syslog(LOG_DEBUG, "Login succeeded with username: %s & password: %s", username.c_str(), password.c_str());
+            return app::rpcMessageAuthenticationResultType::SUCCEEDED_LOGIN;
+        }
+    }
+
+    syslog(LOG_ERR, "Login failed with username: %s & password: %s", username.c_str(), password.c_str());
+    return app::rpcMessageAuthenticationResultType::FAILED_LOGIN;
+}
+
+static bool users_login_handler(int socket_fd)
+{
+    app::rpcMessageAuthentication msgAuthentication;
+
+    if (msgAuthentication.deserialize(socket_fd)) {
+        msgAuthentication.setAuthenticationMsgResult(recognize_account(msgAuthentication.getUsername(), msgAuthentication.getPasswd()));
+
+        return msgAuthentication.serialize(socket_fd);
+    }
+
+    return false;
+}
+
 void system_manager_service_loop()
 {
     fd_set read_fds;
@@ -185,6 +215,7 @@ void system_manager_service_loop()
     int server_socket = rpcServer->get_socket();
     rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::handle_firmware_action, firmware_action_handler);
     rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::handle_users_action, users_action_handler);
+    rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::handle_users_login, users_login_handler);
 
     std::list<int> listReadFd;
     listReadFd.push_back(server_socket);

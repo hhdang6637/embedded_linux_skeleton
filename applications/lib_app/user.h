@@ -9,16 +9,17 @@
 #define APPLICATIONS_LIB_APP_USER_H_
 
 #include <string>
+#include "defines.h"
 
 namespace app
 {
 
 class user
 {
-    char name[32];
-    char password[32];
-    char fullName[32];
-    char email[32];
+    char name[USR_NAME_LENGTH];
+    char password[PWD_LENGTH];
+    char fullName[FULL_NAME_LENGTH];
+    char email[EMAIL_LENGTH];
 
 public:
     user();
