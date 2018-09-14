@@ -218,6 +218,12 @@ static long int session_id_generator(const char *username)
     } while (unique == false);
 
     for (i = 0; i < 10; i++) {
+        if ((time(NULL) - session_entries[i].timeline) > TIME_OUT) {
+            session_entries[i].session_id = 0;
+        }
+    }
+
+    for (i = 0; i < 10; i++) {
         if (session_entries[i].session_id == 0) {
             session_entries[i].session_id = session_id;
             snprintf(session_entries[i].username, 32, "%s", username);
