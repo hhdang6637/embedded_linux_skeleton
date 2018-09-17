@@ -78,7 +78,18 @@ $(function () {
         $.getJSON( "/json/firmware_status", function(data) {
 
             if (data.json_firmware_status.status === "In-progress") {
-              setTimeout(showFirmwareStatus, 2000);
+
+              var isReboot = document.getElementById("cb-reboot").checked;
+
+              if (isReboot == false) {
+
+                setTimeout(function() {
+                  showFirmwareStatus();
+                }, 2000);
+
+              } else {
+                window.location.href = "/pages/waiting";
+              }
             }
 
             if (data.json_firmware_status.result ===  "Succeeded") {
