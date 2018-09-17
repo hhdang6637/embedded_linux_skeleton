@@ -1,0 +1,22 @@
+
+<div> The system is rebooting. Waiting for
+    <div id="showTime" style="display: inline;"></div>
+</div>
+
+<script>
+
+    $(document).ready(function() {
+
+        setTimeout(function() {
+            window.location.href = "/pages/login";
+        }, 30000);
+        loopTime();
+    });
+
+    var countTime = 30;
+    function loopTime() {
+        document.getElementById("showTime").innerHTML = countTime;
+        countTime = countTime - 1;
+        setTimeout(loopTime, 1000);
+    }
+</script>
