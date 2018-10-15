@@ -218,6 +218,12 @@ static long int session_id_generator(const char *username)
     } while (unique == false);
 
     for (i = 0; i < 10; i++) {
+        if ((time(NULL) - session_entries[i].timeline) > TIME_OUT) {
+            session_entries[i].session_id = 0;
+        }
+    }
+
+    for (i = 0; i < 10; i++) {
         if (session_entries[i].session_id == 0) {
             session_entries[i].session_id = session_id;
             snprintf(session_entries[i].username, 32, "%s", username);
@@ -302,8 +308,8 @@ static void hanlde_login_request(FCGX_Request *request)
 
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
-                username = POSTParser.GetField("username")->GetTextTypeContent();
-                password = POSTParser.GetField("password")->GetTextTypeContent();
+                username = POSTParser.GetFieldText("username");
+                password = POSTParser.GetFieldText("password");
 
             } catch (MPFD::Exception &e) {
                 syslog(LOG_ERR, "%s\n", e.GetError().c_str());
@@ -419,8 +425,13 @@ const char* simpleWebFactory::get_html_str(const char * url)
     ss_html << "<body>\n";
 
     if (it->first.compare("/pages/login") != 0) {
-        ss_html << this->html_navbar_str;
+
+        if (it->first.compare("/pages/waiting") != 0) {
+
+            ss_html << this->html_navbar_str;
+        }
     }
+
 
     // container begin
     ss_html << "<div class=\"container-fluid\"><div class=\"row\">\n";

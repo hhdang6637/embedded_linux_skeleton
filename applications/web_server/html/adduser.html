@@ -26,8 +26,17 @@
       <label for="email">Email:</label>
       <input type="email" class="form-control" id="email" placeholder="Enter email" name="email">
     </div>
-    <input type="hidden" name="action" value="add">
-    <button type="submit" class="btn btn-default" id="submit" disabled>Add</button>
+    
+    <div class="row">
+        <div class="col d-flex justify-content-end">
+            <input type="hidden" name="action" value="add">
+            <button type="submit" class="btn btn-primary " id="submit" disabled>Add</button>
+        </div>
+        <div class="col d-flex justify-content-start">
+            <button class="btn btn-primary" id="btnCancel" onclick="cancelAddUser()" >Cancel</button>
+        </div>
+    </div>
+    
   </form>
 </div> <!-- /container -->
 
@@ -36,6 +45,10 @@
 $(function () {
     $("#myTopnav").find("a[href='/pages/users']").addClass("active")
 });
+
+function cancelAddUser() {
+    window.location.href="/pages/users";
+}
 
 function checkPasswordMatch() {
     var password = $("#password").val();

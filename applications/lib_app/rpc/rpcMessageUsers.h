@@ -24,16 +24,6 @@ enum rpcMessageUsersActionType : uint16_t
     DELETE_USER
 };
 
-enum rpcMessageUsersResultType : uint16_t
-{
-    SUCCEEDED,
-    USER_INVALID,
-    USERNAME_EXISTED,
-    USER_NOT_EXISTED,
-    EMAIL_EXISTED,
-    ERROR_MAX_USER,
-    UNKNOWN_ERROR
-};
 
 // we should move this function to conversion.cpp after the netlink_event branch merged into master
 std::string userMsgResult2Str(const app::rpcMessageUsersResultType type);

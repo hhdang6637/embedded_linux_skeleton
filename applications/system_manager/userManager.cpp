@@ -142,12 +142,15 @@ bool userManager::emailExisted(const std::string &email)
 
 app::rpcMessageUsersResultType userManager::addUser(const app::user &user)
 {
+    app::rpcMessageUsersResultType result = app::rpcMessageUsersResultType::SUCCEEDED;
+
     if (users.size() >= userManager::MAX_USERS) {
         syslog(LOG_NOTICE, "maximum user is reached %d, cannot add more", userManager::MAX_USERS);
         return app::rpcMessageUsersResultType::ERROR_MAX_USER;
     }
 
-    if (user.isValid()) {
+    result = user.isValid();
+    if (result == app::rpcMessageUsersResultType::SUCCEEDED) {
         if (usernameExisted(user.getName())) {
             syslog(LOG_NOTICE, "user existed");
             return app::rpcMessageUsersResultType::USERNAME_EXISTED;
@@ -170,11 +173,12 @@ app::rpcMessageUsersResultType userManager::addUser(const app::user &user)
     }
 
     syslog(LOG_NOTICE, "user not valid for add");
-    return app::rpcMessageUsersResultType::USER_INVALID;
+    return result;
 }
 
 app::rpcMessageUsersResultType userManager::editUser(app::user &user, bool changPasswd)
 {
+    app::rpcMessageUsersResultType result = app::rpcMessageUsersResultType::SUCCEEDED;
     auto it = this->users.find(user.getName());
 
     if (it == this->users.end()) {
@@ -185,8 +189,8 @@ app::rpcMessageUsersResultType userManager::editUser(app::user &user, bool chang
     if (!changPasswd) {
         user.setPassword(it->second.getPassword().c_str());
     }
-
-    if (user.isValid()) {
+    result = user.isValid();
+    if (result ==app::rpcMessageUsersResultType::SUCCEEDED) {
 
         if (it->second.getEmail() != user.getEmail() && emailExisted(user.getEmail())) {
             syslog(LOG_NOTICE, "email existed");
@@ -205,7 +209,7 @@ app::rpcMessageUsersResultType userManager::editUser(app::user &user, bool chang
     }
 
     syslog(LOG_NOTICE, "user not valid for edit");
-    return app::rpcMessageUsersResultType::USER_INVALID;
+    return result;
 }
 
 app::rpcMessageUsersResultType userManager::deleteUser(const app::user &user)
