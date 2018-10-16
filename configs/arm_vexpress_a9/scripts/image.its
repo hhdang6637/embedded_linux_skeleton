@@ -5,7 +5,7 @@
 /dts-v1/;
 
 / {
-    description = "U-Boot fitImage for qemu-arm_vexpress_a9";
+    description = "U-Boot fitImage for sun8i-h2-plus-orangepi-zero";
     #address-cells = <1>;
 
     images {
@@ -16,21 +16,21 @@
             arch = "arm";
             os = "linux";
             compression = "none";
-            load = <0x62003000>;
-            entry = <0x62003000>;
+            load = <0x42000000>;
+            entry = <0x42000000>;
             hash-1 {
                 algo = "sha1";
             };
         };
 
         fdt-1 {
-            description = "Flattened Device Tree blob - VExpress V2P CA9";
-            data = /incbin/("./vexpress-v2p-ca9.dtb");
+            description = "Flattened Device Tree blob - Orange Pi Zero";
+            data = /incbin/("./sun8i-h2-plus-orangepi-zero.dtb");
             type = "flat_dt";
             arch = "arm";
             compression = "none";
-            load = <0x65000000>;
-            entry = <0x65000000>;
+            load = <0x43000000>;
+            entry = <0x43000000>;
             hash-1 {
                 algo = "sha1";
             };
@@ -43,8 +43,8 @@
             arch = "arm";
             os = "linux";
             compression = "none";
-            load = <0x65008000>;
-            entry = <0x65008000>;
+            load = <0x43300000>;
+            entry = <0x43300000>;
             hash-1 {
                 algo = "sha1";
             };
