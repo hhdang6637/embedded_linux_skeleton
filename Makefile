@@ -21,7 +21,7 @@ include $(CONFIGS_DIR)/Makefile.variable
 
 # follow https://elinux.org/RPi_U-Boot
 export PATH := $(BUILDROOT_BUILD_DIR)/host/usr/bin:$(PATH)
-export LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(BUILDROOT_BUILD_DIR)/host/usr/lib
+# export LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(BUILDROOT_BUILD_DIR)/host/usr/lib
 export CROSS_COMPILE=ccache arm-linux-
 export CROSS_COMPILE_PATH=$(BUILDROOT_BUILD_DIR)/host/usr
 export BISON_PKGDATADIR=$(BUILDROOT_BUILD_DIR)/host/usr/share/bison
@@ -76,7 +76,7 @@ compile_uboot: $(BIN_BUILD_DIR)
 		cp $(CONFIGS_DIR)/uboot/config $(UBOOT_BUILD_DIR)/.config ; \
 		$(MAKE) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ; \
 	fi
-	@cp $(UBOOT_BUILD_DIR)/u-boot $(UBOOT_BUILD_DIR)/u-boot.bin $(BIN_BUILD_DIR)
+	@cp $(UBOOT_BUILD_DIR)/u-boot-sunxi-with-spl.bin $(UBOOT_BUILD_DIR)/u-boot.bin $(BIN_BUILD_DIR)
 	@echo "**********done**********"
 
 compile_apps: $(BIN_BUILD_DIR)
@@ -94,7 +94,8 @@ clean_apps:
 clean_uboot:
 	@rm -rf $(UBOOT_BUILD_DIR)
 
-make_disk: compile_apps
+# make_disk: compile_apps
+make_disk:
 	@echo "**********make_disk**********"
 	@rm -rf $(BUILD_DIR)/sdcard_boot
 	@mkdir $(BUILD_DIR)/sdcard_boot
@@ -112,5 +113,5 @@ make_disk: compile_apps
 	@mkimage -f $(BUILD_DIR)/sdcard_boot/image.its $(BUILD_DIR)/sdcard_boot/firmware
 
 	@echo "prepare SD card"
-	@cd $(BUILD_DIR)/sdcard_boot && $(SCRIPT_BUILD_DIR)/sd_card_setup.sh
+	# @cd $(BUILD_DIR)/sdcard_boot && $(SCRIPT_BUILD_DIR)/sd_card_setup.sh
 	@echo "**********done**********"
