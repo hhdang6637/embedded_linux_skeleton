@@ -194,6 +194,8 @@ struct sun8i_emac_priv {
    struct device_node *phy_node;
    struct clk *ahb_clk;
    struct clk *ephy_clk;
+   struct regulator *regulator;
+   struct regulator *regulator_io;
    bool use_internal_phy;
 
    struct reset_control *rst;
@@ -931,6 +933,18 @@ static int sun8i_emac_init(struct net_device *ndev)
        }
    }
 
+   if (priv->regulator) {
+       ret = regulator_enable(priv->regulator);
+       if (ret)
+           goto err_regulator;
+   }
+
+   if (priv->regulator_io) {
+       ret = regulator_enable(priv->regulator_io);
+       if (ret)
+           goto err_regulator_io;
+   }
+
    sun8i_emac_set_mdc(ndev);
 
    ret = sun8i_emac_mdio_register(ndev);
@@ -940,6 +954,12 @@ static int sun8i_emac_init(struct net_device *ndev)
    return 0;
 
 err_mdio_register:
+   if (priv->regulator_io)
+       regulator_disable(priv->regulator_io);
+err_regulator_io:
+   if (priv->regulator)
+       regulator_disable(priv->regulator);
+err_regulator:
    if (priv->rst_ephy)
        reset_control_assert(priv->rst_ephy);
 err_ephy_reset:
@@ -960,6 +980,11 @@ static void sun8i_emac_uninit(struct net_device *ndev)
    struct sun8i_emac_priv *priv = netdev_priv(ndev);
 
    mdiobus_unregister(priv->mdio);
+   if (priv->regulator_io)
+       regulator_disable(priv->regulator_io);
+
+   if (priv->regulator)
+       regulator_disable(priv->regulator);
 
    if (priv->rst_ephy)
        reset_control_assert(priv->rst_ephy);
@@ -1867,6 +1892,32 @@ static int sun8i_emac_probe(struct platform_device *pdev)
                 "no EPHY reset control found %d\n", ret);
            priv->rst_ephy = NULL;
        }
+   }
+
+   /* Optional regulator for PHY */
+   priv->regulator = devm_regulator_get_optional(&pdev->dev, "phy");
+   if (IS_ERR(priv->regulator)) {
+       if (PTR_ERR(priv->regulator) == -EPROBE_DEFER) {
+           ret = -EPROBE_DEFER;
+           goto probe_err;
+       }
+       dev_dbg(&pdev->dev, "no PHY regulator found\n");
+       priv->regulator = NULL;
+   } else {
+       dev_info(&pdev->dev, "PHY regulator found\n");
+   }
+
+   /* Optional regulator for PHY I/O */
+   priv->regulator_io = devm_regulator_get_optional(&pdev->dev, "phy_io");
+   if (IS_ERR(priv->regulator_io)) {
+       if (PTR_ERR(priv->regulator_io) == -EPROBE_DEFER) {
+           ret = -EPROBE_DEFER;
+           goto probe_err;
+       }
+       dev_dbg(&pdev->dev, "no PHY I/O regulator found\n");
+       priv->regulator_io = NULL;
+   } else {
+       dev_info(&pdev->dev, "PHY IO regulator found\n");
    }
 
    spin_lock_init(&priv->lock);
