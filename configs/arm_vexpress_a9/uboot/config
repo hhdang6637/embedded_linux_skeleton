@@ -259,7 +259,13 @@ CONFIG_EXPERT=y
 # Boot images
 #
 # CONFIG_ANDROID_BOOT_IMAGE is not set
-# CONFIG_FIT is not set
+CONFIG_FIT=y
+CONFIG_FIT_ENABLE_SHA256_SUPPORT=y
+# CONFIG_FIT_SIGNATURE is not set
+# CONFIG_FIT_VERBOSE is not set
+# CONFIG_FIT_BEST_MATCH is not set
+# CONFIG_SPL_FIT is not set
+# CONFIG_SPL_LOAD_FIT is not set
 CONFIG_OF_BOARD_SETUP=y
 # CONFIG_OF_SYSTEM_SETUP is not set
 # CONFIG_OF_STDOUT_VIA_ALIAS is not set
@@ -292,7 +298,7 @@ CONFIG_BOOTSTAGE_STASH_SIZE=0x1000
 CONFIG_BOOTDELAY=2
 # CONFIG_USE_BOOTARGS is not set
 CONFIG_USE_BOOTCOMMAND=y
-CONFIG_BOOTCOMMAND="run distro_bootcmd"
+CONFIG_BOOTCOMMAND="ext4load mmc 0:1 0x42000000 /boot/boot.scr;source;"
 
 #
 # Console
@@ -337,6 +343,7 @@ CONFIG_DISPLAY_BOARDINFO=y
 #
 # Update support
 #
+# CONFIG_UPDATE_TFTP is not set
 
 #
 # SPL / TPL
@@ -1180,9 +1187,10 @@ CONFIG_LIB_RAND=y
 #
 # Hashing Support
 #
-# CONFIG_SHA1 is not set
-# CONFIG_SHA256 is not set
+CONFIG_SHA1=y
+CONFIG_SHA256=y
 # CONFIG_SHA_HW_ACCEL is not set
+CONFIG_MD5=y
 
 #
 # Compression Support
