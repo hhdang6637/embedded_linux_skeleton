@@ -60,8 +60,13 @@ compile_linux_kernel: $(BIN_BUILD_DIR)
 	@echo "**********compile_linux_kernel**********"
 	@cp $(CONFIGS_DIR)/linux/config $(LINUX_BUILD_DIR)/.config
 	@if  ! $(CACHE_DIR)/get_linux_$(MODEL)_cache.sh > $(CURRENT_LOG) 2>&1 ; then \
-		$(MAKE) -j3 -C linux-4.14.22 O=$(LINUX_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ; \
-		$(MAKE) -j3 -C linux-4.14.22 O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install >> $(BUILD_DIR)/linux_kernel.log 2>&1 ; \
+		if [ $(MODEL) = "orange_pi_zero" ] ; then \
+			$(MAKE) -j3 -C linux/linux-4.14.67 O=$(LINUX_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ; \
+			$(MAKE) -j3 -C linux/linux-4.14.67 O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install >> $(BUILD_DIR)/linux_kernel.log 2>&1 ; \
+		else \
+			$(MAKE) -j3 -C linux/linux-4.14.22 O=$(LINUX_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ; \
+			$(MAKE) -j3 -C linux/linux-4.14.22 O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install >> $(BUILD_DIR)/linux_kernel.log 2>&1 ; \
+		fi \
 	fi
 	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/zImage                      $(BIN_BUILD_DIR)
 	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/dts/*.dtb  $(BIN_BUILD_DIR)
@@ -76,7 +81,7 @@ compile_uboot: $(BIN_BUILD_DIR)
 		cp $(CONFIGS_DIR)/uboot/config $(UBOOT_BUILD_DIR)/.config ; \
 		$(MAKE) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ; \
 	fi
-	@cp $(UBOOT_BUILD_DIR)/u-boot-sunxi-with-spl.bin $(UBOOT_BUILD_DIR)/u-boot.bin $(BIN_BUILD_DIR)
+	@cp $(UBOOT_BUILD_DIR)/u-boot $(UBOOT_BUILD_DIR)/u-boot.bin $(BIN_BUILD_DIR)
 	@echo "**********done**********"
 
 compile_apps: $(BIN_BUILD_DIR)
@@ -94,8 +99,7 @@ clean_apps:
 clean_uboot:
 	@rm -rf $(UBOOT_BUILD_DIR)
 
-# make_disk: compile_apps
-make_disk:
+make_disk: compile_apps
 	@echo "**********make_disk**********"
 	@rm -rf $(BUILD_DIR)/sdcard_boot
 	@mkdir $(BUILD_DIR)/sdcard_boot
@@ -111,7 +115,4 @@ make_disk:
 
 	@cp $(SCRIPT_BUILD_DIR)/image.its $(BUILD_DIR)/sdcard_boot/
 	@mkimage -f $(BUILD_DIR)/sdcard_boot/image.its $(BUILD_DIR)/sdcard_boot/firmware
-
-	@echo "prepare SD card"
-	# @cd $(BUILD_DIR)/sdcard_boot && $(SCRIPT_BUILD_DIR)/sd_card_setup.sh
 	@echo "**********done**********"
