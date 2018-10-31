@@ -16,10 +16,8 @@
 #include "MPFDParser/Exception.h"
 #include "rpcUnixClient.h"
 #include "fcgi.h"
+#include "rpcMessageWifiSetting.h"
 
-
-static std::string ssid, preshared_key;
-static int security_type, access_point;
 
 static inline std::string build_wifisetting_rsp_json(std::string status, std::string message = "") {
 
@@ -33,100 +31,6 @@ static inline std::string build_wifisetting_rsp_json(std::string status, std::st
     return ss_json.str();
 }
 
-static inline bool validateSsid(const char* _ssid)
-{
-    const char* specialKeyAllow = " .-_";
-    char *c = NULL;
-    int i = 0;
-    int lengthSsid = 0;
-
-    if(_ssid == NULL) {
-        return false;
-    }
-
-    lengthSsid = strlen(_ssid);
-
-    if(lengthSsid > 32){
-        return false;
-    }
-
-    for(; i < lengthSsid; i++) {
-
-        c = (char*) strchr(specialKeyAllow, _ssid[i]);
-
-        if(c == NULL) {
-            //in range [0-9]
-            if(_ssid[i] >= '0' && _ssid[i] <= '9') {
-                continue;
-            }
-
-            //in range [A-F]
-            if(_ssid[i] >= 'A' && _ssid[i] <= 'F') {
-                continue;
-            }
-
-            //in range[a-f]
-            if(_ssid[i] >= 'a' && _ssid[i] <= 'f') {
-                continue;
-            }
-
-            return false;
-        }
-    }
-
-    return true;
-}
-
-static inline bool validatePresharedKey(const char* pwd)
-{
-    int i = 0;
-    int lengthPwd = 0;
-
-    if(pwd == NULL) {
-        return false;
-    }
-
-    lengthPwd = strlen(pwd);
-
-    if(lengthPwd < 8 || lengthPwd > 64) {
-        return false;
-    }
-
-    for(i = 0; i < lengthPwd; i++) {
-        //in range [0-9]
-        if(pwd[i] >= '0' && pwd[i] <= '9') {
-            continue;
-        }
-
-        if(lengthPwd == 64) {
-            //in range [A-F]
-            if(pwd[i] >= 'A' && pwd[i] <= 'F') {
-                continue;
-            }
-
-            //in range[a-f]
-            if(pwd[i] >= 'a' && pwd[i] <= 'f') {
-                continue;
-            }
-
-        } else {
-            //in range [A-Z]
-            if(pwd[i] >= 'A' && pwd[i] <= 'Z') {
-                continue;
-            }
-
-            //in range[a-z]
-            if(pwd[i] >= 'a' && pwd[i] <= 'z') {
-                continue;
-            }
-        }
-
-        return false;
-    }
-
-    return true;
-}
-
 std::string json_handle_wifisetting(FCGX_Request *request)
 {
     const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
@@ -134,6 +38,8 @@ std::string json_handle_wifisetting(FCGX_Request *request)
     std::ostringstream ss_json;
     std::string status;
     status.assign("failed");
+    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+    app::rpcMessageWifiSetting msgWifiSetting;
 
     if (method && (strcmp(method, "POST") == 0) && contentType) {
 
@@ -142,27 +48,78 @@ std::string json_handle_wifisetting(FCGX_Request *request)
         if (get_post_data(request, data)) {
             try
             {
+                app::rpcMessageWifiSettingData_t msgData;
                 MPFD::Parser POSTParser;
 
                 POSTParser.SetContentType(contentType);
 
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
-                preshared_key = POSTParser.GetField("preshared_key")->GetTextTypeContent();
-                ssid = POSTParser.GetField("ssid")->GetTextTypeContent();
-                access_point = atoi(POSTParser.GetField("access_point")->GetTextTypeContent().c_str());
-                security_type = atoi(POSTParser.GetField("security_type")->GetTextTypeContent().c_str());
+                msgData.presharedKey = POSTParser.GetField("preshared_key")->GetTextTypeContent();
+                msgData.ssid = POSTParser.GetField("ssid")->GetTextTypeContent();
+                msgData.accessPoint = atoi(POSTParser.GetField("access_point")->GetTextTypeContent().c_str());
+                msgData.securityType = atoi(POSTParser.GetField("security_type")->GetTextTypeContent().c_str());
 
-                printf("ssid: %s\n preshared_key: %s\n access_point: %d\n security_type:%d\n", ssid.c_str(), preshared_key.c_str(), access_point, security_type);
+                msgWifiSetting.setWifiSettingMsgData(msgData);
+                msgWifiSetting.setMsgAction(app::rpcMessageWifiSettingActionType::EDIT_WIFI_SETTING);
+
+                if (rpcClient->doRpc(&msgWifiSetting) == false) {
+                    syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+                    return build_wifisetting_rsp_json(status, "Failed to get data from Network");
+                }
+
+                if(msgWifiSetting.getMsgResult() == app::rpcMessageWifiSettingResultType::SUCCEEDED) {
+                    status.assign("succeeded");
+                    return build_wifisetting_rsp_json(status, msgWifiSetting.wifiMsgResult2Str());
+                }
+                else {
+                    return build_wifisetting_rsp_json(status, msgWifiSetting.wifiMsgResult2Str());
+                }
 
             } catch (MPFD::Exception &e) {
                 syslog(LOG_ERR, "%s\n", e.GetError().c_str());
                 return build_wifisetting_rsp_json(status, "Failed to get data from browser");
             }
         }
+        else {
+            syslog(LOG_ERR, "Failed to get data from browser\n");
+            return build_wifisetting_rsp_json(status, "Failed to get data from browser");
+        }
+    }
+    else if(method && (strcmp(method, "GET") == 0)) {
+        msgWifiSetting.setMsgAction(app::rpcMessageWifiSettingActionType::GET_WIFI_SETTING);
+        if (rpcClient->doRpc(&msgWifiSetting) == false) {
+            syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+            return build_wifisetting_rsp_json(status, "Failed to get data from Network");
+        }
+
+        ss_json << "{\"json_wifi_setting\": {";
+
+        ss_json << "\"preshared_key\": ";
+        ss_json << "\"";
+        ss_json << msgWifiSetting.getWifiSettingMsgData().presharedKey;
+        ss_json << "\", ";
+
+        ss_json << "\"ssid\": ";
+        ss_json << "\"";
+        ss_json << msgWifiSetting.getWifiSettingMsgData().ssid;
+        ss_json << "\", ";
+
+        ss_json << "\"access_point\": ";
+        ss_json << "\"";
+        ss_json << msgWifiSetting.getWifiSettingMsgData().accessPoint;
+        ss_json << "\", ";
+
+        ss_json << "\"security_type\": ";
+        ss_json << "\"";
+        ss_json << msgWifiSetting.getWifiSettingMsgData().securityType;
+        ss_json << "\", ";
+
+        ss_json << "}}";
+
+        return ss_json.str();
     }
 
-    status.assign("succeeded");
-
-    return build_wifisetting_rsp_json(status);
+    msgWifiSetting.setMsgResult(app::rpcMessageWifiSettingResultType::UNKNOWN_ERROR);
+    return build_wifisetting_rsp_json(status, msgWifiSetting.wifiMsgResult2Str());
 }

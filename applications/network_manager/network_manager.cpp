@@ -15,7 +15,12 @@
 #ifdef pi_3_b
 #include "serviceHostapd.h"
 #include "serviceDnsmasq.h"
+#include "rpcMessageWifiSetting.h"
 #endif // pi_3_b
+
+#ifdef pi_3_b
+app::serviceHostapd* serviceHostapd;
+#endif
 
 static bool _network_manager_wake_up(const char* interfaceName)
 {
@@ -64,8 +69,9 @@ void network_manager_init()
     sleep(1);
     if (_network_manager_wake_up("wlan0")) {
         // start hostapd
-        app::serviceHostapd::getInstance()->init();
-        app::serviceHostapd::getInstance()->start();
+        serviceHostapd = app::serviceHostapd::getInstance();
+        serviceHostapd->init();
+        serviceHostapd->start();
         app::serviceDnsmasq::getInstance()->init();
         app::serviceDnsmasq::getInstance()->start();
         system("ifconfig wlan0 10.0.0.1 netmask 255.255.255.0");
@@ -86,6 +92,50 @@ void network_manager_init()
     }
 }
 
+#ifdef pi_3_b
+static bool wifi_setting_action_handler(int socket_fd)
+{
+    app::rpcMessageWifiSetting msgWifiSetting;
+
+    if(msgWifiSetting.deserialize(socket_fd))
+    {
+        switch(msgWifiSetting.getMsgAction())
+        {
+            case app::rpcMessageWifiSettingActionType::GET_WIFI_SETTING:
+            {
+                msgWifiSetting.setMsgResult(app::rpcMessageWifiSettingResultType::UNKNOWN_ERROR);
+                if(serviceHostapd != 0)
+                {
+                    msgWifiSetting.setWifiSettingMsgData(serviceHostapd->getWifiSettingData());
+                    msgWifiSetting.setMsgResult(app::rpcMessageWifiSettingResultType::SUCCEEDED);
+                }
+
+                msgWifiSetting.setMsgAction(app::rpcMessageWifiSettingActionType::GET_WIFI_SETTING);
+                return msgWifiSetting.serialize(socket_fd);
+            }
+            case app::rpcMessageWifiSettingActionType::EDIT_WIFI_SETTING:
+            {
+                app::rpcMessageWifiSettingResultType resultValid = app::rpcMessageWifiSettingResultType::UNKNOWN_ERROR;
+                if(serviceHostapd != 0)
+                {
+                    resultValid = serviceHostapd->validateMsgConfig(msgWifiSetting.getWifiSettingMsgData());
+                    if(resultValid == app::rpcMessageWifiSettingResultType::SUCCEEDED)
+                    {
+                        serviceHostapd->setWifiSettingData(msgWifiSetting.getWifiSettingMsgData());
+                        serviceHostapd->stop();
+                        serviceHostapd->init();
+                        serviceHostapd->start();
+                    }
+                }
+                msgWifiSetting.setMsgResult(resultValid);
+                msgWifiSetting.setMsgAction(app::rpcMessageWifiSettingActionType::EDIT_WIFI_SETTING);
+                return msgWifiSetting.serialize(socket_fd);
+            }
+        }
+    }
+    return false;
+}
+#endif
 void network_manager_service_loop()
 {
     fd_set read_fds;
@@ -93,7 +143,9 @@ void network_manager_service_loop()
 
     app::rpcUnixServer *rpcServer = app::rpcUnixServer::getInstance();
     server_socket = rpcServer->get_socket();
-
+    #ifdef pi_3_b
+    rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::handle_wifi_setting, wifi_setting_action_handler);
+    #endif
     std::list<int> listReadFd;
     listReadFd.push_back(rpcServer->get_socket());
 

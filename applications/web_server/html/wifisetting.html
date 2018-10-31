@@ -8,7 +8,7 @@
           <label for="txtSsid">Access Point SSID</label>
           <input type="text" class="form-control" placeholder="Enter Access Point SSID" name="txtSsid" id="txtSsid">
         </div>
-        <div class="form-group">
+        <div class="form-group" id="divSecurityTypes">
           <label for="cmbSecurityTypes">Security types</label>
           <select class="form-control" id="cmbSecurityTypes">
             <option value="0" selected="selected">Open</option>
@@ -50,11 +50,34 @@ $("#cmbSecurityTypes").change(function () {
     'use strict';
 
     $(document).ready(function(){
-        loadWifiSetting();
+        showWifiSetting();
     });
 
-    function loadWifiSetting() {
+    function showWifiSetting() {
+      $.getJSON( "/json/wifisetting", function(data) {
+            $('#txtPresharedKey').attr("value", data.json_wifi_setting.preshared_key);
+            $('#txtSsid').attr("value",data.json_wifi_setting.ssid );
 
+            if (data.json_wifi_setting.security_type == 0)
+                $("div.divSecurityTypes select").val(0);
+            else
+                $("div.divSecurityTypes select").val(1);
+
+            if (data.json_wifi_setting.access_point == 0)
+                $('#chkAccessPointEnable').prop('checked', false);
+            else
+                $('#chkAccessPointEnable').prop('checked', true);
+
+            if(data.json_wifi_setting.status == "failed")
+            {
+              $(".status").empty();
+              $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+              setTimeout(function(){
+                  $(".status").empty();
+              }, 2000);
+            }
+
+        });
     }
 
 }(jQuery);
