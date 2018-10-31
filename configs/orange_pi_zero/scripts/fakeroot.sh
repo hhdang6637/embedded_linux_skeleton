@@ -9,7 +9,7 @@ cp -r $LINUX_MOD_BUILD_DIR/lib .
 cp -r $SKELETON_ROOTFS_DIR/* .
 cp -r $ROOTFS_DIR/* .
 mkdir -p lib/firmware
-cp -r $FIRMWARE_NONFREE/* lib/firmware
+cp -r $FIRMWARE_NONFREE/xr819 lib/firmware
 
 # remove /var/run
 if [ -e var/run ]; then
