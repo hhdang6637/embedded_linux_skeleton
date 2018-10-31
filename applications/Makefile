@@ -32,14 +32,14 @@ all: $(ROOTFS_DIR)
 	@$(MAKE) -C iptables clean all
 	@$(MAKE) -C ntp clean all
 	@$(MAKE) -C openssl clean all
-	@$(MAKE) -C openvpn clean all
+	# @$(MAKE) -C openvpn clean all
 ifeq ($(MODEL),pi_3_b)
 	@$(MAKE) -C libnl clean all
 	@$(MAKE) -C iw clean all
 	@$(MAKE) -C hostapd clean all
 	@$(MAKE) -C dnsmasq clean all
 endif
-	@$(MAKE) -C hiawatha/hiawatha-10.8.1 clean all
+	# @$(MAKE) -C hiawatha/hiawatha-10.8.1 clean all
 	@$(MAKE) -C lib_fastcgi clean all
 	@$(MAKE) -C lib_app clean all
 	@$(MAKE) -C event_manager clean all
