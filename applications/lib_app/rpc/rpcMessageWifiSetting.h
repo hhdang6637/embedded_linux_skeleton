@@ -4,12 +4,15 @@
  *  Created on: Aug 11, 2018
  *      Author: hhdang
  */
+#define SSID_LENGTH             32
+#define PRESHARED_KEY_LENGTH    64
 
 #ifndef APPLICATIONS_LIB_APP_RPC_RPCMESSAGEWIFI_H_
 #define APPLICATIONS_LIB_APP_RPC_RPCMESSAGEWIFI_H_
 
 #include <list>
 #include "rpcMessage.h"
+
 
 namespace app
 {
@@ -33,8 +36,8 @@ enum rpcMessageWifiSettingActionType : uint16_t
 };
 
 typedef struct {
-    std::string presharedKey;
-    std::string ssid;
+    char presharedKey[PRESHARED_KEY_LENGTH];
+    char ssid[SSID_LENGTH];
     uint16_t    accessPoint;
     uint16_t    securityType;
 } rpcMessageWifiSettingData_t;

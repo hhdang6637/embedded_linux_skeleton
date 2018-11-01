@@ -22,8 +22,10 @@ namespace app
 serviceHostapd::serviceHostapd() : started(false)
 {
     // TODO Auto-generated constructor stub
-    this->msgData.presharedKey = "somepassword";
-    this->msgData.ssid = "somename";
+    memset(this->msgData.presharedKey, 0, sizeof(this->msgData.presharedKey));
+    strncpy(this->msgData.presharedKey, "somepassword", strlen("somepassword"));
+    memset(this->msgData.ssid, 0 , sizeof(this->msgData.ssid));
+    strncpy(this->msgData.ssid, "somename", strlen("somename"));
     this->msgData.securityType = 1;
     this->msgData.accessPoint = 1;
 }
@@ -84,7 +86,6 @@ bool serviceHostapd::init()
 
         hostapd_conf_file.close();
     }
-
     return true;
 }
 
@@ -148,6 +149,7 @@ bool serviceHostapd::stop()
 void serviceHostapd::setWifiSettingData(const app::rpcMessageWifiSettingData_t msg)
 {
     this->msgData = msg;
+    syslog(LOG_NOTICE, "setWifiSettingData: %s %s %u %u\n", this->msgData.presharedKey, this->msgData.ssid,this->msgData.accessPoint, this->msgData.securityType );
 }
 
 app::rpcMessageWifiSettingData_t serviceHostapd::getWifiSettingData() const
@@ -155,63 +157,9 @@ app::rpcMessageWifiSettingData_t serviceHostapd::getWifiSettingData() const
    return this->msgData;
 }
 
-bool serviceHostapd::writeToFile()
-{
-    app::ini serviceHostapdConf;
-    char sect[256];
-
-    snprintf(sect, sizeof(sect), "service_hostapd");
-
-    serviceHostapdConf.set_string(sect, "presharedKey", this->msgData.presharedKey);
-
-    serviceHostapdConf.set_string(sect, "ssid", this->msgData.ssid);
-
-    serviceHostapdConf.set_uint16(sect, "accessPoint", this->msgData.accessPoint);
-
-    serviceHostapdConf.set_uint16(sect, "securityType", this->msgData.securityType);
-
-    return serviceHostapdConf.writeToFile("/data/service_hostapd.conf");
-}
-
-bool serviceHostapd::initFromFile()
-{
-    app::ini serviceHostapdConf;
-
-    if (serviceHostapdConf.loadFromFile("/data/service_hostapd.conf")) {
-
-        char sect[256];
-        std::string value;
-
-        snprintf(sect, sizeof(sect), "service_hostapd");
-        syslog(LOG_NOTICE, "found service_hostapd from /data/service_hostapd.conf");
-
-
-        if (serviceHostapdConf.get_string(sect, "presharedKey", this->msgData.presharedKey)) {
-            return false;
-        }
-
-        if (serviceHostapdConf.get_string(sect, "ssid", this->msgData.ssid)) {
-            return false;
-        }
-
-        if (serviceHostapdConf.get_uint16(sect, "accessPoint", this->msgData.accessPoint)) {
-            return false;
-        }
-
-        if (serviceHostapdConf.get_uint16(sect, "securityType", this->msgData.securityType)) {
-            return false;
-        }
-
-    } else {
-        syslog(LOG_NOTICE, "cannot load user config from /data/users.conf, use default users");
-        return false;
-    }
-
-    return true;
-}
-
 static inline rpcMessageWifiSettingResultType validateSsid(const char* _ssid)
 {
+    syslog(LOG_NOTICE, "SSID: %s", _ssid);
     const char* specialKeyAllow = " .-_";
     char *c = NULL;
     int i = 0;
@@ -237,13 +185,13 @@ static inline rpcMessageWifiSettingResultType validateSsid(const char* _ssid)
                 continue;
             }
 
-            //in range [A-F]
-            if(_ssid[i] >= 'A' && _ssid[i] <= 'F') {
+            //in range [A-Z]
+            if(_ssid[i] >= 'A' && _ssid[i] <= 'Z') {
                 continue;
             }
 
-            //in range[a-f]
-            if(_ssid[i] >= 'a' && _ssid[i] <= 'f') {
+            //in range[a-z]
+            if(_ssid[i] >= 'a' && _ssid[i] <= 'z') {
                 continue;
             }
 
@@ -304,15 +252,18 @@ static inline rpcMessageWifiSettingResultType validatePresharedKey(const char* p
     return app::rpcMessageWifiSettingResultType::SUCCEEDED;
 }
 
-app::rpcMessageWifiSettingResultType serviceHostapd::validateMsgConfig(const app::rpcMessageWifiSettingData_t msgData) const
+app::rpcMessageWifiSettingResultType serviceHostapd::validateMsgConfig(const app::rpcMessageWifiSettingData_t *msgData) const
 {
     rpcMessageWifiSettingResultType resultValid;
-    resultValid = validatePresharedKey((char*)(&msgData.presharedKey));
-    
+
+    resultValid = validateSsid(msgData->ssid);
     if(resultValid != SUCCEEDED)
         return resultValid;
+    
+    if(msgData->securityType == 0)
+        return resultValid;
 
-    resultValid = validateSsid((char*)(&msgData.ssid));
+    resultValid = validatePresharedKey(msgData->presharedKey);
 
     return resultValid;
 }

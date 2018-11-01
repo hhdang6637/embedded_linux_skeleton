@@ -118,13 +118,19 @@ static bool wifi_setting_action_handler(int socket_fd)
                 app::rpcMessageWifiSettingResultType resultValid = app::rpcMessageWifiSettingResultType::UNKNOWN_ERROR;
                 if(serviceHostapd != 0)
                 {
-                    resultValid = serviceHostapd->validateMsgConfig(msgWifiSetting.getWifiSettingMsgData());
+                    app::rpcMessageWifiSettingData_t msgData = msgWifiSetting.getWifiSettingMsgData();
+                    resultValid = serviceHostapd->validateMsgConfig(&msgData);
                     if(resultValid == app::rpcMessageWifiSettingResultType::SUCCEEDED)
                     {
-                        serviceHostapd->setWifiSettingData(msgWifiSetting.getWifiSettingMsgData());
-                        serviceHostapd->stop();
-                        serviceHostapd->init();
-                        serviceHostapd->start();
+                        serviceHostapd->setWifiSettingData(msgData);
+                        if(serviceHostapd->stop() == true)
+                        {
+                            if(serviceHostapd->init() == true)
+                            {
+                                if(serviceHostapd->start() == true)
+                                    syslog(LOG_NOTICE, "Hostapd status: stop >> init >> start : true");
+                            }
+                        }
                     }
                 }
                 msgWifiSetting.setMsgResult(resultValid);

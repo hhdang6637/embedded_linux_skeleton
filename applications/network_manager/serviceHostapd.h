@@ -36,7 +36,7 @@ public:
     bool                                 initFromFile();
     void                                 setWifiSettingData(const app::rpcMessageWifiSettingData_t msg);
     app::rpcMessageWifiSettingData_t     getWifiSettingData() const;
-    app::rpcMessageWifiSettingResultType validateMsgConfig(const app::rpcMessageWifiSettingData_t msgData) const;
+    app::rpcMessageWifiSettingResultType validateMsgConfig(const app::rpcMessageWifiSettingData_t *msgData) const;
 };
 
 } /* namespace app */

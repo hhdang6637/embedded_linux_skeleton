@@ -33,19 +33,6 @@ $(function () {
     $("#myTopnav").find("a[href='/pages/wifisetting']").addClass("active")
 });
 
-$("#cmbSecurityTypes").change(function () {
-    if( $( "#cmbSecurityTypes option:selected" ).val() == 0 ) /* value of the Open type is 0*/
-    {
-      $('#divPresharedKey').attr('hidden', 'true');
-      $("#txtPresharedKey").val('');
-    }
-    else
-    {
-      $('#divPresharedKey').removeAttr('hidden');
-    }
-  })
-  .change();
-
 + function($) {
     'use strict';
 
@@ -55,18 +42,21 @@ $("#cmbSecurityTypes").change(function () {
 
     function showWifiSetting() {
       $.getJSON( "/json/wifisetting", function(data) {
-            $('#txtPresharedKey').attr("value", data.json_wifi_setting.preshared_key);
-            $('#txtSsid').attr("value",data.json_wifi_setting.ssid );
+            $("#txtSsid").val(data.json_wifi_setting.ssid);
+            $("#txtPresharedKey").val(data.json_wifi_setting.preshared_key);
 
             if (data.json_wifi_setting.security_type == 0)
-                $("div.divSecurityTypes select").val(0);
+                $("#divSecurityTypes select").val(0);
             else
-                $("div.divSecurityTypes select").val(1);
+            {
+                $("#divSecurityTypes select").val(1);
+                $("#divPresharedKey").removeAttr('hidden');
+            }
 
             if (data.json_wifi_setting.access_point == 0)
-                $('#chkAccessPointEnable').prop('checked', false);
+                $('#chkAccessPointEnable').attr("checked", false);
             else
-                $('#chkAccessPointEnable').prop('checked', true);
+                $('#chkAccessPointEnable').attr('checked', true);
 
             if(data.json_wifi_setting.status == "failed")
             {
@@ -81,6 +71,19 @@ $("#cmbSecurityTypes").change(function () {
     }
 
 }(jQuery);
+
+$("#cmbSecurityTypes").change(function () {
+    if( $( "#cmbSecurityTypes option:selected" ).val() == 0 ) /* value of the Open type is 0*/
+    {
+      $('#divPresharedKey').attr('hidden', 'true');
+      $("#txtPresharedKey").val('');
+    }
+    else
+    {
+      $('#divPresharedKey').removeAttr('hidden');
+    }
+  })
+  .change();
 
 (function($) {
 
