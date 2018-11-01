@@ -122,13 +122,17 @@ static bool wifi_setting_action_handler(int socket_fd)
                     resultValid = serviceHostapd->validateMsgConfig(&msgData);
                     if(resultValid == app::rpcMessageWifiSettingResultType::SUCCEEDED)
                     {
+                        resultValid = app::rpcMessageWifiSettingResultType::HOSTAPD_NOT_START;
                         serviceHostapd->setWifiSettingData(msgData);
                         if(serviceHostapd->stop() == true)
                         {
                             if(serviceHostapd->init() == true)
                             {
                                 if(serviceHostapd->start() == true)
+                                {
+                                    resultValid = app::rpcMessageWifiSettingResultType::SUCCEEDED;
                                     syslog(LOG_NOTICE, "Hostapd status: stop >> init >> start : true");
+                                }
                             }
                         }
                     }

@@ -202,6 +202,9 @@ namespace app
             case app::rpcMessageWifiSettingResultType::SUCCEEDED:
                 outStr = "Succeeded";
                 break;
+            case app::rpcMessageWifiSettingResultType::HOSTAPD_NOT_START:
+                outStr = "Hostapd NOT start";
+                break;
         }
 
         return outStr;

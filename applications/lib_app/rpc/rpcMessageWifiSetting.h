@@ -26,6 +26,7 @@ enum rpcMessageWifiSettingResultType : uint16_t
     SSID_CHARACTER_INVALID,
     SSID_LENGTH_INVALID,
     SSID_IS_NULL,
+    HOSTAPD_NOT_START,
     UNKNOWN_ERROR
 };
 
