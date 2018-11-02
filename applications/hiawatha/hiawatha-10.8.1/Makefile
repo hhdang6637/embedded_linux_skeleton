@@ -7,8 +7,14 @@ SERVER_PEM    := config/server.pem
 
 
 export CFLAGS  = -Wall
+
+ifeq ($(MODEL),orange_pi_zero)
+export INCLUDE = $(BUILD_DIR)/buildroot/host/usr/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/include
+export LIB     = $(BUILD_DIR)/buildroot/host/usr/arm-buildroot-linux-uclibcgnueabihf/sysroot/usr/lib
+else
 export INCLUDE = $(BUILD_DIR)/buildroot/host/usr/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/include
 export LIB     = $(BUILD_DIR)/buildroot/host/usr/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/lib
+endif
 
 $(BIN):
 	@rm -rf build
