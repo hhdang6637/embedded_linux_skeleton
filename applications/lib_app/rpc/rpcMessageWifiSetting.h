@@ -36,6 +36,8 @@ enum rpcMessageWifiSettingActionType : uint16_t
     EDIT_WIFI_SETTING
 };
 
+std::string wifiMsgResult2Str(const rpcMessageWifiSettingResultType &result);
+
 typedef struct {
     char presharedKey[PRESHARED_KEY_LENGTH];
     char ssid[SSID_LENGTH];
@@ -63,9 +65,6 @@ public:
 
     app::rpcMessageWifiSettingData_t      getWifiSettingMsgData() const;
     void                                  setWifiSettingMsgData(const app::rpcMessageWifiSettingData_t msgData);
-
-    std::string                           wifiMsgResult2Str();
-
 };
 
 } /* namespace app */

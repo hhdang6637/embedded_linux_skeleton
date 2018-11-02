@@ -137,3 +137,9 @@ out:
 
     return addr;
 }
+
+void string_copy(char *dst, std::string &src)
+{
+    strncpy(dst, src.c_str(), src.length());
+    dst[src.length()] = '\0';
+}

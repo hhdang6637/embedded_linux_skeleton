@@ -13,11 +13,12 @@ namespace app
 {
 
     rpcMessageWifiSetting::rpcMessageWifiSetting() :
-            rpcMessage(rpcMessageType::handle_wifi_setting, rpcMessageAddr::network_manager_addr_t)
+            rpcMessage(rpcMessageType::handle_wifi_setting, rpcMessageAddr::network_manager_addr_t),
+            msgAction(app::rpcMessageWifiSettingActionType::GET_WIFI_SETTING),
+            msgResult(app::rpcMessageWifiSettingResultType::UNKNOWN_ERROR),
+            msgData()
     {
         //TO-DO
-        memset(this->msgData.presharedKey, 0, sizeof(this->msgData.presharedKey));
-        memset(this->msgData.ssid, 0, sizeof(this->msgData.ssid));
     }
 
     rpcMessageWifiSetting::~rpcMessageWifiSetting()
@@ -163,11 +164,11 @@ namespace app
         this->msgData = msgData;
     }
 
-    std::string rpcMessageWifiSetting::wifiMsgResult2Str()
+    std::string wifiMsgResult2Str(const rpcMessageWifiSettingResultType &result)
     {
         std::string outStr;
 
-        switch (this->msgResult)
+        switch (result)
         {
             case app::rpcMessageWifiSettingResultType::PRESHAREDKEY_CHARACTER_INVALID:
                 outStr = "Preshared key have character NOT allow";
