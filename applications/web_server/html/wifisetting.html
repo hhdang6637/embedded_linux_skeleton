@@ -90,6 +90,8 @@ $("#cmbSecurityTypes").change(function () {
   var wifiSettingForm = document.getElementById('js-wifi_setting-form');
 
   wifiSettingForm.addEventListener('submit', function(e) {
+    $(".status").empty();
+
     var ssid = $('#txtSsid').val();
     var preshared_key = $('#txtPresharedKey').val();
     var access_point = 0;
@@ -118,7 +120,6 @@ $("#cmbSecurityTypes").change(function () {
 
       success: function(json) {
         console.log(json);
-        $(".status").empty();
         if (json.status == "succeeded") {
           $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
         } else {
