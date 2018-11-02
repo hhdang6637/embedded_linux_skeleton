@@ -175,7 +175,7 @@ static inline rpcMessageWifiSettingResultType validateSsid(const char* _ssid)
 
     lengthSsid = strlen(_ssid);
 
-    if (lengthSsid > SSID_LENGTH) {
+    if (lengthSsid == 0 || lengthSsid > SSID_LENGTH) {
         return app::rpcMessageWifiSettingResultType::SSID_LENGTH_INVALID;
     }
 
