@@ -109,7 +109,7 @@ std::string json_handle_wifisetting(FCGX_Request *request)
 
     } else if (method && (strcmp(method, "GET") == 0)) {
         app::rpcMessageWifiSetting msgWifiSetting;
-        if (do_get_wifisetting(msgWifiSetting)) {
+        if (do_get_wifisetting(msgWifiSetting) == false) {
             return build_wifisetting_rsp_json(status, "RPC error");
         }
 
