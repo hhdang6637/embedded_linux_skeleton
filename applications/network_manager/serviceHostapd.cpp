@@ -136,6 +136,19 @@ bool serviceHostapd::stop()
     return false;
 }
 
+bool serviceHostapd::restart()
+{
+    if (this->stop() == true) {
+        if (this->init() == true) {
+            if (this->start() == true) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 void serviceHostapd::setWifiSettingData(const app::rpcMessageWifiSettingData_t msg)
 {
     this->msgData = msg;

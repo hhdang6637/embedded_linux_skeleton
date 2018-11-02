@@ -20,6 +20,7 @@ public:
     virtual bool init() {return true;};
     virtual bool start() {return true;};
     virtual bool stop() {return true;};
+    virtual bool restart() {return true;};
 };
 } /* namespace app */
 

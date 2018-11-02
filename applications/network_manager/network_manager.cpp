@@ -107,36 +107,30 @@ static bool wifi_setting_action_handler(int socket_fd)
                     msgWifiSetting.setWifiSettingMsgData(serviceHostapd->getWifiSettingData());
                     msgWifiSetting.setMsgResult(app::rpcMessageWifiSettingResultType::SUCCEEDED);
                 }
-
-                msgWifiSetting.setMsgAction(app::rpcMessageWifiSettingActionType::GET_WIFI_SETTING);
-                return msgWifiSetting.serialize(socket_fd);
+                break;
             }
+
             case app::rpcMessageWifiSettingActionType::EDIT_WIFI_SETTING:
             {
-                app::rpcMessageWifiSettingResultType resultValid = app::rpcMessageWifiSettingResultType::UNKNOWN_ERROR;
-
+                auto result = app::rpcMessageWifiSettingResultType::UNKNOWN_ERROR;
                 if (serviceHostapd != 0) {
-                    app::rpcMessageWifiSettingData_t msgData = msgWifiSetting.getWifiSettingMsgData();
-                    resultValid = serviceHostapd->validateMsgConfig(&msgData);
-                    if (resultValid == app::rpcMessageWifiSettingResultType::SUCCEEDED) {
-                        resultValid = app::rpcMessageWifiSettingResultType::HOSTAPD_NOT_START;
+                    auto msgData = msgWifiSetting.getWifiSettingMsgData();
+                    result = serviceHostapd->validateMsgConfig(&msgData);
+
+                    if (result == app::rpcMessageWifiSettingResultType::SUCCEEDED) {
                         serviceHostapd->setWifiSettingData(msgData);
-                        if (serviceHostapd->stop() == true) {
-                            if (serviceHostapd->init() == true) {
-                                if (serviceHostapd->start() == true) {
-                                    resultValid = app::rpcMessageWifiSettingResultType::SUCCEEDED;
-                                    syslog(LOG_NOTICE, "Hostapd status: stop >> init >> start : true");
-                                }
-                            }
+                        if (serviceHostapd->restart() == false) {
+                            result = app::rpcMessageWifiSettingResultType::UNKNOWN_ERROR;
                         }
                     }
                 }
 
-                msgWifiSetting.setMsgResult(resultValid);
-                msgWifiSetting.setMsgAction(app::rpcMessageWifiSettingActionType::EDIT_WIFI_SETTING);
-                return msgWifiSetting.serialize(socket_fd);
+                msgWifiSetting.setMsgResult(result);
+                break;
             }
         }
+
+        return msgWifiSetting.serialize(socket_fd);
     }
     return false;
 }

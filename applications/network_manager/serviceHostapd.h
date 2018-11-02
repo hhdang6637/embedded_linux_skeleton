@@ -30,6 +30,7 @@ public:
     virtual bool init();
     virtual bool start();
     virtual bool stop();
+    virtual bool restart();
 
     static serviceHostapd*               getInstance();
     bool                                 writeToFile();
