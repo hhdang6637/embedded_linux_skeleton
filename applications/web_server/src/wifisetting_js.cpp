@@ -18,14 +18,14 @@
 #include "fcgi.h"
 #include "rpcMessageWifiSetting.h"
 
-
-static inline std::string build_wifisetting_rsp_json(std::string status, std::string message = "") {
+static inline std::string build_wifisetting_rsp_json(std::string status, std::string message = "")
+{
 
     std::ostringstream ss_json;
 
     ss_json << "{";
-    ss_json << "\"status\": \"" << status <<"\",";
-    ss_json << "\"message\": \""<< message <<"\"";
+    ss_json << "\"status\": \"" << status << "\",";
+    ss_json << "\"message\": \"" << message << "\"";
     ss_json << "}";
 
     return ss_json.str();
@@ -33,7 +33,7 @@ static inline std::string build_wifisetting_rsp_json(std::string status, std::st
 
 std::string json_handle_wifisetting(FCGX_Request *request)
 {
-    const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
+    const char *method = FCGX_GetParam("REQUEST_METHOD", request->envp);
     const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
     std::ostringstream ss_json;
     std::string status;
@@ -46,8 +46,7 @@ std::string json_handle_wifisetting(FCGX_Request *request)
         std::string data;
 
         if (get_post_data(request, data)) {
-            try
-            {
+            try {
                 app::rpcMessageWifiSettingData_t msgData;
                 MPFD::Parser POSTParser;
 
@@ -56,8 +55,10 @@ std::string json_handle_wifisetting(FCGX_Request *request)
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
                 memset(msgData.presharedKey, 0, sizeof(msgData.presharedKey));
                 memset(msgData.ssid, 0, sizeof(msgData.ssid));
-                strncpy(msgData.presharedKey, POSTParser.GetField("preshared_key")->GetTextTypeContent().c_str(), POSTParser.GetField("preshared_key")->GetTextTypeContent().length());
-                strncpy(msgData.ssid, POSTParser.GetField("ssid")->GetTextTypeContent().c_str(), POSTParser.GetField("ssid")->GetTextTypeContent().length());
+                strncpy(msgData.presharedKey, POSTParser.GetField("preshared_key")->GetTextTypeContent().c_str(),
+                        POSTParser.GetField("preshared_key")->GetTextTypeContent().length());
+                strncpy(msgData.ssid, POSTParser.GetField("ssid")->GetTextTypeContent().c_str(),
+                        POSTParser.GetField("ssid")->GetTextTypeContent().length());
                 msgData.accessPoint = atoi(POSTParser.GetField("access_point")->GetTextTypeContent().c_str());
                 msgData.securityType = atoi(POSTParser.GetField("security_type")->GetTextTypeContent().c_str());
 
@@ -69,11 +70,10 @@ std::string json_handle_wifisetting(FCGX_Request *request)
                     return build_wifisetting_rsp_json(status, "Failed to get data from Network");
                 }
 
-                if(msgWifiSetting.getMsgResult() == app::rpcMessageWifiSettingResultType::SUCCEEDED) {
+                if (msgWifiSetting.getMsgResult() == app::rpcMessageWifiSettingResultType::SUCCEEDED) {
                     status.assign("succeeded");
                     return build_wifisetting_rsp_json(status, msgWifiSetting.wifiMsgResult2Str());
-                }
-                else {
+                } else {
                     return build_wifisetting_rsp_json(status, msgWifiSetting.wifiMsgResult2Str());
                 }
 
@@ -81,13 +81,11 @@ std::string json_handle_wifisetting(FCGX_Request *request)
                 syslog(LOG_ERR, "%s\n", e.GetError().c_str());
                 return build_wifisetting_rsp_json(status, "Failed to get data from browser");
             }
-        }
-        else {
+        } else {
             syslog(LOG_ERR, "Failed to get data from browser\n");
             return build_wifisetting_rsp_json(status, "Failed to get data from browser");
         }
-    }
-    else if(method && (strcmp(method, "GET") == 0)) {
+    } else if (method && (strcmp(method, "GET") == 0)) {
         msgWifiSetting.setMsgAction(app::rpcMessageWifiSettingActionType::GET_WIFI_SETTING);
         if (rpcClient->doRpc(&msgWifiSetting) == false) {
             syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);

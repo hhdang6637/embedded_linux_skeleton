@@ -97,15 +97,13 @@ static bool wifi_setting_action_handler(int socket_fd)
 {
     app::rpcMessageWifiSetting msgWifiSetting;
 
-    if(msgWifiSetting.deserialize(socket_fd))
-    {
-        switch(msgWifiSetting.getMsgAction())
+    if (msgWifiSetting.deserialize(socket_fd)) {
+        switch (msgWifiSetting.getMsgAction())
         {
             case app::rpcMessageWifiSettingActionType::GET_WIFI_SETTING:
             {
                 msgWifiSetting.setMsgResult(app::rpcMessageWifiSettingResultType::UNKNOWN_ERROR);
-                if(serviceHostapd != 0)
-                {
+                if (serviceHostapd != 0) {
                     msgWifiSetting.setWifiSettingMsgData(serviceHostapd->getWifiSettingData());
                     msgWifiSetting.setMsgResult(app::rpcMessageWifiSettingResultType::SUCCEEDED);
                 }
@@ -116,20 +114,16 @@ static bool wifi_setting_action_handler(int socket_fd)
             case app::rpcMessageWifiSettingActionType::EDIT_WIFI_SETTING:
             {
                 app::rpcMessageWifiSettingResultType resultValid = app::rpcMessageWifiSettingResultType::UNKNOWN_ERROR;
-                if(serviceHostapd != 0)
-                {
+
+                if (serviceHostapd != 0) {
                     app::rpcMessageWifiSettingData_t msgData = msgWifiSetting.getWifiSettingMsgData();
                     resultValid = serviceHostapd->validateMsgConfig(&msgData);
-                    if(resultValid == app::rpcMessageWifiSettingResultType::SUCCEEDED)
-                    {
+                    if (resultValid == app::rpcMessageWifiSettingResultType::SUCCEEDED) {
                         resultValid = app::rpcMessageWifiSettingResultType::HOSTAPD_NOT_START;
                         serviceHostapd->setWifiSettingData(msgData);
-                        if(serviceHostapd->stop() == true)
-                        {
-                            if(serviceHostapd->init() == true)
-                            {
-                                if(serviceHostapd->start() == true)
-                                {
+                        if (serviceHostapd->stop() == true) {
+                            if (serviceHostapd->init() == true) {
+                                if (serviceHostapd->start() == true) {
                                     resultValid = app::rpcMessageWifiSettingResultType::SUCCEEDED;
                                     syslog(LOG_NOTICE, "Hostapd status: stop >> init >> start : true");
                                 }
@@ -137,6 +131,7 @@ static bool wifi_setting_action_handler(int socket_fd)
                         }
                     }
                 }
+
                 msgWifiSetting.setMsgResult(resultValid);
                 msgWifiSetting.setMsgAction(app::rpcMessageWifiSettingActionType::EDIT_WIFI_SETTING);
                 return msgWifiSetting.serialize(socket_fd);
@@ -146,6 +141,7 @@ static bool wifi_setting_action_handler(int socket_fd)
     return false;
 }
 #endif
+
 void network_manager_service_loop()
 {
     fd_set read_fds;

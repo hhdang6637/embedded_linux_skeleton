@@ -74,14 +74,13 @@ bool serviceHostapd::init()
 
         if(msgData.securityType == 1) {
             hostapd_conf_file <<
-                                "auth_algs=1\n"
-                                "wpa=2\n"
-                                "wpa_key_mgmt=WPA-PSK\n"
-                                "wpa_passphrase="<< this->msgData.presharedKey <<"\n";
-        }
-        else if(msgData.securityType == 0) {
+                            "auth_algs=1\n"
+                            "wpa=2\n"
+                            "wpa_key_mgmt=WPA-PSK\n"
+                            "wpa_passphrase="<< this->msgData.presharedKey <<"\n";
+        } else if(msgData.securityType == 0) {
             hostapd_conf_file <<
-                                "auth_algs=0\n";
+                            "auth_algs=0\n";
         }
 
         hostapd_conf_file.close();
@@ -103,16 +102,12 @@ bool serviceHostapd::start()
     command += " ";
     command += HOSTAPD_CONFIG_FILE;
 
-    if(this->msgData.accessPoint == 1)
-    {
-        if(system(command.c_str()) != -1)
-        {
+    if (this->msgData.accessPoint == 1) {
+        if (system(command.c_str()) != -1) {
             this->started = true;
             return true;
         }
-    }
-    else
-    {
+    } else {
         this->started = false;
         return true;
     }
@@ -122,34 +117,30 @@ bool serviceHostapd::start()
 
 bool serviceHostapd::stop()
 {
-    if(this->started == true)
-    {
-        if(system("kill `pidof hostapd`") != -1)
-        {
+    if (this->started == true) {
+        if (system("kill `pidof hostapd`") != -1) {
             sleep(2);
 
-            if( system("pidof hostapd") > 0)
-            {
-                if(system("kill -9 `pidof hostapd`") != -1)
-                {
-                    this->started =  false;
+            if (system("pidof hostapd") > 0) {
+                if (system("kill -9 `pidof hostapd`") != -1) {
+                    this->started = false;
                     return true;
                 }
-            }
-            else
-            {
-                this->started =  false;
+            } else {
+                this->started = false;
                 return true;
             }
         }
     }
+
     return false;
 }
 
 void serviceHostapd::setWifiSettingData(const app::rpcMessageWifiSettingData_t msg)
 {
     this->msgData = msg;
-    syslog(LOG_NOTICE, "setWifiSettingData: %s %s %u %u\n", this->msgData.presharedKey, this->msgData.ssid,this->msgData.accessPoint, this->msgData.securityType );
+    syslog(LOG_NOTICE, "setWifiSettingData: %s %s %u %u\n", this->msgData.presharedKey, this->msgData.ssid,
+           this->msgData.accessPoint, this->msgData.securityType);
 }
 
 app::rpcMessageWifiSettingData_t serviceHostapd::getWifiSettingData() const
@@ -165,33 +156,33 @@ static inline rpcMessageWifiSettingResultType validateSsid(const char* _ssid)
     int i = 0;
     int lengthSsid = 0;
 
-    if(_ssid == NULL) {
+    if (_ssid == NULL) {
         return app::rpcMessageWifiSettingResultType::SSID_IS_NULL;
     }
 
     lengthSsid = strlen(_ssid);
 
-    if(lengthSsid > 32){
+    if (lengthSsid > SSID_LENGTH) {
         return app::rpcMessageWifiSettingResultType::SSID_LENGTH_INVALID;
     }
 
-    for(; i < lengthSsid; i++) {
+    for (; i < lengthSsid; i++) {
 
         c = (char*) strchr(specialKeyAllow, _ssid[i]);
 
-        if(c == NULL) {
+        if (c == NULL) {
             //in range [0-9]
-            if(_ssid[i] >= '0' && _ssid[i] <= '9') {
+            if (_ssid[i] >= '0' && _ssid[i] <= '9') {
                 continue;
             }
 
             //in range [A-Z]
-            if(_ssid[i] >= 'A' && _ssid[i] <= 'Z') {
+            if (_ssid[i] >= 'A' && _ssid[i] <= 'Z') {
                 continue;
             }
 
             //in range[a-z]
-            if(_ssid[i] >= 'a' && _ssid[i] <= 'z') {
+            if (_ssid[i] >= 'a' && _ssid[i] <= 'z') {
                 continue;
             }
 
@@ -207,41 +198,41 @@ static inline rpcMessageWifiSettingResultType validatePresharedKey(const char* p
     int i = 0;
     int lengthPwd = 0;
 
-    if(pwd == NULL) {
+    if (pwd == NULL) {
         return app::rpcMessageWifiSettingResultType::PRESHAREDKEY_IS_NULL;
     }
 
     lengthPwd = strlen(pwd);
 
-    if(lengthPwd < 8 || lengthPwd > 64) {
+    if (lengthPwd < 8 || lengthPwd > PRESHARED_KEY_LENGTH) {
         return app::rpcMessageWifiSettingResultType::PRESHAREDKEY_LENGTH_INVALID;
     }
 
-    for(i = 0; i < lengthPwd; i++) {
+    for (i = 0; i < lengthPwd; i++) {
         //in range [0-9]
-        if(pwd[i] >= '0' && pwd[i] <= '9') {
+        if (pwd[i] >= '0' && pwd[i] <= '9') {
             continue;
         }
 
-        if(lengthPwd == 64) {
+        if (lengthPwd == 64) {
             //in range [A-F]
-            if(pwd[i] >= 'A' && pwd[i] <= 'F') {
+            if (pwd[i] >= 'A' && pwd[i] <= 'F') {
                 continue;
             }
 
             //in range[a-f]
-            if(pwd[i] >= 'a' && pwd[i] <= 'f') {
+            if (pwd[i] >= 'a' && pwd[i] <= 'f') {
                 continue;
             }
 
         } else {
             //in range [A-Z]
-            if(pwd[i] >= 'A' && pwd[i] <= 'Z') {
+            if (pwd[i] >= 'A' && pwd[i] <= 'Z') {
                 continue;
             }
 
             //in range[a-z]
-            if(pwd[i] >= 'a' && pwd[i] <= 'z') {
+            if (pwd[i] >= 'a' && pwd[i] <= 'z') {
                 continue;
             }
         }
@@ -252,15 +243,16 @@ static inline rpcMessageWifiSettingResultType validatePresharedKey(const char* p
     return app::rpcMessageWifiSettingResultType::SUCCEEDED;
 }
 
-app::rpcMessageWifiSettingResultType serviceHostapd::validateMsgConfig(const app::rpcMessageWifiSettingData_t *msgData) const
+app::rpcMessageWifiSettingResultType serviceHostapd::validateMsgConfig(
+        const app::rpcMessageWifiSettingData_t *msgData) const
 {
     rpcMessageWifiSettingResultType resultValid;
 
     resultValid = validateSsid(msgData->ssid);
-    if(resultValid != SUCCEEDED)
+    if (resultValid != SUCCEEDED)
         return resultValid;
-    
-    if(msgData->securityType == 0)
+
+    if (msgData->securityType == 0)
         return resultValid;
 
     resultValid = validatePresharedKey(msgData->presharedKey);

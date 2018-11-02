@@ -12,8 +12,8 @@
 namespace app
 {
 
-    rpcMessageWifiSetting::rpcMessageWifiSetting():
-                                                    rpcMessage(rpcMessageType::handle_wifi_setting, rpcMessageAddr::network_manager_addr_t)
+    rpcMessageWifiSetting::rpcMessageWifiSetting() :
+            rpcMessage(rpcMessageType::handle_wifi_setting, rpcMessageAddr::network_manager_addr_t)
     {
         //TO-DO
         memset(this->msgData.presharedKey, 0, sizeof(this->msgData.presharedKey));
@@ -28,17 +28,18 @@ namespace app
     bool rpcMessageWifiSetting::serialize(int fd)
     {
         uint16_t tmpValue;
-        tmpValue = (uint16_t)this->msgAction;
+        tmpValue = (uint16_t) this->msgAction;
         if (rpcMessage::sendInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
             return false;
         }
 
-        switch (this->msgAction) {
+        switch (this->msgAction)
+        {
             case app::rpcMessageWifiSettingActionType::GET_WIFI_SETTING:
             case app::rpcMessageWifiSettingActionType::EDIT_WIFI_SETTING:
             {
                 int buff_len = 0;
-                int offset   = 0;
+                int offset = 0;
 
                 buff_len += sizeof(uint16_t) + strlen(this->msgData.presharedKey);
                 buff_len += sizeof(uint16_t) + strlen(this->msgData.ssid);
@@ -51,9 +52,9 @@ namespace app
                 std::string ssid(this->msgData.ssid);
                 offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, presharedKey);
                 offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, ssid);
-                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->msgData.accessPoint );
-                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->msgData.securityType );
-                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->msgResult );
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->msgData.accessPoint);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->msgData.securityType);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->msgResult);
 
                 if (buff_len != offset) {
                     syslog(LOG_ERR, "%s-%u something wrong happened", __FUNCTION__, __LINE__);
@@ -74,66 +75,63 @@ namespace app
     }
 
     bool rpcMessageWifiSetting::deserialize(int fd)
-        {
-            uint16_t tmpValue;
-            if (rpcMessage::recvInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
-                return false;
-            }
-
-            this->msgAction = app::rpcMessageWifiSettingActionType(tmpValue);
-
-            switch (this->msgAction)
-            {
-                case app::rpcMessageWifiSettingActionType::GET_WIFI_SETTING:
-                case app::rpcMessageWifiSettingActionType::EDIT_WIFI_SETTING:
-                {
-                    uint16_t presharedKey_size, ssid_size;
-
-                    if (rpcMessage::recvInterruptRetry(fd, &presharedKey_size, sizeof(uint16_t)) != true) {
-                        return false;
-                    }
-
-                    if(presharedKey_size > 0)
-                    {
-                        memset(this->msgData.presharedKey, 0, sizeof(this->msgData.presharedKey));
-                        if (rpcMessage::recvInterruptRetry(fd, this->msgData.presharedKey, presharedKey_size) != true) {
-                            return false;
-                        }
-                    }
-
-                    if (rpcMessage::recvInterruptRetry(fd, &ssid_size, sizeof(uint16_t)) != true) {
-                        return false;
-                    }
-
-                    if(ssid_size > 0)
-                    {
-                        memset(this->msgData.ssid, 0 , sizeof(this->msgData.ssid));
-                        if (rpcMessage::recvInterruptRetry(fd, this->msgData.ssid, ssid_size) != true) {
-                            return false;
-                        }
-                    }
-
-                    if (rpcMessage::recvInterruptRetry(fd, &this->msgData.accessPoint, sizeof(uint16_t)) != true) {
-                        return false;
-                    }
-
-                    if (rpcMessage::recvInterruptRetry(fd, &this->msgData.securityType, sizeof(uint16_t)) != true) {
-                        return false;
-                    }
-
-                    if (rpcMessage::recvInterruptRetry(fd, &this->msgResult, sizeof(uint16_t)) != true) {
-                        return false;
-                    }
-
-                    break;
-                }
-                default:
-                    break;
-            }
-
-            return true;
+    {
+        uint16_t tmpValue;
+        if (rpcMessage::recvInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+            return false;
         }
 
+        this->msgAction = app::rpcMessageWifiSettingActionType(tmpValue);
+
+        switch (this->msgAction)
+        {
+            case app::rpcMessageWifiSettingActionType::GET_WIFI_SETTING:
+            case app::rpcMessageWifiSettingActionType::EDIT_WIFI_SETTING:
+            {
+                uint16_t presharedKey_size, ssid_size;
+
+                if (rpcMessage::recvInterruptRetry(fd, &presharedKey_size, sizeof(uint16_t)) != true) {
+                    return false;
+                }
+
+                if (presharedKey_size > 0) {
+                    memset(this->msgData.presharedKey, 0, sizeof(this->msgData.presharedKey));
+                    if (rpcMessage::recvInterruptRetry(fd, this->msgData.presharedKey, presharedKey_size) != true) {
+                        return false;
+                    }
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &ssid_size, sizeof(uint16_t)) != true) {
+                    return false;
+                }
+
+                if (ssid_size > 0) {
+                    memset(this->msgData.ssid, 0, sizeof(this->msgData.ssid));
+                    if (rpcMessage::recvInterruptRetry(fd, this->msgData.ssid, ssid_size) != true) {
+                        return false;
+                    }
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->msgData.accessPoint, sizeof(uint16_t)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->msgData.securityType, sizeof(uint16_t)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->msgResult, sizeof(uint16_t)) != true) {
+                    return false;
+                }
+
+                break;
+            }
+            default:
+                break;
+        }
+
+        return true;
+    }
 
     app::rpcMessageWifiSettingActionType rpcMessageWifiSetting::getMsgAction() const
     {
@@ -169,7 +167,7 @@ namespace app
     {
         std::string outStr;
 
-        switch(this->msgResult)
+        switch (this->msgResult)
         {
             case app::rpcMessageWifiSettingResultType::PRESHAREDKEY_CHARACTER_INVALID:
                 outStr = "Preshared key have character NOT allow";
@@ -202,6 +200,7 @@ namespace app
             case app::rpcMessageWifiSettingResultType::SUCCEEDED:
                 outStr = "Succeeded";
                 break;
+
             case app::rpcMessageWifiSettingResultType::HOSTAPD_NOT_START:
                 outStr = "Hostapd NOT start";
                 break;
