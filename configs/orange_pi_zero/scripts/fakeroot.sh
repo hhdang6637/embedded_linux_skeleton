@@ -27,8 +27,8 @@ ln -sf tmp/root root
 rm -rf run; ln -sf tmp run
 ln -sf tmp home
 
-# rm etc/passwd
-# cd etc && ln -sf ../tmp/passwd passwd && cd ..
+rm etc/passwd
+cd etc && ln -sf ../tmp/passwd passwd && cd ..
 
 # mkdir /boot
 mkdir boot
