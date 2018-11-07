@@ -10,6 +10,9 @@ before_script:
 script:
   - du --block-size=M --max-depth=1 ~
   - du --block-size=M --max-depth=1 .
+  - while sleep 10; do tail -n 5 build/orange_pi_zero/current.log; done &
+  - MODEL=orange_pi_zero make
+  - kill %1
   - while sleep 10; do tail -n 5 build/arm_vexpress_a9/current.log; done &
   - MODEL=arm_vexpress_a9 make
   - kill %1
