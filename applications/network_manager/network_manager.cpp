@@ -12,10 +12,20 @@
 #include "serviceDhcpC.h"
 #include "rpcUnixServer.h"
 #include "rpcMessageAddr.h"
-#ifdef pi_3_b
+
+#if defined (pi_3_b) || defined (orange_pi_zero)
 #include "serviceHostapd.h"
 #include "serviceDnsmasq.h"
-#endif // pi_3_b
+#endif
+
+#ifdef pi_3_b
+#define WLAN_DRIVER "brcmfmac"
+#endif //pi_3_b
+
+#ifdef orange_pi_zero
+#define WLAN_DRIVER "xradio_wlan"
+#endif //orange_pi_zero
+
 
 static bool _network_manager_wake_up(const char* interfaceName)
 {
@@ -59,8 +69,13 @@ void network_manager_init()
         app::serviceDhcpC::getInstance()->start();
     }
 
-#ifdef pi_3_b
-    system("modprobe brcmfmac");
+#if defined (pi_3_b) || defined (orange_pi_zero)
+
+    std::string command;
+    command = "modprobe ";
+    command += WLAN_DRIVER;
+
+    system(command.c_str());
     sleep(1);
     if (_network_manager_wake_up("wlan0")) {
         // start hostapd
