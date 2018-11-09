@@ -4,7 +4,10 @@ BUILDROOT_CACHE=$(git ls-tree HEAD | grep buildroot | awk '{print "build_cache/"
 if [ -e $BUILDROOT_CACHE ]; then
 	echo "found $BUILDROOT_CACHE , reuse it"
 	tar -xvf $BUILDROOT_CACHE
-	sed -i 's?/home/builder/code/embedded_linux_skeleton?'$PWD'?' build/orange_pi_zero/buildroot/host/usr/bin/fakeroot
+	sed -i 's?/home/pqtri/Desktop/embedded_linux_skeleton?'$PWD'?' build/orange_pi_zero/buildroot/host/usr/bin/fakeroot
+	sed -i 's?/home/pqtri/Desktop/embedded_linux_skeleton?'$PWD'?' build/orange_pi_zero/buildroot/host/usr/bin/pkg-config
+	sed -i 's?/home/pqtri/Desktop/embedded_linux_skeleton?'$PWD'?' build/orange_pi_zero/buildroot/host/usr/bin/pkg-config
+	sed -i 's?/home/pqtri/Desktop/embedded_linux_skeleton?'$PWD'?' build/orange_pi_zero/buildroot/host/usr/bin/pkg-config
 	exit 0;
 else
 	echo "not found $BUILDROOT_CACHE"
