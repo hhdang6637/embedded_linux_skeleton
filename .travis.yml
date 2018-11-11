@@ -13,6 +13,3 @@ script:
   - while sleep 10; do tail -n 5 build/arm_vexpress_a9/current.log; done &
   - MODEL=arm_vexpress_a9 make
   - kill %1
-  - while sleep 10; do tail -n 5 build/pi_3_b/current.log; done &
-  - MODEL=pi_3_b make
-  - kill %1
