@@ -21,7 +21,7 @@ include $(CONFIGS_DIR)/Makefile.variable
 
 # follow https://elinux.org/RPi_U-Boot
 export PATH := $(BUILDROOT_BUILD_DIR)/host/usr/bin:$(PATH)
-export LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(BUILDROOT_BUILD_DIR)/host/usr/lib
+#export LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(BUILDROOT_BUILD_DIR)/host/usr/lib
 export CROSS_COMPILE=ccache arm-linux-
 export CROSS_COMPILE_PATH=$(BUILDROOT_BUILD_DIR)/host/usr
 export BISON_PKGDATADIR=$(BUILDROOT_BUILD_DIR)/host/usr/share/bison
