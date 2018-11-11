@@ -71,8 +71,8 @@ void system_manager_init()
     app::serviceHiawatha::getInstance()->start();
     app::serviceNtp::getInstance()->init();
     app::serviceNtp::getInstance()->start();
-    app::serviceOpenvpn::getInstance()->init();
-    app::serviceOpenvpn::getInstance()->start();
+    // app::serviceOpenvpn::getInstance()->init();
+    // app::serviceOpenvpn::getInstance()->start();
 
     system("web_handler");
 
