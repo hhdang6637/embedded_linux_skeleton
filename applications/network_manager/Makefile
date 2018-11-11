@@ -2,7 +2,7 @@ CXXFLAGS += -lapp
 
 BIN=network_manager_daemon
 SRCS=main.o network_manager.o serviceDhcpC.o
-ifeq ($(MODEL),pi_3_b)
+ifeq ($(MODEL),$(filter $(MODEL),pi_3_b orange_pi_zero))
 SRCS+= serviceHostapd.o serviceDnsmasq.o
 endif
 %.o : %.cpp
