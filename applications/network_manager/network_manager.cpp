@@ -27,7 +27,7 @@
 #define WLAN_DRIVER "xradio_wlan"
 #endif //orange_pi_zero
 
-#ifdef pi_3_b
+#if defined (pi_3_b) || defined (orange_pi_zero)
 app::serviceHostapd* serviceHostapd;
 #endif
 

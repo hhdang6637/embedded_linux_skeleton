@@ -3,7 +3,7 @@ CFLAGS += -lfcgi -lapp
 BIN=web_handler
 SRCS=main.o simplewebfactory.o fcgi.cpp simplewebfactory_url_html_map.o simplewebfactory_url_js_map.o system_manager_js.o \
 firmware_manager_js.o syslog_js.o
-ifeq ($(MODEL),pi_3_b)
+ifeq ($(MODEL),$(filter $(MODEL),pi_3_b orange_pi_zero))
 SRCS += wifisetting_js.o
 endif
 SRCS += MPFDParser/Exception.o MPFDParser/Field.o MPFDParser/Parser.o
