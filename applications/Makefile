@@ -34,7 +34,7 @@ all: $(ROOTFS_DIR)
 	@$(MAKE) -C iptables clean all
 	@$(MAKE) -C ntp clean all
 	@$(MAKE) -C openssl clean all
-	# @$(MAKE) -C openvpn clean all
+	@$(MAKE) -C openvpn clean all
 ifeq ($(MODEL),$(filter $(MODEL),pi_3_b orange_pi_zero))
 	@$(MAKE) -C libnl clean all
 	@$(MAKE) -C iw clean all
