@@ -106,7 +106,7 @@ void network_manager_init()
     }
 }
 
-#ifdef pi_3_b
+#if defined (pi_3_b) || defined (orange_pi_zero)
 static bool wifi_setting_action_handler(int socket_fd)
 {
     app::rpcMessageWifiSetting msgWifiSetting;
@@ -157,9 +157,9 @@ void network_manager_service_loop()
 
     app::rpcUnixServer *rpcServer = app::rpcUnixServer::getInstance();
     server_socket = rpcServer->get_socket();
-    #ifdef pi_3_b
+#if defined (pi_3_b) || defined (orange_pi_zero)
     rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::handle_wifi_setting, wifi_setting_action_handler);
-    #endif
+#endif
     std::list<int> listReadFd;
     listReadFd.push_back(rpcServer->get_socket());
 
