@@ -15,17 +15,21 @@ $(BIN):
 	@echo "nothing to build"
 
 install:
-	@mkdir -p $(CSS_DIR)
-	@mkdir -p $(JS_DIR)
-	@mkdir -p $(PRIVATE_DIR)
+	@echo "copy html, css, js to " $(ROOTFS_DIR)/var/www/hiawatha
+	mkdir -p $(CSS_DIR)
+	mkdir -p $(JS_DIR)
+	mkdir -p $(PRIVATE_DIR)
 
-	@cp -aLr $(BOOTSTRAP_CSS)/*   $(CSS_DIR)
-	@cp -aLr $(BOOTSTRAP_JS)/*    $(JS_DIR)
-	@cp -aLr $(CSS)/*             $(CSS_DIR)
-	@cp -aLr $(JS)/*              $(JS_DIR)
-	@cp -aLr $(HTML)/*            $(PRIVATE_DIR)
+	cp -aLr $(BOOTSTRAP_CSS)/*   $(CSS_DIR)
+	cp -aLr $(BOOTSTRAP_JS)/*    $(JS_DIR)
+	cp -aLr $(CSS)/*             $(CSS_DIR)
+	cp -aLr $(JS)/*              $(JS_DIR)
+	cp -aLr $(HTML)/*            $(PRIVATE_DIR)
+	if [ -e $(PRIVATE_DIR)/navbar_$(MODEL).html ] ; then  cp $(PRIVATE_DIR)/navbar_$(MODEL).html $(PRIVATE_DIR)/navbar.html; fi
+	if [ -e $(PRIVATE_DIR)/html_mapping_$(MODEL).txt ] ; then  cp -f $(PRIVATE_DIR)/html_mapping_$(MODEL).txt $(PRIVATE_DIR)/html_mapping.txt; fi
 
 all: $(BIN) install
+	@echo "build web_server"
 	@$(MAKE) -C src clean all
 
 clean:

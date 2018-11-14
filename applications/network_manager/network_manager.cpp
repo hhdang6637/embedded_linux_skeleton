@@ -16,6 +16,7 @@
 #if defined (pi_3_b) || defined (orange_pi_zero)
 #include "serviceHostapd.h"
 #include "serviceDnsmasq.h"
+#include "rpcMessageWifiSetting.h"
 #endif
 
 #ifdef pi_3_b
@@ -26,6 +27,9 @@
 #define WLAN_DRIVER "xradio_wlan"
 #endif //orange_pi_zero
 
+#if defined (pi_3_b) || defined (orange_pi_zero)
+app::serviceHostapd* serviceHostapd;
+#endif
 
 static bool _network_manager_wake_up(const char* interfaceName)
 {
@@ -79,8 +83,9 @@ void network_manager_init()
     sleep(1);
     if (_network_manager_wake_up("wlan0")) {
         // start hostapd
-        app::serviceHostapd::getInstance()->init();
-        app::serviceHostapd::getInstance()->start();
+        serviceHostapd = app::serviceHostapd::getInstance();
+        serviceHostapd->init();
+        serviceHostapd->start();
         app::serviceDnsmasq::getInstance()->init();
         app::serviceDnsmasq::getInstance()->start();
         system("ifconfig wlan0 10.0.0.1 netmask 255.255.255.0");
@@ -89,6 +94,7 @@ void network_manager_init()
         setenv("XTABLES_LIBDIR", "/usr/lib", 1);
         system("iptables -t nat -I POSTROUTING -o eth0 -s 10.0.0.0/24 -j MASQUERADE");
     }
+    system("noip2 -c /data/no-ip2.conf");
 #endif
 
     app::rpcMessageAddr addr = app::rpcMessageAddr::getRpcMessageAddrbyType(
@@ -100,6 +106,50 @@ void network_manager_init()
     }
 }
 
+#if defined (pi_3_b) || defined (orange_pi_zero)
+static bool wifi_setting_action_handler(int socket_fd)
+{
+    app::rpcMessageWifiSetting msgWifiSetting;
+
+    if (msgWifiSetting.deserialize(socket_fd)) {
+        switch (msgWifiSetting.getMsgAction())
+        {
+            case app::rpcMessageWifiSettingActionType::GET_WIFI_SETTING:
+            {
+                msgWifiSetting.setMsgResult(app::rpcMessageWifiSettingResultType::UNKNOWN_ERROR);
+                if (serviceHostapd != 0) {
+                    msgWifiSetting.setWifiSettingMsgData(serviceHostapd->getWifiSettingData());
+                    msgWifiSetting.setMsgResult(app::rpcMessageWifiSettingResultType::SUCCEEDED);
+                }
+                break;
+            }
+
+            case app::rpcMessageWifiSettingActionType::EDIT_WIFI_SETTING:
+            {
+                auto result = app::rpcMessageWifiSettingResultType::UNKNOWN_ERROR;
+                if (serviceHostapd != 0) {
+                    auto msgData = msgWifiSetting.getWifiSettingMsgData();
+                    result = serviceHostapd->validateMsgConfig(&msgData);
+
+                    if (result == app::rpcMessageWifiSettingResultType::SUCCEEDED) {
+                        serviceHostapd->setWifiSettingData(msgData);
+                        if (serviceHostapd->restart() == false) {
+                            result = app::rpcMessageWifiSettingResultType::UNKNOWN_ERROR;
+                        }
+                    }
+                }
+
+                msgWifiSetting.setMsgResult(result);
+                break;
+            }
+        }
+
+        return msgWifiSetting.serialize(socket_fd);
+    }
+    return false;
+}
+#endif
+
 void network_manager_service_loop()
 {
     fd_set read_fds;
@@ -107,7 +157,9 @@ void network_manager_service_loop()
 
     app::rpcUnixServer *rpcServer = app::rpcUnixServer::getInstance();
     server_socket = rpcServer->get_socket();
-
+#if defined (pi_3_b) || defined (orange_pi_zero)
+    rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::handle_wifi_setting, wifi_setting_action_handler);
+#endif
     std::list<int> listReadFd;
     listReadFd.push_back(rpcServer->get_socket());
 

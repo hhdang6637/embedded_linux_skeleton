@@ -32,7 +32,8 @@ public:
         get_event_notification,
         handle_firmware_action,
         handle_users_action,
-        handle_users_login
+        handle_users_login,
+        handle_wifi_setting
     };
 protected:
     rpcMessageType  msgType;

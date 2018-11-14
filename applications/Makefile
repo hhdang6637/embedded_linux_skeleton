@@ -29,10 +29,12 @@ $(ROOTFS_DIR):
 	@mkdir    $(ROOTFS_DIR)/usr/lib
 
 all: $(ROOTFS_DIR)
+	@$(MAKE) -C noip-2.1.9-1
+	@cp noip-2.1.9-1/noip2 $(ROOTFS_DIR)/bin
 	@$(MAKE) -C iptables clean all
 	@$(MAKE) -C ntp clean all
 	@$(MAKE) -C openssl clean all
-	# @$(MAKE) -C openvpn clean all
+	@$(MAKE) -C openvpn clean all
 ifeq ($(MODEL),$(filter $(MODEL),pi_3_b orange_pi_zero))
 	@$(MAKE) -C libnl clean all
 	@$(MAKE) -C iw clean all
@@ -49,8 +51,8 @@ endif
 	@$(MAKE) -C resource_manager clean all
 	@$(MAKE) -C hello_world_app clean all
 	@$(MAKE) -C dropbear/dropbear-2018.76 clean all
-ifeq ($(BUILD_TYPE),DEBUG)
 	@$(MAKE) -C busybox clean all
+ifeq ($(BUILD_TYPE),DEBUG)
 	@$(MAKE) -C valgrind/valgrind-3.13.0 clean all
 endif
 

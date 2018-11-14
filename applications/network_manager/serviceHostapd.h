@@ -9,6 +9,9 @@
 #define APPLICATIONS_NETWORK_MANAGER_SERVICEHOSTAPD_H_
 
 #include "service.h"
+#include "rpcMessageWifiSetting.h"
+#include "ini.h"
+#include "unistd.h"
 
 namespace app
 {
@@ -18,6 +21,7 @@ class serviceHostapd: public service
 private:
     serviceHostapd();
     bool started;
+    app::rpcMessageWifiSettingData_t msgData;
 
     static serviceHostapd* s_instance;
 public:
@@ -26,8 +30,14 @@ public:
     virtual bool init();
     virtual bool start();
     virtual bool stop();
+    virtual bool restart();
 
-    static serviceHostapd* getInstance();
+    static serviceHostapd*               getInstance();
+    bool                                 writeToFile();
+    bool                                 initFromFile();
+    void                                 setWifiSettingData(const app::rpcMessageWifiSettingData_t msg);
+    app::rpcMessageWifiSettingData_t     getWifiSettingData() const;
+    app::rpcMessageWifiSettingResultType validateMsgConfig(const app::rpcMessageWifiSettingData_t *msgData) const;
 };
 
 } /* namespace app */

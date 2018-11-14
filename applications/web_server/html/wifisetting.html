@@ -1,0 +1,134 @@
+<div class="container">
+  <div class="status"></div>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <h3>Access Point Setting</h3>
+      <form action="/json/wifisetting" id="js-wifi_setting-form">
+        <div class="form-group">
+          <label for="txtSsid">Access Point SSID</label>
+          <input type="text" class="form-control" placeholder="Enter Access Point SSID" name="txtSsid" id="txtSsid">
+        </div>
+        <div class="form-group" id="divSecurityTypes">
+          <label for="cmbSecurityTypes">Security types</label>
+          <select class="form-control" id="cmbSecurityTypes">
+            <option value="0" selected="selected">Open</option>
+            <option value="1">WPA2</option>
+          </select>
+        </div>
+        <div class="form-group" id="divPresharedKey">
+          <label for="txtPresharedKey">Pre-Shared Key</label>
+          <input type="text" class="form-control" placeholder="Enter Access Point Pre-Shared Key" name="txtPresharedKey" id="txtPresharedKey">
+        </div>
+        <div class="checkbox">
+          <label><input type="checkbox" data-target="#chkAccessPointEnable" class="collapsed" aria-expanded="false" id="chkAccessPointEnable" name="access_point"> Enable Access Point</label>
+        </div>
+        <button type="submit" class="btn btn-default bg-primary text-white">Save</button>
+      </form>
+    </div>
+  </div>
+</div> <!-- /container -->
+<script>
+
+$(function () {
+    $("#myTopnav").find("a[href='/pages/wifisetting']").addClass("active")
+});
+
++ function($) {
+    'use strict';
+
+    $(document).ready(function(){
+        showWifiSetting();
+    });
+
+    function showWifiSetting() {
+      $.getJSON( "/json/wifisetting", function(data) {
+            $("#txtSsid").val(data.json_wifi_setting.ssid);
+            $("#txtPresharedKey").val(data.json_wifi_setting.preshared_key);
+
+            if (data.json_wifi_setting.security_type == 0)
+                $("#divSecurityTypes select").val(0);
+            else
+            {
+                $("#divSecurityTypes select").val(1);
+                $("#divPresharedKey").removeAttr('hidden');
+            }
+
+            if (data.json_wifi_setting.access_point == 0)
+                $('#chkAccessPointEnable').attr("checked", false);
+            else
+                $('#chkAccessPointEnable').attr('checked', true);
+
+            if(data.json_wifi_setting.status == "failed")
+            {
+              $(".status").empty();
+              $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+              setTimeout(function(){
+                  $(".status").empty();
+              }, 2000);
+            }
+
+        });
+    }
+
+}(jQuery);
+
+$("#cmbSecurityTypes").change(function () {
+    if( $( "#cmbSecurityTypes option:selected" ).val() == 0 ) /* value of the Open type is 0*/
+    {
+      $('#divPresharedKey').attr('hidden', 'true');
+      $("#txtPresharedKey").val('');
+    }
+    else
+    {
+      $('#divPresharedKey').removeAttr('hidden');
+    }
+  })
+  .change();
+
+(function($) {
+
+  var wifiSettingForm = document.getElementById('js-wifi_setting-form');
+
+  wifiSettingForm.addEventListener('submit', function(e) {
+    $(".status").empty();
+
+    var ssid = $('#txtSsid').val();
+    var preshared_key = $('#txtPresharedKey').val();
+    var access_point = 0;
+    if ($('#chkAccessPointEnable').is(":checked"))
+    {
+      access_point = 1;
+    }
+    var security_type = $('#cmbSecurityTypes').val();
+
+    e.preventDefault();
+
+    var formData = new FormData();
+    formData.append('ssid', ssid);
+    formData.append('preshared_key', preshared_key);
+    formData.append('access_point', access_point);
+    formData.append('security_type', security_type);
+
+    $.ajax ({
+      type: "POST",
+      url: $(wifiSettingForm).attr('action'),
+      data: formData,
+      enctype: 'multipart/form-data',
+      processData: false,  // Important!
+      contentType: false,
+      cache: false,
+
+      success: function(json) {
+        console.log(json);
+        if (json.status == "succeeded") {
+          $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+        } else {
+          $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+        }
+      },
+    });
+  })
+
+})(jQuery);
+
+</script>
