@@ -56,6 +56,23 @@ bool serviceHostapd::init()
 {
     mkdir(HOSTAPD_CONFIG_DIR, 0755);
 
+    /*
+        logger_syslog=-1
+        logger_syslog_level=0
+        interface=wlan0
+        hw_mode=g
+        channel=10
+        ieee80211d=1
+        country_code=VN
+        #ieee80211n=1
+        wmm_enabled=1
+        ssid=somename
+        rsn_pairwise=CCMP
+        auth_algs=1
+        wpa=2
+        wpa_key_mgmt=WPA-PSK
+        wpa_passphrase=1234567890
+    */
     std::ofstream hostapd_conf_file(HOSTAPD_CONFIG_FILE);
 
     if (hostapd_conf_file.is_open()) {
@@ -69,18 +86,16 @@ bool serviceHostapd::init()
                             "country_code=VN\n"
                             "#ieee80211n=1\n"
                             "wmm_enabled=1\n"
-                            "ssid="<< this->msgData.ssid <<"\n"
+                            "ssid="<<this->msgData.ssid<<"\n"
                             "rsn_pairwise=CCMP\n";
 
-        if(msgData.securityType == 1) {
+        if(msgData.securityType == 1)
+        {
             hostapd_conf_file <<
-                            "auth_algs=1\n"
-                            "wpa=2\n"
-                            "wpa_key_mgmt=WPA-PSK\n"
-                            "wpa_passphrase="<< this->msgData.presharedKey <<"\n";
-        } else if(msgData.securityType == 0) {
-            hostapd_conf_file <<
-                            "auth_algs=0\n";
+                        "auth_algs=1\n"
+                        "wpa=2\n"
+                        "wpa_key_mgmt=WPA-PSK\n"
+                        "wpa_passphrase="<<this->msgData.presharedKey<<"\n";
         }
 
         hostapd_conf_file.close();
@@ -105,10 +120,12 @@ bool serviceHostapd::start()
     if (this->msgData.accessPoint == 1) {
         if (system(command.c_str()) != -1) {
             this->started = true;
+            syslog(LOG_NOTICE, "Hostapd started...\n");
             return true;
         }
     } else {
         this->started = false;
+        syslog(LOG_NOTICE, "Hostapd NOT started...\n");
         return true;
     }
 
