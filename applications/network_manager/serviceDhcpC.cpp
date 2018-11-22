@@ -81,6 +81,8 @@ bool serviceDhcpC::start()
         arg_v.push_back("udhcpc");
         arg_v.push_back("-S"); // log to syslog
 
+        arg_v.push_back("-i");
+
         for (auto &inf : this->managedInterfaces) {
             arg_v.push_back(inf.c_str());
         }
