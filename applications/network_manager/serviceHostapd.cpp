@@ -56,23 +56,8 @@ bool serviceHostapd::init()
 {
     mkdir(HOSTAPD_CONFIG_DIR, 0755);
 
-    /*
-        logger_syslog=-1
-        logger_syslog_level=0
-        interface=wlan0
-        hw_mode=g
-        channel=10
-        ieee80211d=1
-        country_code=VN
-        #ieee80211n=1
-        wmm_enabled=1
-        ssid=somename
-        rsn_pairwise=CCMP
-        auth_algs=1
-        wpa=2
-        wpa_key_mgmt=WPA-PSK
-        wpa_passphrase=1234567890
-    */
+    initFromFile();
+
     std::ofstream hostapd_conf_file(HOSTAPD_CONFIG_FILE);
 
     if (hostapd_conf_file.is_open()) {
@@ -166,9 +151,64 @@ bool serviceHostapd::restart()
     return false;
 }
 
+bool serviceHostapd::writeToFile()
+{
+    app::ini networkConf;
+    std::string value;
+
+    value = this->msgData.ssid;
+    networkConf.set_string("wifi_setting", "ssid", value);
+
+    value = this->msgData.presharedKey;
+    networkConf.set_string("wifi_setting", "presharedkey", value);
+
+    networkConf.set_uint16("wifi_setting", "securitytype", this->msgData.securityType);
+    networkConf.set_uint16("wifi_setting", "accesspoint", this->msgData.accessPoint);
+
+    return networkConf.writeToFile("/data/network.conf");
+}
+
+bool serviceHostapd::initFromFile()
+{
+    app::ini networkConf;
+    std::string value;
+    uint16_t uint16_value;
+
+    if (networkConf.loadFromFile("/data/network.conf")) {
+
+        if (networkConf.get_string("wifi_setting", "ssid", value)) {
+
+            memset(this->msgData.ssid, 0, sizeof(this->msgData.ssid));
+            strncpy(this->msgData.ssid, value.c_str(), value.length());
+
+            if (networkConf.get_string("wifi_setting", "presharedkey", value)) {
+                memset(this->msgData.presharedKey, 0, sizeof(this->msgData.presharedKey));
+                strncpy(this->msgData.presharedKey, value.c_str(), value.length());
+            }
+
+            if (networkConf.get_uint16("wifi_setting", "securitytype", uint16_value)) {
+                this->msgData.securityType = uint16_value;
+            }
+
+            if (networkConf.get_uint16("wifi_setting", "accesspoint", uint16_value)) {
+                this->msgData.accessPoint = uint16_value;
+            }
+        }
+
+    } else {
+        syslog(LOG_NOTICE, "cannot load user config from /data/users.conf, use default config");
+        return false;
+    }
+
+    return true;
+}
+
 void serviceHostapd::setWifiSettingData(const app::rpcMessageWifiSettingData_t msg)
 {
     this->msgData = msg;
+
+    writeToFile();
+
     syslog(LOG_NOTICE, "setWifiSettingData: %s %s %u %u\n", this->msgData.presharedKey, this->msgData.ssid,
            this->msgData.accessPoint, this->msgData.securityType);
 }
