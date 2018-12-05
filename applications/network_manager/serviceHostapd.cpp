@@ -123,7 +123,7 @@ bool serviceHostapd::stop()
         if (system("kill `pidof hostapd`") != -1) {
             sleep(2);
 
-            if (system("pidof hostapd") > 0) {
+            if (system("pidof hostapd") == 0) {
                 if (system("kill -9 `pidof hostapd`") != -1) {
                     this->started = false;
                     return true;
@@ -135,7 +135,7 @@ bool serviceHostapd::stop()
         }
     }
 
-    return false;
+    return true;
 }
 
 bool serviceHostapd::restart()
