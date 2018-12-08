@@ -81,11 +81,17 @@ bool copy_file(const char *src, const char*dst)
     }
 
 out:
-    if (src_fd != -1)
+    if (src_fd != -1) {
         close(src_fd);
+    } else {
+        syslog(LOG_ERR, "%s-%d: couldn't open file %s\n", __FUNCTION__, __LINE__, src);
+    }
 
-    if (dst_fd != -1)
+    if (dst_fd != -1) {
         close(dst_fd);
+    } else {
+        syslog(LOG_ERR, "%s-%d: couldn't open file %s\n", __FUNCTION__, __LINE__, dst);
+    }
 
     return rc;
 }

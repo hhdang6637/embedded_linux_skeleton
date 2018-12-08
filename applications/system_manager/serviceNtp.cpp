@@ -11,7 +11,9 @@
 #include <fstream>
 
 #include "serviceNtp.h"
+#include "utilities.h"
 
+#define NTP_PERSISTENT_CONFIG   "/data/ntp.conf"
 #define NTP_CONFIG_DIR  "/tmp/ntp/"
 #define NTP_PID_FILE    "/var/run/ntpd.pid"
 
@@ -50,20 +52,7 @@ bool serviceNtp::init()
 {
     mkdir(NTP_CONFIG_DIR, 0755);
 
-    std::ofstream ntpConfFile(NTP_CONFIG_DIR"ntp.conf");
-
-    if (ntpConfFile.is_open()) {
-        ntpConfFile <<
-                "server 0.asia.pool.ntp.org\n"
-                "server 1.asia.pool.ntp.org\n"
-                "server 2.asia.pool.ntp.org\n"
-                "server 3.asia.pool.ntp.org\n"
-                "\n";
-
-        ntpConfFile.close();
-    }
-
-    return true;
+    return copy_file(NTP_PERSISTENT_CONFIG, NTP_CONFIG_DIR"ntp.conf");
 }
 
 bool serviceNtp::start()
