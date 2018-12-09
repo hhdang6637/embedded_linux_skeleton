@@ -68,6 +68,8 @@ compile_linux_kernel: $(BIN_BUILD_DIR)
 			$(MAKE) -j3 -C linux/linux-4.14.22 O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install >> $(BUILD_DIR)/linux_kernel.log 2>&1 ; \
 		fi \
 	fi
+	@cp -asf $(PWD)/linux/linux_custom_mod $(BUILD_DIR)
+	$(MAKE) -C $(BUILD_DIR)/linux_custom_mod > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ;
 	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/zImage                      $(BIN_BUILD_DIR)
 	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/dts/*.dtb  $(BIN_BUILD_DIR)
 	@echo "**********done**********"
