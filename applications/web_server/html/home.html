@@ -70,7 +70,7 @@
 
             var list_ip_address = data.json_general_info.list_ip_address;
             if (list_ip_address.substr(list_ip_address.length - 1) == ";") {
-                list_ip_address.substr(0, list_ip_address.length - 1);
+                list_ip_address = list_ip_address.substr(0, list_ip_address.length - 1);
             }
             $('#list_ip_address').html(list_ip_address);
         });
