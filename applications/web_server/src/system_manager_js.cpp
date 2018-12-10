@@ -396,9 +396,8 @@ std::string json_general_info(FCGX_Request *request)
 
     ss_json << "\"list_ip_address\": ";
     ss_json << "\"";
-    for(auto &ifo : info.if_addrs) {
-        if(strcmp(ifo.ifa_label,"lo") != 0 && strlen(ifo.ifa_label) > 0)
-        {
+    for (auto &ifo : info.if_addrs) {
+        if (strcmp(ifo.ifa_label, "lo") != 0 && strlen(ifo.ifa_label) > 0) {
             ss_json << inet_ntoa(ifo.ifa_local);
             ss_json << ";";
         }
