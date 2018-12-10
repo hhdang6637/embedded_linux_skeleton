@@ -35,6 +35,11 @@
                         <td class="align-middle" style="border:0; padding:3px;"> <a id="memory">N/A</a> </td>
                     </tr>
 
+                    <tr>
+                        <th class="align-middle" scope="row" style="text-align: right; border:0; width: 50%; padding:3px;">IP Address:</th>
+                        <td class="align-middle" style="border:0; padding:3px;"> <a id="list_ip_address">N/A</a> </td>
+                    </tr>
+
                 </tbody>
             </table>
         </div>
@@ -62,6 +67,8 @@
 
             $('#cpu').html(data.json_general_info.current_cpu +" %");
             $('#memory').html(data.json_general_info.current_usage_ram+" MB / "+data.json_general_info.current_total_ram+" MB");
+
+            $('#list_ip_address').html(data.json_general_info.list_ip_address);
         });
         }
 
