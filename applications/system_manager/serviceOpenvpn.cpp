@@ -5,6 +5,8 @@
  *      Author: hhdang
  */
 
+#include <unistd.h>
+
 #include "serviceOpenvpn.h"
 
 #define OPENVPN_PID_FILE    "/var/run/openvpn.pid"
@@ -51,6 +53,11 @@ bool serviceOpenvpn::init()
 bool serviceOpenvpn::start()
 {
     std::string command;
+
+    if (access("/data/openvpn/openvpn.conf", F_OK) == -1) {
+        return false;
+    }
+
     command = "/usr/sbin/openvpn --config /data/openvpn/openvpn.conf --daemon --writepid " OPENVPN_PID_FILE;
     system(command.c_str());
 

@@ -94,7 +94,9 @@ void network_manager_init()
         setenv("XTABLES_LIBDIR", "/usr/lib", 1);
         system("iptables -t nat -I POSTROUTING -o eth0 -s 10.0.0.0/24 -j MASQUERADE");
     }
-    system("noip2 -c /data/no-ip2.conf");
+    if (access("/data/no-ip2.conf", F_OK) != -1) {
+        system("noip2 -c /data/no-ip2.conf");
+    }
 #endif
 
     app::rpcMessageAddr addr = app::rpcMessageAddr::getRpcMessageAddrbyType(
