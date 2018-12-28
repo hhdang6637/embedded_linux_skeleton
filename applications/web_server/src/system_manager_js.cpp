@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <fcgiapp.h>
 #include <syslog.h>
+#include <arpa/inet.h>
 
 #include "fcgi.h"
 #include "simplewebfactory.h"
@@ -23,6 +24,7 @@
 #include "MPFDParser/Exception.h"
 #include "user.h"
 #include "conversion.h"
+#include "netlink_socket.h"
 
 #define TO_KBIT(a) ((a * 8 ) / 1000)
 
@@ -351,6 +353,9 @@ std::string json_general_info(FCGX_Request *request)
 {
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageResourceHistory msg;
+    struct net_interfaces_info info;
+
+    get_interfaces_info(info);
 
     msg.setMsgAction(app::rpcResourceActionType::GET_GENERAL_INFO);
 
@@ -387,6 +392,16 @@ std::string json_general_info(FCGX_Request *request)
     ss_json << "\"current_cpu\": ";
     ss_json << "\"";
     ss_json << (int) ((general_info.current_cpu.busy*100)/general_info.current_cpu.total);
+    ss_json << "\", ";
+
+    ss_json << "\"list_ip_address\": ";
+    ss_json << "\"";
+    for (auto &ifo : info.if_addrs) {
+        if (strcmp(ifo.ifa_label, "lo") != 0 && strlen(ifo.ifa_label) > 0) {
+            ss_json << inet_ntoa(ifo.ifa_local);
+            ss_json << ";";
+        }
+    }
     ss_json << "\", ";
 
     ss_json << "\"current_time\": ";
