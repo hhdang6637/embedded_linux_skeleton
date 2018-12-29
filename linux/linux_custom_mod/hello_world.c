@@ -3,6 +3,8 @@
 #include <linux/proc_fs.h>
 #include <linux/uaccess.h>
 
+#include "ethernet_flow.h"
+
 MODULE_DESCRIPTION("hello world module");
 MODULE_LICENSE("GPL v2");
 
@@ -55,16 +57,20 @@ static struct file_operations hello_world_ops =
 static int hello_world_init(void)
 {
     ent = proc_create("hello_world", 0660, NULL, &hello_world_ops);
-    printk(KERN_ALERT "hello_world_init\n");
+    printk(KERN_WARNING "hello_world_init\n");
     snprintf(hello_world_buf, BUFSIZE, hello_world_str);
+
+    ethernet_flow_statistics_init();
 
     return 0;
 }
 
 static void hello_world_cleanup(void)
 {
-    printk(KERN_ALERT "hello_world_cleanup\n");
+    printk(KERN_WARNING "hello_world_cleanup\n");
     proc_remove(ent);
+
+    ethernet_flow_statistics_cleanup();
 }
 
 module_init(hello_world_init);

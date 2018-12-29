@@ -1,4 +1,5 @@
-obj-m	:= hello_world.o
+obj-m	:= helloworld.o
+helloworld-m	:= hello_world.o ethernet_flow_statistics.o
 
 KERNELDIR ?= $(LINUX_BUILD_DIR)
 PWD       := $(shell pwd)
