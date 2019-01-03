@@ -178,7 +178,7 @@ static struct file_operations ethernetflow_clear_ops =
 	.write = ethernetflow_clear_ops_write,
 };
 
-static struct proc_dir_entry *ethernetflow_root;
+extern struct proc_dir_entry *ethernetflow_root;
 static struct proc_dir_entry *ethernetflow_table_proc;
 static struct proc_dir_entry *ethernetflow_size_proc;
 static struct proc_dir_entry *ethernetflow_clear_proc;
@@ -189,17 +189,9 @@ void ethernet_flow_init(void) {
 
 	current_statistic = kmalloc(sizeof(ethernetflow) * ethernet_flow_max, GFP_KERNEL);
 
-	ethernetflow_root = proc_mkdir("ethernet_flow", NULL);
-
-	if(ethernetflow_root == NULL)
-	{
-		printk(KERN_ERR "Cannot proc_mkdir ethernet_flow");
-		return;
-	}
-
-	ethernetflow_table_proc = proc_create("table", 0444, ethernetflow_root, &ethernetflow_table_ops);
-	ethernetflow_size_proc = proc_create("size", 0660, ethernetflow_root, &ethernetflow_size_ops);
-	ethernetflow_clear_proc = proc_create("clear", 0220, ethernetflow_root, &ethernetflow_clear_ops);
+	ethernetflow_table_proc = proc_create("flow_table", 0444, ethernetflow_root, &ethernetflow_table_ops);
+	ethernetflow_size_proc = proc_create("flow_size", 0660, ethernetflow_root, &ethernetflow_size_ops);
+	ethernetflow_clear_proc = proc_create("flow_clear", 0220, ethernetflow_root, &ethernetflow_clear_ops);
 }
 
 void ethernet_flow_cleanup(void){
@@ -213,9 +205,6 @@ void ethernet_flow_cleanup(void){
 
 	if (ethernetflow_clear_proc)
 		proc_remove(ethernetflow_clear_proc);
-
-	if (ethernetflow_root)
-		proc_remove(ethernetflow_root);
 
 	if (current_statistic)
 		kfree(current_statistic);

@@ -1,5 +1,6 @@
 #include <linux/printk.h>
 #include <linux/module.h>
+#include <linux/proc_fs.h>
 #include <linux/netdevice.h>
 
 MODULE_DESCRIPTION("ethernetflow module");
@@ -9,11 +10,21 @@ extern void ethernet_flow_init(void);
 extern void ethernet_flow_cleanup(void);
 extern void ethernetflow_add_frame(const unsigned char macs[]);
 
+extern void ethernet_flow_macs_collection_init(void);
+extern void ethernet_flow_macs_collection_cleanup(void);
+extern int ethernet_flow_macs_collection_find(const unsigned char mac[]);
+extern void ethernet_flow_macs_collection_add(const unsigned char mac[]);
+
 static rx_handler_result_t ethernetFlowStatistics_handle_frame(struct sk_buff **pskb) {
 
 	struct sk_buff *skb = *pskb;
 
 	const unsigned char *dest = eth_hdr(skb)->h_dest;
+	const unsigned char *src = eth_hdr(skb)->h_source;
+
+	if (!ethernet_flow_macs_collection_find(src)) {
+		ethernet_flow_macs_collection_add(src);
+	}
 
 	ethernetflow_add_frame(dest);
 
@@ -90,14 +101,24 @@ static struct notifier_block ethernetflow_device_notifier = {
 	.notifier_call = ethernetflow_device_event
 };
 
+struct proc_dir_entry *ethernetflow_root;
+
 static int ethernetflow_init(void)
 {
-	int err;
+
+	ethernetflow_root = proc_mkdir("ethernet_flow", NULL);
+
+	if(ethernetflow_root == NULL)
+	{
+		printk(KERN_ERR "Cannot proc_mkdir ethernet_flow");
+		return -1;
+	}
 
 	ethernet_flow_init();
 
-	err = register_netdevice_notifier(&ethernetflow_device_notifier);
-	if (err) {
+	ethernet_flow_macs_collection_init();
+
+	if (register_netdevice_notifier(&ethernetflow_device_notifier)) {
 		printk(KERN_WARNING "register_netdevice_notifier failed\n");
 	}
 
@@ -109,6 +130,11 @@ static void ethernetflow_cleanup(void)
 	unregister_netdevice_notifier(&ethernetflow_device_notifier);
 
 	ethernet_flow_cleanup();
+
+	ethernet_flow_macs_collection_cleanup();
+
+	if (ethernetflow_root)
+		proc_remove(ethernetflow_root);
 }
 
 module_init(ethernetflow_init);

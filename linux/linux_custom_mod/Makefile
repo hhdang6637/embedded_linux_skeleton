@@ -1,5 +1,5 @@
 obj-m	:= ethernetflow.o
-ethernetflow-m	:= ethernet_flow.o ethernet_flow_core.o
+ethernetflow-m	:= ethernet_flow.o ethernet_flow_core.o ethernet_flow_macs.o
 
 KERNELDIR ?= $(LINUX_BUILD_DIR)
 PWD       := $(shell pwd)
