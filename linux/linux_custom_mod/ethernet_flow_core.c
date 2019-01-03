@@ -40,12 +40,18 @@ static int ethernetflow_add_if(struct net_device *dev) {
 		return -EINVAL;
 	}
 
+	err = dev_set_promiscuity(dev, 1);
+	if (err)
+		return 0;
+
 	return 0;
 }
 
 static int ethernetflow_remove_if(struct net_device *dev) {
 
 	netdev_rx_handler_unregister(dev);
+
+	dev_set_promiscuity(dev, -1);
 
 	return 0;
 }

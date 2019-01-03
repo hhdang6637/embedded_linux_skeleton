@@ -46,13 +46,6 @@ static ssize_t ethernetflow_table_ops_read(struct file *file, char __user *ubuf,
 		{
 			len = sprintf(buff, "%02d: %02x:%02x:%02x:%02x:%02x:%02x -> %02x:%02x:%02x:%02x:%02x:%02x : %08lu\n",
 				i,
-				// dst mac
-				(unsigned char) current_statistic[i].macs[0],
-				(unsigned char) current_statistic[i].macs[1],
-				(unsigned char) current_statistic[i].macs[2],
-				(unsigned char) current_statistic[i].macs[3],
-				(unsigned char) current_statistic[i].macs[4],
-				(unsigned char) current_statistic[i].macs[5],
 				// src mac
 				(unsigned char) current_statistic[i].macs[6],
 				(unsigned char) current_statistic[i].macs[7],
@@ -60,6 +53,13 @@ static ssize_t ethernetflow_table_ops_read(struct file *file, char __user *ubuf,
 				(unsigned char) current_statistic[i].macs[9],
 				(unsigned char) current_statistic[i].macs[10],
 				(unsigned char) current_statistic[i].macs[11],
+				// dst mac
+				(unsigned char) current_statistic[i].macs[0],
+				(unsigned char) current_statistic[i].macs[1],
+				(unsigned char) current_statistic[i].macs[2],
+				(unsigned char) current_statistic[i].macs[3],
+				(unsigned char) current_statistic[i].macs[4],
+				(unsigned char) current_statistic[i].macs[5],
 				current_statistic[i].packet);
 
 			pos += len;
