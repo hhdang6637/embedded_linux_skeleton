@@ -7,8 +7,8 @@ OPENVPN_FLAGS := --target=arm-none-linux-gnueabi --host=armv7-none-linux-gnueabi
 --disable-lzo \
 --disable-plugin-auth-pam
 
-export CFLAGS =-I$(CROSS_COMPILE_PATH)/include -L$(CROSS_COMPILE_PATH)/lib
-export CXXFLAGS =-I$(CROSS_COMPILE_PATH)/include -L$(CROSS_COMPILE_PATH)/lib
+export CFLAGS =-I$(CROSS_COMPILE_PATH)/include -L$(CROSS_COMPILE_PATH)/lib -Wl,-rpath=$(CROSS_COMPILE_PATH)/lib
+export CXXFLAGS =-I$(CROSS_COMPILE_PATH)/include -L$(CROSS_COMPILE_PATH)/lib -Wl,-rpath=$(CROSS_COMPILE_PATH)/lib
 
 $(BIN):
 ifneq ("$(wildcard openvpn-2.4.6_$(MODEL).tar.xz)","")
