@@ -513,6 +513,7 @@ int dropbear_listen(const char* address, const char* port,
 		if (sock < 0) {
 			err = errno;
 			TRACE(("socket() failed"))
+			syslog(LOG_ERR, "dropbear_listen: cannot request socket");
 			continue;
 		}
 
@@ -540,6 +541,7 @@ int dropbear_listen(const char* address, const char* port,
 			err = errno;
 			close(sock);
 			TRACE(("bind(%s) failed", port))
+			syslog(LOG_ERR, "dropbear_listen: cannot bind socket to address %s:%s", address, port);
 			continue;
 		}
 
@@ -547,6 +549,7 @@ int dropbear_listen(const char* address, const char* port,
 			err = errno;
 			close(sock);
 			TRACE(("listen() failed"))
+			syslog(LOG_ERR, "dropbear_listen: cannot listen socket on address %s:%s", address, port);
 			continue;
 		}
 
