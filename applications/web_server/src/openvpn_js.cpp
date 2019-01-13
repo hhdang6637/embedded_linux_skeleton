@@ -70,14 +70,11 @@ std::string json_handle_openvpn_cfg(FCGX_Request *request)
         ss_json << "{\"json_openvpn_config\": {";
 
         ss_json << "\"state\": ";
-        ss_json << "\"";
         ss_json << "1";
-        ss_json << "\", ";
+        ss_json << ", ";
 
         ss_json << "\"port\": ";
-        ss_json << "\"";
         ss_json << "1194";
-        ss_json << "\"";
 
         ss_json << "}}";
 
