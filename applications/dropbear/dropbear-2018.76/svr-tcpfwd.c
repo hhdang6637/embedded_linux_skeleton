@@ -95,6 +95,8 @@ void recv_msg_global_request_remotetcp() {
 			buf_putint(ses.writepayload, allocated_listen_port);
 			encrypt_packet();
 			wantreply = 0; /* avoid out: below sending another reply */
+		} else {
+			dropbear_exit("tcpip-forward: Listening socket error");
 		}
 	} else if (strcmp("cancel-tcpip-forward", reqname) == 0) {
 		ret = svr_cancelremotetcp();
