@@ -3,13 +3,13 @@
     <div class="panel panel-default">
         <div class="panel-body">
             <h3>OpenVPN Configuration</h3>
-            <form action="/json/openvpn_setting" method="post" enctype="multipart/form-data" id="js-openvpn_setting-form">
+            <form action="/json/openvpn_cfg" method="post" enctype="multipart/form-data" id="js-openvpn_setting-form">
                 <div class="row" style="margin-top: 30px; margin-left: 100px">
                     <div class="col-sm-1" style="margin-right: 0px">
                          <label>Port:</label>
                     </div>
                     <div class="col-sm-2">
-                        <input type="number" class="form-control" id="port">
+                        <input type="number" class="form-control" id="port" name="port">
                     </div>
                 </div>
                 <div class="row" style="margin-top: 20px; margin-left: 100px">
@@ -17,12 +17,12 @@
                         <label>State</label>
                     </div>
                     <div class="col-sm-3">
-                      <label><input type="checkbox" id="enable_vpn" style="position: display; left: 20px;"> Enable</label>
+                      <label><input type="checkbox" id="enable_vpn" name="enable_vpn" style="position: display; left: 20px;"> Enable</label>
                     </div>
                 </div>
                 <div class="row" style="margin-left: 90px">
                     <div style="margin-left:110px">
-                        <button type="submit" id="btnApply" onclick="apply_openvpn()" class="btn btn-lg btn-primary">Apply</button>
+                        <button type="submit" id="btnApply" class="btn btn-lg btn-primary">Apply</button>
                     </div>
                 </div>
             </form>
@@ -93,7 +93,37 @@ $(function () {
     $("#myTopnav").find("a[href='/pages/openvpn']").addClass("active")
 });
 
-function apply_openvpn()
++ function($) {
+    'use strict';
+
+    $(document).ready(function(){
+        showInfor();
+    });
+
+    function showInfor()
+    {
+        $.getJSON( "/json/openvpn_cfg", function(data) {
+            var infor_conf = data.json_openvpn_config;
+            $("#port").val(infor_conf[0].port);
+
+            if (infor_conf[0].state == 1)
+            {
+                $("#enable_vpn").prop('checked', true);
+            }
+        });
+    }
+
+    var addUserForm = document.getElementById('js-openvpn_setting-form');
+
+    addUserForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        post_form_data($, 'js-openvpn_setting-form', function(json) {
+
+        });
+    })
+}(jQuery);
+
+function post_form_data()
 {
     var port_vpn = document.getElementById("port").value;
     var state = document.getElementById("enable_vpn").checked;
@@ -104,7 +134,7 @@ function apply_openvpn()
     formData.append('state', state);
 
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', '/json/openvpn_setting');
+    xhr.open('POST', '/json/openvpn_cfg', true);
     xhr.onload = function () {
         //TODO show the progress
     };
