@@ -33,7 +33,8 @@ public:
         handle_firmware_action,
         handle_users_action,
         handle_users_login,
-        handle_wifi_setting
+        handle_wifi_setting,
+        handle_openvpn_cfg,
     };
 protected:
     rpcMessageType  msgType;
