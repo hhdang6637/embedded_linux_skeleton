@@ -11,8 +11,9 @@ namespace app
         UNKNOW
     };
 
-    enum rpcMessageOpenvpnActionType: int16_t {
-        GET_SERVER_CFG
+    enum rpcMessageOpenvpnCfgActionType: int16_t {
+        GET_OPENVPN_CFG,
+        SET_OPENVPN_CFG
     };
 
     typedef struct {
@@ -34,20 +35,21 @@ namespace app
 
     std::string openMsgResult2Str(const rpcMessageOpenvpnResultType &result);
 
-    class rpcMessageOpenvpn : public rpcMessage
+    class rpcMessageOpenvpnCfg : public rpcMessage
     {
     private:
-        app::rpcMessageOpenvpnResultType msgResult;
-        app::rpcMessageOpenvpnActionType msgAction;
+        app::rpcMessageOpenvpnResultType    msgResult;
+        app::rpcMessageOpenvpnCfgActionType msgAction;
+        app::openvpnCfg_t                   openvpnCfg_data;
 
     public:
-                                          rpcMessageOpenvpn(/* args */);
-    virtual                               ~rpcMessageOpenvpn();
+                                          rpcMessageOpenvpnCfg(/* args */);
+    virtual                               ~rpcMessageOpenvpnCfg();
     virtual bool                          serialize(int fd);
     virtual bool                          deserialize(int);
 
-    app::rpcMessageOpenvpnActionType      getMsgAction() const;
-    void                                  setMsgAction(const rpcMessageOpenvpnActionType action);
+    app::rpcMessageOpenvpnCfgActionType      getMsgAction() const;
+    void                                  setMsgAction(const rpcMessageOpenvpnCfgActionType action);
 
     app::rpcMessageOpenvpnResultType      getMsgResult() const;
     void                                  setMsgResult(const rpcMessageOpenvpnResultType result);
