@@ -1,33 +1,125 @@
+
+#include <memory>
 #include "rpcMessageOpenvpn.h"
 
 namespace app{
 
-    bool rpcMessageOpenvpn::serialize(int fd)
+    rpcMessageOpenvpnCfg::rpcMessageOpenvpnCfg() :
+            rpcMessage(rpcMessageType::handle_openvpn_cfg, rpcMessageAddr::system_manager_addr_t),
+            msgResult(app::rpcMessageOpenvpnResultType::UNKNOW),
+            msgAction(app::rpcMessageOpenvpnCfgActionType::GET_OPENVPN_CFG),
+            openvpnCfg_data()
     {
+        //TO-DO
+    }
+
+    rpcMessageOpenvpnCfg::~rpcMessageOpenvpnCfg()
+    {
+        //TO-DO
+    }
+
+    bool rpcMessageOpenvpnCfg::serialize(int fd)
+    {
+        int         buff_len;
+        int         offset;
+        uint16_t    tmpValue;
+
+        buff_len = 0;
+        offset = 0;
+
+        tmpValue = (uint16_t)this->msgAction;
+        if (rpcMessage::sendInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+            return false;
+        }
+
+        switch (this->msgAction)
+        {
+            case app::rpcMessageOpenvpnCfgActionType::SET_OPENVPN_CFG:
+            case app::rpcMessageOpenvpnCfgActionType::GET_OPENVPN_CFG:
+            {
+                buff_len += sizeof(app::rpcMessageOpenvpnResultType);
+                buff_len += sizeof(app::rpcMessageOpenvpnCfgActionType);
+                buff_len += sizeof(app::openvpnCfg_t);
+
+                std::unique_ptr<char> buff_ptr(new char[buff_len]());
+
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, (uint16_t)this->msgResult);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, (uint16_t)this->msgAction);
+
+                memcpy(buff_ptr.get() + offset, &this->openvpnCfg_data, sizeof(this->openvpnCfg_data));
+                offset += sizeof(this->openvpnCfg_data);
+
+                if (buff_len != offset) {
+                    syslog(LOG_ERR, "%s-%u something wrong happened", __FUNCTION__, __LINE__);
+                    return false;
+                }
+
+                if (rpcMessage::sendInterruptRetry(fd, buff_ptr.get(), offset) != true) {
+                    return false;
+                }
+
+                break;
+            }
+            default:
+                break;
+        }
+
         return true;
     }
 
-    bool rpcMessageOpenvpn::deserialize(int fd)
+    bool rpcMessageOpenvpnCfg::deserialize(int fd)
     {
+        uint16_t tmpValue;
+        if (rpcMessage::recvInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+            return false;
+        }
+
+        this->msgAction = app::rpcMessageOpenvpnCfgActionType(tmpValue);
+
+        switch (this->msgAction)
+        {
+            case app::rpcMessageOpenvpnCfgActionType::SET_OPENVPN_CFG:
+            case app::rpcMessageOpenvpnCfgActionType::GET_OPENVPN_CFG:
+            {
+                if (rpcMessage::recvInterruptRetry(fd, &this->msgResult,
+                        sizeof(this->msgResult)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->msgAction,
+                        sizeof(this->msgAction)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->openvpnCfg_data,
+                        sizeof(this->openvpnCfg_data)) != true) {
+                    return false;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
         return true;
     }
 
-    app::rpcMessageOpenvpnActionType rpcMessageOpenvpn::getMsgAction() const
+    app::rpcMessageOpenvpnCfgActionType rpcMessageOpenvpnCfg::getMsgAction() const
     {
         return this->msgAction;
     }
 
-    void rpcMessageOpenvpn::setMsgAction(const rpcMessageOpenvpnActionType action)
+    void rpcMessageOpenvpnCfg::setMsgAction(const rpcMessageOpenvpnCfgActionType action)
     {
         this->msgAction = action;
     }
 
-    app::rpcMessageOpenvpnResultType rpcMessageOpenvpn::getMsgResult() const
+    app::rpcMessageOpenvpnResultType rpcMessageOpenvpnCfg::getMsgResult() const
     {
         return this->msgResult;
     }
 
-    void rpcMessageOpenvpn::setMsgResult(const app::rpcMessageOpenvpnResultType result)
+    void rpcMessageOpenvpnCfg::setMsgResult(const app::rpcMessageOpenvpnResultType result)
     {
         this->msgResult = result;
     }
