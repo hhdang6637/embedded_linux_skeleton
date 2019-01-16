@@ -54,7 +54,6 @@ static bool openvpn_cfg_handler(int socket_fd)
 }
 
 void openVpnManager_init(app::rpcUnixServer &rpcServer) {
-    mkdir(CA_DIR, 0755);
     openvpnCfg_set_default(&openvpnCfg);
     rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_openvpn_cfg, openvpn_cfg_handler);
 }
@@ -76,16 +75,14 @@ bool openVpnManager_openvpnCfg_set(app::openvpnCfg_t *openvpnCfg_ptr){
 
 static bool openssl_genrsa(const char *dst_key, int bitsize) {
     // ex: openssl genrsa -des3 -out ca.key 4096
-    //     openssl req -new -x509 -days 365 -key ca.key -out ca.crt
-    std::string command_gen_ca_key;
-    std::string command_gen_ca_crt;
+    std::string command_genrsakey;
 
-    command_gen_ca_key += "openssl genrsa ";
-    command_gen_ca_key += dst_key;
-    command_gen_ca_key += ".key ";
-    command_gen_ca_key += std::to_string(bitsize);
+    command_genrsakey += "openssl genrsa ";
+    command_genrsakey += dst_key;
+    command_genrsakey += " ";
+    command_genrsakey += std::to_string(bitsize);
 
-    if(system(command_gen_ca_key.c_str()) == 0)
+    if(system(command_genrsakey.c_str()) == 0)
     {
         return true;
     }
