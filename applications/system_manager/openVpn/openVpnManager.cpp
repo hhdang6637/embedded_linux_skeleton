@@ -66,6 +66,17 @@ bool openVpnManager_openvpnCfg_get(app::openvpnCfg_t *openvpnCfg_ptr) {
 
     return true;
 }
+
 bool openVpnManager_openvpnCfg_set(app::openvpnCfg_t *openvpnCfg_ptr){
+    return false;
+}
+
+static bool openssl_genrsa(const char *dst_key, int bitsize) {
+    // ex: openssl genrsa -des3 -out ca.key 4096
+    return false;
+}
+
+static bool openssl_req(const char *src_key, const char*ca_crt, int days) {
+    // ex: openssl req -new -x509 -days 365 -key ca.key -out ca.crt
     return false;
 }
