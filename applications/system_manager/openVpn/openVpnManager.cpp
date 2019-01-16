@@ -29,7 +29,7 @@ static bool openvpnCfg_valid(app::openvpnCfg_t *openvpnCfg_ptr) {
 
     if (openvpnCfg_ptr->port < 1024 || openvpnCfg_ptr->port > 65535)
     {
-        syslog(LOG_WARNING, "port for vpn should from 1024 to 65535");
+        syslog(LOG_INFO, "port for vpn should from 1024 to 65535");
         return false;
     }
 
@@ -79,6 +79,7 @@ bool openVpnManager_openvpnCfg_set(app::openvpnCfg_t *openvpnCfg_ptr) {
 
     if (openvpnCfg_ptr == NULL)
     {
+        syslog(LOG_CRIT, "openVpnManager_openvpnCfg_set: NULL pointer");
         return false;
     }
 
