@@ -124,6 +124,14 @@ namespace app{
         this->msgResult = result;
     }
 
+    void rpcMessageOpenvpnCfg::getOpenvpnCfg_data(app::openvpnCfg_t &openvpnCfg_data) {
+        openvpnCfg_data = this->openvpnCfg_data;
+    }
+
+    void rpcMessageOpenvpnCfg::setOpenvpnCfg_data(app::openvpnCfg_t &openvpnCfg_data){
+        this->openvpnCfg_data = openvpnCfg_data;
+    }
+
     std::string openMsgResult2Str(const app::rpcMessageOpenvpnResultType &result)
     {
         std::string outStr;
