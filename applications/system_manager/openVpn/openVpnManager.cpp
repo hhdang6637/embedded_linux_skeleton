@@ -26,10 +26,17 @@ static void openvpnCfg_set_default(app::openvpnCfg_t *openvpnCfg_ptr) {
 }
 
 static bool openvpnCfg_valid(app::openvpnCfg_t *openvpnCfg_ptr) {
-    return false;
+
+    if (openvpnCfg_ptr->port < 1024 || openvpnCfg_ptr->port > 65536)
+    {
+        syslog(LOG_WARNING, "port for vpn should from 1024 to 65536");
+        return false;
+    }
+
+    return true;
 }
 
-static bool openvpn_cfg_handler(int socket_fd)
+static bool openvpn_cfg_handler (int socket_fd)
 {
     app::rpcMessageOpenvpnCfg msgOpenvpnCfg;
 
@@ -40,6 +47,7 @@ static bool openvpn_cfg_handler(int socket_fd)
             openVpnManager_openvpnCfg_get(&openvpnCfg_data); // nerver fail
             msgOpenvpnCfg.setOpenvpnCfg_data(openvpnCfg_data);
             msgOpenvpnCfg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
+
         } else {
             // TODO
             msgOpenvpnCfg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
@@ -66,6 +74,21 @@ bool openVpnManager_openvpnCfg_get(app::openvpnCfg_t *openvpnCfg_ptr) {
 
     return true;
 }
-bool openVpnManager_openvpnCfg_set(app::openvpnCfg_t *openvpnCfg_ptr){
+
+bool openVpnManager_openvpnCfg_set(app::openvpnCfg_t *openvpnCfg_ptr) {
+
+    if (openvpnCfg_ptr == NULL)
+    {
+        return false;
+    }
+
+    if (openvpnCfg_valid(openvpnCfg_ptr))
+    {
+        openvpnCfg = *openvpnCfg_ptr;
+        return true;
+    }
+
+    //TO DO
+
     return false;
 }
