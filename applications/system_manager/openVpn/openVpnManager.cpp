@@ -27,9 +27,9 @@ static void openvpnCfg_set_default(app::openvpnCfg_t *openvpnCfg_ptr) {
 
 static bool openvpnCfg_valid(app::openvpnCfg_t *openvpnCfg_ptr) {
 
-    if (openvpnCfg_ptr->port < 1024 || openvpnCfg_ptr->port > 65536)
+    if (openvpnCfg_ptr->port < 1024 || openvpnCfg_ptr->port > 65535)
     {
-        syslog(LOG_WARNING, "port for vpn should from 1024 to 65536");
+        syslog(LOG_WARNING, "port for vpn should from 1024 to 65535");
         return false;
     }
 
