@@ -52,8 +52,12 @@ static bool openvpn_cfg_handler (int socket_fd)
 
             app::openvpnCfg_t openvpnCfg_data;
             msgOpenvpnCfg.getOpenvpnCfg_data(openvpnCfg_data);
-            openVpnManager_openvpnCfg_set(&openvpnCfg_data);
-            msgOpenvpnCfg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
+
+            if (openVpnManager_openvpnCfg_set(&openvpnCfg_data)) {
+                msgOpenvpnCfg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
+            } else {
+                msgOpenvpnCfg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
+            }
 
         } else {
             msgOpenvpnCfg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
