@@ -6,6 +6,8 @@
  */
 
 #include "openVpnManager.h"
+#include <sys/stat.h>
+#include <string>
 
 static app::openvpnCfg_t openvpnCfg;
 
@@ -52,6 +54,7 @@ static bool openvpn_cfg_handler(int socket_fd)
 }
 
 void openVpnManager_init(app::rpcUnixServer &rpcServer) {
+    mkdir(CA_DIR, 0755);
     openvpnCfg_set_default(&openvpnCfg);
     rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_openvpn_cfg, openvpn_cfg_handler);
 }
@@ -73,10 +76,24 @@ bool openVpnManager_openvpnCfg_set(app::openvpnCfg_t *openvpnCfg_ptr){
 
 static bool openssl_genrsa(const char *dst_key, int bitsize) {
     // ex: openssl genrsa -des3 -out ca.key 4096
+    //     openssl req -new -x509 -days 365 -key ca.key -out ca.crt
+    std::string command_gen_ca_key;
+    std::string command_gen_ca_crt;
+
+    command_gen_ca_key += "openssl genrsa ";
+    command_gen_ca_key += dst_key;
+    command_gen_ca_key += ".key ";
+    command_gen_ca_key += std::to_string(bitsize);
+
+    if(system(command_gen_ca_key.c_str()) == 0)
+    {
+        return true;
+    }
+
     return false;
 }
 
-static bool openssl_req(const char *src_key, const char*ca_crt, int days) {
+static bool openssl_req(const char *src_key, const char* ca_crt, int days) {
     // ex: openssl req -new -x509 -days 365 -key ca.key -out ca.crt
     return false;
 }
