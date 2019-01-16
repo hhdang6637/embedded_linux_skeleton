@@ -43,16 +43,22 @@ namespace app
         app::openvpnCfg_t                   openvpnCfg_data;
 
     public:
-                                          rpcMessageOpenvpnCfg(/* args */);
-    virtual                               ~rpcMessageOpenvpnCfg();
-    virtual bool                          serialize(int fd);
-    virtual bool                          deserialize(int);
+                                            rpcMessageOpenvpnCfg(/* args */);
+        virtual                             ~rpcMessageOpenvpnCfg();
+        virtual bool                        serialize(int fd);
+        virtual bool                        deserialize(int);
 
-    app::rpcMessageOpenvpnCfgActionType      getMsgAction() const;
-    void                                  setMsgAction(const rpcMessageOpenvpnCfgActionType action);
+        app::rpcMessageOpenvpnCfgActionType getMsgAction() const;
+        void                                setMsgAction(const rpcMessageOpenvpnCfgActionType action);
 
-    app::rpcMessageOpenvpnResultType      getMsgResult() const;
-    void                                  setMsgResult(const rpcMessageOpenvpnResultType result);
+        app::rpcMessageOpenvpnResultType    getMsgResult() const;
+        void                                setMsgResult(const rpcMessageOpenvpnResultType result);
+
+        void                                getOpenvpnCfg_data(app::openvpnCfg_t &openvpnCfg_data);
+        void                                setOpenvpnCfg_data(app::openvpnCfg_t &openvpnCfg_data);
+
+        static bool                         rpcGetOpenvpnCfg_data(app::rpcUnixClient &rpcClient,
+                                                app::openvpnCfg_t &openvpnCfg_data);
     };
 }
 
