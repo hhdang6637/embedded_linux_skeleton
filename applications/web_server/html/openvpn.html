@@ -104,9 +104,9 @@ $(function () {
     {
         $.getJSON( "/json/openvpn_cfg", function(data) {
             var infor_conf = data.json_openvpn_config;
-            $("#port").val(infor_conf[0].port);
+            $("#port").val(infor_conf.port);
 
-            if (infor_conf[0].state == 1)
+            if (infor_conf.state == 1)
             {
                 $("#enable_vpn").prop('checked', true);
             }

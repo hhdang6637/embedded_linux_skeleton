@@ -73,7 +73,7 @@ std::string json_handle_openvpn_cfg(FCGX_Request *request)
 
         app::rpcMessageOpenvpnCfg::rpcGetOpenvpnCfg_data(*app::rpcUnixClient::getInstance(), openvpnCfg_data);
 
-        ss_json << "{\"json_openvpn_config\": [{";
+        ss_json << "{\"json_openvpn_config\": {";
 
         ss_json << "\"state\":";
         ss_json << openvpnCfg_data.state;
@@ -82,7 +82,7 @@ std::string json_handle_openvpn_cfg(FCGX_Request *request)
         ss_json << "\"port\":";
         ss_json << openvpnCfg_data.port;
 
-        ss_json << "}]}";
+        ss_json << "}}";
 
         return ss_json.str();
     }
