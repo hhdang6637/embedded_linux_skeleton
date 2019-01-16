@@ -149,9 +149,13 @@ function post_form_data()
     var state = document.getElementById("enable_vpn").checked;
 
     var formData = new FormData();
-
     formData.append('port_vpn', port_vpn);
-    formData.append('state', state);
+    formData.append('state', 0);
+
+    if (state == true)
+    {
+        formData.append('state', 1);
+    }
 
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '/json/openvpn_cfg', true);
