@@ -22,7 +22,7 @@ static void openvpnCfg_get_default(app::openvpnCfg_t *openvpnCfg_ptr) {
 
 static void openvpnCfg_set_default(app::openvpnCfg_t *openvpnCfg_ptr) {
     openvpnCfg_ptr->state = 0;
-    openvpnCfg_ptr->port = 1194;
+    openvpnCfg_ptr->port = 5000;
 }
 
 static bool openvpnCfg_valid(app::openvpnCfg_t *openvpnCfg_ptr) {
@@ -32,8 +32,6 @@ static bool openvpnCfg_valid(app::openvpnCfg_t *openvpnCfg_ptr) {
 static bool openvpn_cfg_handler(int socket_fd)
 {
     app::rpcMessageOpenvpnCfg msgOpenvpnCfg;
-
-    printf("%s recevie RPC request\n", __FUNCTION__);
 
     if (msgOpenvpnCfg.deserialize(socket_fd)) {
 

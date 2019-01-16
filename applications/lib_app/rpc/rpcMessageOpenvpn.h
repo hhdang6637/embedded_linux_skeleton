@@ -56,6 +56,9 @@ namespace app
 
         void                                getOpenvpnCfg_data(app::openvpnCfg_t &openvpnCfg_data);
         void                                setOpenvpnCfg_data(app::openvpnCfg_t &openvpnCfg_data);
+
+        static bool                         rpcGetOpenvpnCfg_data(app::rpcUnixClient &rpcClient,
+                                                app::openvpnCfg_t &openvpnCfg_data);
     };
 }
 

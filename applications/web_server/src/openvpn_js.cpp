@@ -69,15 +69,18 @@ std::string json_handle_openvpn_cfg(FCGX_Request *request)
     } else if (method && (strcmp(method, "GET") == 0)) {
 
         std::ostringstream ss_json;
+        app::openvpnCfg_t openvpnCfg_data;
+
+        app::rpcMessageOpenvpnCfg::rpcGetOpenvpnCfg_data(*app::rpcUnixClient::getInstance(), openvpnCfg_data);
 
         ss_json << "{\"json_openvpn_config\": [{";
 
         ss_json << "\"state\":";
-        ss_json << "\"1\"";
+        ss_json << openvpnCfg_data.state;
         ss_json << ", ";
 
         ss_json << "\"port\":";
-        ss_json << "\"1194\"";
+        ss_json << openvpnCfg_data.port;
 
         ss_json << "}]}";
 
