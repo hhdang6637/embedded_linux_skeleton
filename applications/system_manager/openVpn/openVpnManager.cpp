@@ -26,10 +26,17 @@ static void openvpnCfg_set_default(app::openvpnCfg_t *openvpnCfg_ptr) {
 }
 
 static bool openvpnCfg_valid(app::openvpnCfg_t *openvpnCfg_ptr) {
-    return false;
+
+    if (openvpnCfg_ptr->port < 1024 || openvpnCfg_ptr->port > 65535)
+    {
+        syslog(LOG_INFO, "port for vpn should from 1024 to 65535");
+        return false;
+    }
+
+    return true;
 }
 
-static bool openvpn_cfg_handler(int socket_fd)
+static bool openvpn_cfg_handler (int socket_fd)
 {
     app::rpcMessageOpenvpnCfg msgOpenvpnCfg;
 
@@ -40,8 +47,19 @@ static bool openvpn_cfg_handler(int socket_fd)
             openVpnManager_openvpnCfg_get(&openvpnCfg_data); // nerver fail
             msgOpenvpnCfg.setOpenvpnCfg_data(openvpnCfg_data);
             msgOpenvpnCfg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
+
+        } else if (msgOpenvpnCfg.getMsgAction() == app::rpcMessageOpenvpnCfgActionType::SET_OPENVPN_CFG) {
+
+            app::openvpnCfg_t openvpnCfg_data;
+            msgOpenvpnCfg.getOpenvpnCfg_data(openvpnCfg_data);
+
+            if (openVpnManager_openvpnCfg_set(&openvpnCfg_data)) {
+                msgOpenvpnCfg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
+            } else {
+                msgOpenvpnCfg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
+            }
+
         } else {
-            // TODO
             msgOpenvpnCfg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
         }
 
@@ -66,6 +84,22 @@ bool openVpnManager_openvpnCfg_get(app::openvpnCfg_t *openvpnCfg_ptr) {
 
     return true;
 }
-bool openVpnManager_openvpnCfg_set(app::openvpnCfg_t *openvpnCfg_ptr){
+
+bool openVpnManager_openvpnCfg_set(app::openvpnCfg_t *openvpnCfg_ptr) {
+
+    if (openvpnCfg_ptr == NULL)
+    {
+        syslog(LOG_CRIT, "openVpnManager_openvpnCfg_set: NULL pointer");
+        return false;
+    }
+
+    if (openvpnCfg_valid(openvpnCfg_ptr))
+    {
+        openvpnCfg = *openvpnCfg_ptr;
+        return true;
+    }
+
+    //TO DO
+
     return false;
 }

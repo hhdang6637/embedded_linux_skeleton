@@ -31,7 +31,7 @@ std::string json_handle_openvpn_cfg(FCGX_Request *request)
     const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
     std::string status      = "failed";
 
-    // app::openvpnCfg_t openvpnCfg;
+    app::openvpnCfg_t openvpnCfg;
 
     if (method && (strcmp(method, "POST") == 0) && contentType)
     {
@@ -46,13 +46,13 @@ std::string json_handle_openvpn_cfg(FCGX_Request *request)
                 POSTParser.SetContentType(contentType);
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
-                std::string state;
-                std::string port;
+                openvpnCfg.state = std::atoi(POSTParser.GetField("state")->GetTextTypeContent().c_str());
+                openvpnCfg.port = std::atoi(POSTParser.GetField("port_vpn")->GetTextTypeContent().c_str());
 
-                state = POSTParser.GetField("state")->GetTextTypeContent();
-                port = POSTParser.GetField("port_vpn")->GetTextTypeContent();
-
-                status = "succeeded";
+                if (app::rpcMessageOpenvpnCfg::rpcSetOpenvpnCfg_data(*app::rpcUnixClient::getInstance(), openvpnCfg))
+                {
+                    status = "succeeded";
+                }
 
                 return build_openvpn_rsp_json(status, "success");
 
