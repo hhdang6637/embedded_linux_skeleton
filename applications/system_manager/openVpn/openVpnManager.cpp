@@ -22,7 +22,7 @@ static void openvpnCfg_get_default(app::openvpnCfg_t *openvpnCfg_ptr) {
 
 static void openvpnCfg_set_default(app::openvpnCfg_t *openvpnCfg_ptr) {
     openvpnCfg_ptr->state = 0;
-    openvpnCfg_ptr->port = 5000;
+    openvpnCfg_ptr->port = 1194;
 }
 
 static bool openvpnCfg_valid(app::openvpnCfg_t *openvpnCfg_ptr) {
