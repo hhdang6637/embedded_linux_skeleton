@@ -59,6 +59,8 @@ namespace app
 
         static bool                         rpcGetOpenvpnCfg_data(app::rpcUnixClient &rpcClient,
                                                 app::openvpnCfg_t &openvpnCfg_data);
+        static bool                         rpcSetOpenvpnCfg_data(app::rpcUnixClient &rpcClient,
+                                                app::openvpnCfg_t &openvpnCfg_data);
     };
 }
 
