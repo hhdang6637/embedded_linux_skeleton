@@ -1,0 +1,145 @@
+<div class="container">
+    <div class="status"></div>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <h3>OpenVPN Configuration</h3>
+            <form action="/json/openvpn_cfg" method="post" enctype="multipart/form-data" id="js-openvpn_setting-form">
+                <div class="row" style="margin-top: 30px; margin-left: 100px">
+                    <div class="col-sm-1" style="margin-right: 0px">
+                         <label>Port:</label>
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="number" class="form-control" id="port" name="port">
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 20px; margin-left: 100px">
+                    <div class="col-sm-1">
+                        <label>State</label>
+                    </div>
+                    <div class="col-sm-3">
+                      <label><input type="checkbox" id="enable_vpn" name="enable_vpn" style="position: display; left: 20px;"> Enable</label>
+                    </div>
+                </div>
+                <div class="row" style="margin-left: 90px">
+                    <div style="margin-left:110px">
+                        <button type="submit" id="btnApply" class="btn btn-lg btn-primary">Apply</button>
+                    </div>
+                </div>
+            </form>
+            <br>
+            <h3>CA and Server Certificate</h3>
+            <form action="/json/openvpn_cert" method="post" enctype="multipart/form-data" id="js-openvpn_cert-form">
+                <div class="row" style="margin-top: 20px;">
+                    <div class="col-sm-2" style="margin-right: 0px; padding-left:145px">
+                         <label>CA:</label>
+                    </div>
+                    <div class="col-sm-2" style="margin-left:5px">
+                        <input type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 20px">
+                    <div class="col-sm-2" style="padding-left:70px">
+                         <label>CA expire day:</label>
+                    </div>
+                    <div class="col-sm-2" style="margin-left:5px">
+                        <input type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 20px">
+                    <div class="col-sm-2" style="margin-right: 0px; padding-left:120px">
+                         <label>Server:</label>
+                    </div>
+                    <div class="col-sm-2" style="margin-left:5px">
+                        <input type="text" class="form-control">
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 20px">
+                    <div class="col-sm-2" style="padding-left:45px">
+                         <label>Server expire day:</label>
+                    </div>
+                    <div class="col-sm-2" style="margin-left:5px">
+                        <input type="date" class="form-control">
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 20px; margin-left: 95px">
+                    <div style="margin-left:100px">
+                        <button type="submit" id="btn_Re_gen" class="btn btn-lg btn-primary">Re-Gen</button>
+                    </div>
+                </div>
+            </form>
+            <br>
+            <h3>Client Certificate</h3>
+            <form method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="client_cert">Client Certificate:</label>
+                    <input type="text" class="form-control" id="client_cert" placeholder="Client Certificate" name="client_cert">
+                </div>
+                <div class="form-group">
+                    <label for="common_name">Common Name:</label>
+                    <input type="text" class="form-control" id="country" placeholder="Common Name" name="common_name">
+                </div>
+                <div class="row d-flex justify-content-center">
+                    <button type="button" class="btn btn-lg">Generate Config</button>
+                    <button type="button" class="btn btn-lg btn-primary" style="margin-left:30px">Download</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div> <!-- /container -->
+
+<script>
+$(function () {
+    $("#myTopnav").find("a[href='/pages/openvpn']").addClass("active")
+});
+
++ function($) {
+    'use strict';
+
+    $(document).ready(function(){
+        showInfor();
+    });
+
+    function showInfor()
+    {
+        $.getJSON( "/json/openvpn_cfg", function(data) {
+            var infor_conf = data.json_openvpn_config;
+            $("#port").val(infor_conf[0].port);
+
+            if (infor_conf[0].state == 1)
+            {
+                $("#enable_vpn").prop('checked', true);
+            }
+        });
+    }
+
+    var addUserForm = document.getElementById('js-openvpn_setting-form');
+
+    addUserForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        post_form_data($, 'js-openvpn_setting-form', function(json) {
+
+        });
+    })
+}(jQuery);
+
+function post_form_data()
+{
+    var port_vpn = document.getElementById("port").value;
+    var state = document.getElementById("enable_vpn").checked;
+
+    var formData = new FormData();
+
+    formData.append('port_vpn', port_vpn);
+    formData.append('state', state);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/json/openvpn_cfg', true);
+    xhr.onload = function () {
+        //TODO show the progress
+    };
+
+    xhr.send(formData);
+}
+
+</script>

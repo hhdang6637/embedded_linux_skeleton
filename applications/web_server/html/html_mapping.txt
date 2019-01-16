@@ -10,3 +10,4 @@
 /pages/syslog,syslog.html
 /pages/waiting,waiting.html
 /pages/wifisetting,wifisetting.html
+/pages/openvpn,openvpn.html

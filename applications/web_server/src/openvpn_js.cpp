@@ -31,7 +31,7 @@ std::string json_handle_openvpn_cfg(FCGX_Request *request)
     const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
     std::string status      = "failed";
 
-    app::openvpnCfg_t openvpnCfg;
+    // app::openvpnCfg_t openvpnCfg;
 
     if (method && (strcmp(method, "POST") == 0) && contentType)
     {
@@ -46,11 +46,13 @@ std::string json_handle_openvpn_cfg(FCGX_Request *request)
                 POSTParser.SetContentType(contentType);
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
-                openvpnCfg.state = (int16_t) std::stoi(POSTParser.GetField("state")->GetTextTypeContent());
-                openvpnCfg.port = (int16_t) std::stoi(POSTParser.GetField("state")->GetTextTypeContent());
+                std::string state;
+                std::string port;
 
-                printf("openvpnCfg.state: %d\n", openvpnCfg.state);
-                printf("openvpnCfg.port: %d\n", openvpnCfg.port);
+                state = POSTParser.GetField("state")->GetTextTypeContent();
+                port = POSTParser.GetField("port_vpn")->GetTextTypeContent();
+
+                status = "succeeded";
 
                 return build_openvpn_rsp_json(status, "success");
 
@@ -65,18 +67,19 @@ std::string json_handle_openvpn_cfg(FCGX_Request *request)
         }
 
     } else if (method && (strcmp(method, "GET") == 0)) {
+
         std::ostringstream ss_json;
 
-        ss_json << "{\"json_openvpn_config\": {";
+        ss_json << "{\"json_openvpn_config\": [{";
 
-        ss_json << "\"state\": ";
-        ss_json << "1";
+        ss_json << "\"state\":";
+        ss_json << "\"1\"";
         ss_json << ", ";
 
-        ss_json << "\"port\": ";
-        ss_json << "1194";
+        ss_json << "\"port\":";
+        ss_json << "\"1194\"";
 
-        ss_json << "}}";
+        ss_json << "}]}";
 
         return ss_json.str();
     }
