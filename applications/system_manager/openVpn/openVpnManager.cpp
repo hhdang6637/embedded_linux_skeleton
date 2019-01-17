@@ -52,39 +52,33 @@ static bool openvpnCfg_valid(app::openvpnCfg_t *openvpnCfg_ptr) {
 
 static bool openVpnManager_rsa_key_is_ok(void) {
     // verify all rsa infatructer is ready to for openvpn before we generate openvpn.conf
-    if(access(OPENVPN_CA_KEY, F_OK) == -1)
-    {
-        syslog(LOG_ERR, "Do not have ca key");
+    if(access(OPENVPN_CA_KEY, F_OK) == -1) {
+        syslog(LOG_ERR, OPENVPN_CA_KEY" not found");
         goto err_exist;
     }
 
-    if(access(OPENVPN_CA_CRT, F_OK) == -1)
-    {
-        syslog(LOG_ERR, "Do not have ca certificate");
+    if(access(OPENVPN_CA_CRT, F_OK) == -1) {
+        syslog(LOG_ERR, OPENVPN_CA_CRT" not found");
         goto err_exist;
     }
 
-    if(access(OPENVPN_DH_PEM, F_OK) == -1)
-    {
-        syslog(LOG_ERR, "Do not have dh pem");
+    if(access(OPENVPN_DH_PEM, F_OK) == -1) {
+        syslog(LOG_ERR, OPENVPN_DH_PEM" not found");
         goto err_exist;
     }
 
-    if(access(OPENVPN_TA_KEY, F_OK) == -1)
-    {
-        syslog(LOG_ERR, "Do not have ta key");
+    if(access(OPENVPN_TA_KEY, F_OK) == -1) {
+        syslog(LOG_ERR, OPENVPN_TA_KEY" not found");
         goto err_exist;
     }
 
-    if(access(OPENVPN_INDEX_TXT, F_OK) == -1)
-    {
-        syslog(LOG_ERR, "Do not have index.txt");
+    if(access(OPENVPN_INDEX_TXT, F_OK) == -1) {
+        syslog(LOG_ERR, OPENVPN_INDEX_TXT" not found");
         goto err_exist;
     }
 
-    if(access(OPENVPN_SERIAL, F_OK) == -1)
-    {
-        syslog(LOG_ERR, "Do not have serial");
+    if(access(OPENVPN_SERIAL, F_OK) == -1) {
+        syslog(LOG_ERR, OPENVPN_SERIAL" not found");
         goto err_exist;
     }
 
@@ -103,69 +97,30 @@ static bool openVpnManager_generate_openvpncfg(void) {
     if (openvpn_conf_file.is_open())
     {
         openvpn_conf_file <<
-                            "# listen on? (optional)\n"
-                            ";local a.b.c.d\n"
                             "port 1194\n"
-                            ";proto tcp\n"
                             "proto udp\n"
-                            ";dev tap\n"
                             "dev tun\n"
-                            ";dev-node MyTap\n"
                             "ca ca.crt\n"
                             "cert server.crt\n"
                             "key server.key\n"
-
+                            "tls-auth ta.key 0\n"
                             "dh dh2048.pem\n"
-                            ";topology subnet\n"
-
                             "server 10.8.0.0 255.255.255.0\n"
                             "ifconfig-pool-persist ipp.txt\n"
-                            ";server-bridge 10.8.0.4 255.255.255.0 10.8.0.50 10.8.0.100\n"
-                            ";server-bridge\n"
-                            ";push \"route 192.168.10.0 255.255.255.0\"\n"
-                            ";push \"route 192.168.20.0 255.255.255.0\"\n"
-
-                            ";client-config-dir ccd\n"
-                            ";route 192.168.40.128 255.255.255.248\n"
-                            ";learn-address ./script\n"
-
                             "push \"redirect-gateway def1 bypass-dhcp\"\n"
-
                             "push \"dhcp-option DNS 208.67.222.222\"\n"
                             "push \"dhcp-option DNS 208.67.220.220\"\n"
-
-                            ";client-to-client\n"
-
-                            ";duplicate-cn\n"
-
                             "keepalive 10 120\n"
-
-                            "tls-auth ta.key 0\n"
                             "key-direction 0\n"
-
-                            ";cipher BF-CBC\n"
                             "cipher AES-128-CBC\n"
                             "auth SHA256\n"
-                            ";cipher DES-EDE3-CBC\n"
-
                             "comp-lzo\n"
-
-                            ";max-clients 100\n"
-
                             "user nobody\n"
                             "group nogroup\n"
-
                             "persist-key\n"
                             "persist-tun\n"
-
-                            "status openvpn-status.log\n"
-
-                            ";log         openvpn.log\n"
-                            ";log-append  openvpn.log\n"
-
-                            "verb 3\n"
-
-                            ";mute 20\n";
+                            "status /tmp/openvpn-status.log\n"
+                            "verb 3\n";
 
         openvpn_conf_file.close();
     }
@@ -175,34 +130,33 @@ static bool openVpnManager_generate_openvpncfg(void) {
 
 static void openVpnManager_stop_openvpn_service(void) {
     // verify pid file and stop openvpn service
-
-    if (access("/var/run/openvpn.pid", F_OK) == -1)
-    {
-        syslog(LOG_WARNING, "pid file do not exist");
-    } else
-    {
-        std::string command;
-        command = "killall -9 openvpn";
-        system(command.c_str());
+    if (access("/var/run/openvpn.pid", F_OK) != -1) {
+        system("killall openvpn");
     }
-
 }
 
 static bool openVpnManager_start_openvpn_service(void) {
     // check config file is ready and start openvpn service
-    if (access(OPENVPN_CONF, F_OK) == -1)
-    {
-        syslog(LOG_ERR, "config file do not exist");
+    if (access(OPENVPN_CONF, F_OK) == -1) {
+        syslog(LOG_ERR, OPENVPN_CONF" not found");
         return false;
     }
 
-    std::string command;
+    char openvpn_cmd[256];
 
-    command = "/usr/sbin/openvpn --config";
-    command += OPENVPN_CONF;
-    command += "--daemon --writepid";
-    command += "/var/run/openvpn.pid";
-    system(command.c_str());
+    snprintf(openvpn_cmd, sizeof(openvpn_cmd),
+        "/usr/sbin/openvpn --config %s "
+        "--daemon --writepid /var/run/openvpn.pid", OPENVPN_CONF);
+
+    rc = openssl_rsa_system(openvpn_cmd);
+
+    syslog(LOG_INFO, "openssl_gen_rsa: %s return %d\n", openvpn_cmd, rc);
+
+    if(rc == 0) {
+        return true;
+    } else {
+        return false;
+    }
 
     return true;
 }
