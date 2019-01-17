@@ -137,6 +137,8 @@ static void openVpnManager_stop_openvpn_service(void) {
 
 static bool openVpnManager_start_openvpn_service(void) {
     // check config file is ready and start openvpn service
+    int rc;
+
     if (access(OPENVPN_CONF, F_OK) == -1) {
         syslog(LOG_ERR, OPENVPN_CONF" not found");
         return false;
@@ -148,7 +150,7 @@ static bool openVpnManager_start_openvpn_service(void) {
         "/usr/sbin/openvpn --config %s "
         "--daemon --writepid /var/run/openvpn.pid", OPENVPN_CONF);
 
-    rc = openssl_rsa_system(openvpn_cmd);
+    rc = system(openvpn_cmd);
 
     syslog(LOG_INFO, "openssl_gen_rsa: %s return %d\n", openvpn_cmd, rc);
 
