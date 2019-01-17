@@ -48,37 +48,37 @@ static bool openvpnCfg_valid(app::openvpnCfg_t *openvpnCfg_ptr) {
 
 static bool openVpnManager_rsa_key_is_ok(void) {
     // verify all rsa infatructer is ready to for openvpn before we generate openvpn.conf
-    if(open("OPENVPN_CA_KEY", O_RDONLY) == -1)
+    if(access(OPENVPN_CA_KEY, F_OK) == -1)
     {
         syslog(LOG_ERR, "Do not have ca key");
         goto err_exist;
     }
 
-    if(open("OPENVPN_CA_CRT", O_RDONLY) == -1)
+    if(access(OPENVPN_CA_CRT, F_OK) == -1)
     {
         syslog(LOG_ERR, "Do not have ca certificate");
         goto err_exist;
     }
 
-    if(open("OPENVPN_DH_PEM", O_RDONLY) == -1)
+    if(access(OPENVPN_DH_PEM, F_OK) == -1)
     {
         syslog(LOG_ERR, "Do not have dh pem");
         goto err_exist;
     }
 
-    if(open("OPENVPN_TA_KEY", O_RDONLY) == -1)
+    if(access(OPENVPN_TA_KEY, F_OK) == -1)
     {
         syslog(LOG_ERR, "Do not have ta key");
         goto err_exist;
     }
 
-    if(open("OPENVPN_INDEX_TXT", O_RDONLY) == -1)
+    if(access(OPENVPN_INDEX_TXT, F_OK) == -1)
     {
         syslog(LOG_ERR, "Do not have index.txt");
         goto err_exist;
     }
 
-    if(open("OPENVPN_SERIAL", O_RDONLY) == -1)
+    if(access(OPENVPN_SERIAL, F_OK) == -1)
     {
         syslog(LOG_ERR, "Do not have serial");
         goto err_exist;
@@ -172,7 +172,7 @@ static bool openVpnManager_generate_openvpncfg(void) {
 static void openVpnManager_stop_openvpn_service(void) {
     // verify pid file and stop openvpn service
 
-    if (open("OPENVPN_PID_FILE", O_RDONLY) == -1)
+    if (access(OPENVPN_PID_FILE, F_OK) == -1)
     {
         syslog(LOG_WARNING, "pid file do not exist");
     } else
@@ -186,7 +186,7 @@ static void openVpnManager_stop_openvpn_service(void) {
 
 static bool openVpnManager_start_openvpn_service(void) {
     // check config file is ready and start openvpn service
-    if (open("OPENVPN_CONF", O_RDONLY) == -1)
+    if (access(OPENVPN_CONF, F_OK) == -1)
     {
         syslog(LOG_ERR, "config file do not exist");
         return false;
