@@ -11,8 +11,6 @@
 #include "rpcMessageOpenvpn.h"
 #include "rpcUnixServer.h"
 
-#define CA_DIR "/tmp/ca"
-
 void openVpnManager_init(app::rpcUnixServer &rpcServer);
 
 bool openVpnManager_openvpnCfg_get(app::openvpnCfg_t *openvpnCfg_ptr);

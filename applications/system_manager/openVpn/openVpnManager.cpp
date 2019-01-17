@@ -103,9 +103,9 @@ static bool openssl_req(const char *dst_key, const char* dst_csr, int days, int 
     command_gen_req += " -subj \"/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=example.com/emailAddress=server@gmail.com\" ";
     printf("Command Gen REQ: %s\n", command_gen_req.c_str());
     if(system(command_gen_req.c_str()) == 0)
-     {
-         return true;
-     }
+    {
+        return true;
+    }
     return false;
 }
 
