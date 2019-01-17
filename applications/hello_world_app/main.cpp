@@ -10,6 +10,17 @@
 #include "rpcUnixClient.h"
 #include "rpcMessageUsers.h"
 
+static bool openssl_init()
+{
+    system("mkdir -p /tmp/myCA");
+    system("mkdir -p /tmp/myCA/certs");
+    system("mkdir -p /tmp/myCA/keys");
+    system("mkdir -p /tmp/myCA/reqs");
+    system("touch /tmp/myCA/index.txt");
+    system("echo 01 >> /tmp/myCA/serial");
+    return true;
+}
+
 static bool openssl_genrsa(const char *dst_key, int bitsize) {
     // ex: openssl genrsa -des3 -out ca.key 4096
     std::string command_genrsakey;
@@ -27,18 +38,21 @@ static bool openssl_genrsa(const char *dst_key, int bitsize) {
     return false;
 }
 
-static bool openssl_req(const char *src_key, const char* dst_csr, int days) {
-    // ex: openssl req -days 365 -new -key server.key -out server.csr
+static bool openssl_req(const char *dst_key, const char* dst_csr, int days, int bitSize) {
+    // ex: openssl req -nodes -newkey rsa:1024 -keyout /tmp/myCA/keys/server.pem -config /tmp/myCA/server.cnf -days 365 -keyform PEM -out /tmp/myCA/reqs/server.pem -outform PEM
+
     std::string command_gen_req;
 
-    command_gen_req += " openssl req -new -x509 -days ";
+    command_gen_req += " openssl req -nodes -newkey rsa:";
+    command_gen_req += std::to_string(bitSize);
+    command_gen_req += " -keyout ";
+    command_gen_req += dst_key;
+    command_gen_req += " -config /tmp/myCA/server.cnf -days ";
     command_gen_req += std::to_string(days);
-    command_gen_req += " -key ";
-    command_gen_req += src_key;
-    command_gen_req += " ";
-    command_gen_req += " -out ";
+    command_gen_req += " -keyform PEM -out  ";
     command_gen_req += dst_csr;
-
+    command_gen_req += " -outform PEM ";
+    printf("Command Gen REQ: %s\n", command_gen_req.c_str());
     if(system(command_gen_req.c_str()) == 0)
     {
         return true;
@@ -52,12 +66,13 @@ static bool openssl_gen_ca(const char* ca_key, const char* ca_crt, int days)
     if(openssl_genrsa(ca_key, 4096) == true)
     {
         std::string command_gen_ca_crt;
-        command_gen_ca_crt += "openssl req -new -x509 -days ";
+        command_gen_ca_crt += "openssl req -config /tmp/myCA/CA.cnf -new -x509 -days ";
         command_gen_ca_crt += std::to_string(days);
         command_gen_ca_crt += " -key ";
         command_gen_ca_crt += ca_key;
         command_gen_ca_crt += " -out ";
         command_gen_ca_crt += ca_crt;
+        command_gen_ca_crt += " -outform PEM ";
         printf("Gen ca Certificate: %s\n", command_gen_ca_crt.c_str());
         if(system(command_gen_ca_crt.c_str()) == 0)
         {
@@ -72,16 +87,14 @@ static bool openssl_gen_ca(const char* ca_key, const char* ca_crt, int days)
     return false;
 }
 
-static bool openssl_sign(const char* src_csr, const char* dst_crt, const char* ca_key, const char* ca_crt)
+static bool openssl_sign(const char* src_csr, const char* dst_crt, int days)
 {
-    // ex: openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out server.crt
+    // ex: openssl ca -config configCA.cnf -in req/server.csr -out cert/server.crt
     std::string command_sign;
-    command_sign += "openssl x509 -req -in ";
+    command_sign += "openssl ca -config /tmp/myCA/CA.cnf -in ";
     command_sign += src_csr;
-    command_sign +=" -CA ";
-    command_sign += ca_crt;
-    command_sign += " -CAkey ";
-    command_sign += ca_key;
+    command_sign += " -days ";
+    command_sign += std::to_string(days);
     command_sign += " -out ";
     command_sign += dst_crt;
     printf("Sign command: %s\n", command_sign.c_str());
@@ -113,42 +126,35 @@ int main(void) {
 
     */
 
-   const char* caKey = "/tmp/ca.key";
-   const char* caCrt = "/tmp/ca.crt";
-   const char* serverKey = "/tmp/server.key";
-   const char* serverCSR = "/tmp/server.csr";
-   const char* serverCrt = "/tmp/server.crt";
+   const char* caKey = "/tmp/myCA/keys/ca.key";
+   const char* caCrt = "/tmp/myCA/certs/ca.crt";
+   const char* serverKey = "/tmp/myCA/keys/server.key";
+   const char* serverCSR = "/tmp/myCA/reqs/server.csr";
+   const char* serverCrt = "/tmp/myCA/certs/server.crt";
+
+   openssl_init();
 
    if(openssl_gen_ca(caKey, caCrt, 365) == true)
    {
-       printf("Generated CA in /tmp/ \n");
+       printf("Generated CA: %s && %s\n", caKey, caCrt);
    }
    else
    {
        printf("Generate CA Error\n");
    }
 
-    if(openssl_genrsa(serverKey, 1024) == true)
+    if(openssl_req(serverKey, serverCSR, 365, 1024) == true)
     {
-        printf("Generated server.key\n");
-    }
-    else
-    {
-        printf("Generate server Error\n");
-    }
-
-    if(openssl_req(serverKey, serverCSR, 365) == true)
-    {
-        printf("Generated server.csr\n");
+        printf("Generated server: %s && %s\n", serverKey, serverCrt);
     }
     else
     {
         printf("Generate server.csr Error\n");
     }
 
-    if(openssl_sign(serverCSR, serverCrt, caKey, caCrt) == true)
+    if(openssl_sign(serverCSR, serverCrt, 365) == true)
     {
-        printf("Signatured for server.crt\n");
+        printf("Signatured for server.crt OK\n");
     }
     else
     {
