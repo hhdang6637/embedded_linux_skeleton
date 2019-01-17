@@ -4,6 +4,10 @@
  *  Created on: Jan 13, 2019
  *      Author: hhdang6637
  */
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fstream>
 
 #include "openVpnManager.h"
 
@@ -172,7 +176,7 @@ static bool openVpnManager_generate_openvpncfg(void) {
 static void openVpnManager_stop_openvpn_service(void) {
     // verify pid file and stop openvpn service
 
-    if (access(OPENVPN_PID_FILE, F_OK) == -1)
+    if (access("/var/run/openvpn.pid", F_OK) == -1)
     {
         syslog(LOG_WARNING, "pid file do not exist");
     } else
@@ -197,7 +201,7 @@ static bool openVpnManager_start_openvpn_service(void) {
     command = "/usr/sbin/openvpn --config";
     command += OPENVPN_CONF;
     command += "--daemon --writepid";
-    command += OPENVPN_PID_FILE;
+    command += "/var/run/openvpn.pid";
     system(command.c_str());
 
     return true;
