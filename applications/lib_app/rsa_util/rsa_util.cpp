@@ -10,17 +10,18 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <string.h>
 
 #include <fstream>
 
 #include "rsa_util.h"
 
-#define OPENSSL_CA_DIR "/tmp/myCA"
-#define OPENSSL_CA_CONFIG OPENSSL_CA_DIR"/CA.cnf"
-#define OPENSSL_CERTS_DIR OPENSSL_CA_DIR"/certs"
-#define OPENSSL_KEYS_DIR OPENSSL_CA_DIR"/keys"
-#define OPENSSL_INDEX_FILE OPENSSL_CA_DIR"/index.txt"
-#define OPENSSL_SERIAL_FILE OPENSSL_CA_DIR"/serial"
+#define OPENSSL_CA_CONFIG "/CA.cnf"
+#define OPENSSL_CERTS_DIR "/certs"
+#define OPENSSL_KEYS_DIR "/keys"
+#define OPENSSL_REQS_DIR "/reqs"
+#define OPENSSL_INDEX_FILE "/index.txt"
+#define OPENSSL_SERIAL_FILE "/serial"
 
 
 static int openssl_rsa_system(const char *cmd)
@@ -30,18 +31,28 @@ static int openssl_rsa_system(const char *cmd)
     return system(cmd);
 }
 
-bool openssl_ca_init()
+bool openssl_ca_init(const char* openssl_ca_dir)
 {
     int rc;
     char cmd_gen_index_file[256];
     char cmd_gen_serial_file[256];
-    std::ofstream ca_confg_file(OPENSSL_CA_CONFIG);
+    char openssl_ca_config[256];
+    char openssl_keys_dir[256];
+    char openssl_certs_dir[256];
+    char openssl_index_file[256];
+    char openssl_serial_file[256];
+    char openssl_reqs_dir[256];
+
+    strncpy(openssl_ca_config, openssl_ca_dir, strlen(openssl_ca_dir));
+    strncat(openssl_ca_config,OPENSSL_CA_CONFIG, strlen(OPENSSL_CA_CONFIG));
+
+    std::ofstream ca_confg_file(openssl_ca_config);
 
     if(ca_confg_file.is_open()) {
         ca_confg_file <<   "[ ca ]\n"
                             "default_ca      = local_ca\n"
                             "[ local_ca ]\n"
-                            "dir             = " << OPENSSL_CA_DIR << "\n"
+                            "dir             = " << openssl_ca_dir << "\n"
                             "certificate     = $dir/certs/ca.crt\n"
                             "database        = $dir/index.txt\n"
                             "new_certs_dir   = $dir/certs\n"
@@ -83,15 +94,29 @@ bool openssl_ca_init()
         ca_confg_file.close();
     }
 
-    mkdir(OPENSSL_CA_DIR, 0755);
-    mkdir(OPENSSL_CERTS_DIR, 0755);
-    mkdir(OPENSSL_KEYS_DIR, 0755);
+    mkdir(openssl_ca_dir, 0755);
 
+    strncpy(openssl_certs_dir, openssl_ca_dir, strlen(openssl_ca_dir));
+    strncat(openssl_certs_dir, OPENSSL_CERTS_DIR, strlen(OPENSSL_CERTS_DIR));
+    mkdir(openssl_certs_dir, 0755);
+
+    strncpy(openssl_reqs_dir, openssl_ca_dir, strlen(openssl_ca_dir));
+    strncat(openssl_reqs_dir,OPENSSL_REQS_DIR, strlen(OPENSSL_REQS_DIR));
+    mkdir(openssl_reqs_dir,0755);
+
+    strncpy(openssl_keys_dir, openssl_ca_dir, strlen(openssl_ca_dir));
+    strncat(openssl_keys_dir, OPENSSL_KEYS_DIR, strlen(OPENSSL_KEYS_DIR));
+    mkdir(openssl_keys_dir, 0755);
+
+    strncpy(openssl_index_file, openssl_ca_dir, strlen(openssl_ca_dir));
+    strncat(openssl_index_file, OPENSSL_INDEX_FILE, strlen(OPENSSL_INDEX_FILE));
     snprintf(cmd_gen_index_file,  sizeof(cmd_gen_index_file),
-        "touch %s", OPENSSL_INDEX_FILE);
+        "touch %s", openssl_index_file);
 
+    strncpy(openssl_serial_file, openssl_ca_dir, strlen(openssl_ca_dir));
+    strncat(openssl_serial_file, OPENSSL_SERIAL_FILE, strlen(OPENSSL_SERIAL_FILE));
     snprintf(cmd_gen_serial_file, sizeof(cmd_gen_serial_file),
-        "echo 01 >> %s", OPENSSL_SERIAL_FILE);
+        "echo 01 >> %s", openssl_serial_file);
 
     rc = openssl_rsa_system(cmd_gen_index_file);
     syslog(LOG_INFO, "openssl_ca_init:cmd_gen_index_file: %s return %d\n",
@@ -131,11 +156,14 @@ bool openssl_req(const char *dst_key, const char* dst_csr, int days, int bitSize
     }
 }
 
-bool openssl_gen_ca(const char* ca_key, const char* ca_crt, int days, int bitSize)
+bool openssl_gen_ca(const char* openssl_ca_dir, const char* ca_key, const char* ca_crt, int days, int bitSize)
 {
 
     int rc;
     char cmd_openssl_gen_rsa_key[256];
+    char openssl_ca_config[256];
+    strncpy(openssl_ca_config, openssl_ca_dir, strlen(openssl_ca_dir));
+    strncat(openssl_ca_config,OPENSSL_CA_CONFIG, strlen(OPENSSL_CA_CONFIG));
 
     snprintf(cmd_openssl_gen_rsa_key, sizeof(cmd_openssl_gen_rsa_key),
         "openssl genrsa -out %s %d", ca_key, bitSize);
@@ -149,7 +177,7 @@ bool openssl_gen_ca(const char* ca_key, const char* ca_crt, int days, int bitSiz
         char cmd_gen_ca_cert[256];
         snprintf(cmd_gen_ca_cert, sizeof(cmd_gen_ca_cert),
             "openssl req -config %s -new -x509 -days %d -key %s -out %s -outform PEM",
-            OPENSSL_CA_CONFIG ,days, ca_key, ca_crt);
+            openssl_ca_config ,days, ca_key, ca_crt);
 
         rc = openssl_rsa_system(cmd_gen_ca_cert);
         syslog(LOG_INFO, "openssl_gen_ca_cert: %s return %d\n",
@@ -166,14 +194,18 @@ bool openssl_gen_ca(const char* ca_key, const char* ca_crt, int days, int bitSiz
     }
 }
 
-bool openssl_sign(const char* src_csr, const char* dst_crt, int days)
+bool openssl_sign(const char* openssl_ca_dir, const char* src_csr, const char* dst_crt, int days)
 {
     // ex: openssl ca -config configCA.cnf -in req/server.csr -out cert/server.crt
     int rc;
     char cmd_sign_req[256];
+    char openssl_ca_config[256];
+    strncpy(openssl_ca_config, openssl_ca_dir, strlen(openssl_ca_dir));
+    strncat(openssl_ca_config,OPENSSL_CA_CONFIG, strlen(OPENSSL_CA_CONFIG));
+
     snprintf(cmd_sign_req, sizeof(cmd_sign_req),
         "yes | openssl ca -config %s -in %s -days %d -out %s",
-        OPENSSL_CA_CONFIG, src_csr, days, dst_crt);
+        openssl_ca_config, src_csr, days, dst_crt);
 
     rc = openssl_rsa_system(cmd_sign_req);
     syslog(LOG_INFO, "openssl_sign: %s return %d\n", cmd_sign_req, rc);
