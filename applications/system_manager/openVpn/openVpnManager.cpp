@@ -12,7 +12,7 @@
 #include "openVpnManager.h"
 #include <sys/stat.h>
 #include <string>
-#include "rsa_ultil/rsa_ultil.h"
+#include "rsa_util.h"
 
 #define OPENVPN_KEY_DB_PATH "/data/openvpndb/"
 #define OPENSSL_CA_DIR OPENVPN_KEY_DB_PATH
@@ -21,6 +21,8 @@
 #define OPENVPN_CA_CRT OPENSSL_CA_DIR "certs/ca.crt"
 #define OPENVPN_DH_PEM OPENSSL_CA_DIR "dh.pem"
 #define OPENVPN_TA_KEY OPENSSL_CA_DIR "ta.key"
+#define OPENVPN_INDEX_TXT OPENSSL_CA_DIR "index.txt"
+#define OPENVPN_SERIAL OPENSSL_CA_DIR "serial"
 #define OPENVPN_SERVER_KEY OPENSSL_CA_DIR "keys/server.key"
 #define OPENVPN_SEREVR_CERT OPENSSL_CA_DIR "certs/server.crt"
 #define OPENVPN_SERVER_REQ OPENSSL_CA_DIR "reqs/server.csr"
@@ -175,54 +177,70 @@ static bool openVpnManager_start_openvpn_service(void) {
     return true;
 }
 
-static bool init_rsa_database()
-{
-    // init CA, Server, index, ...
-    int rc;
-
-    rc = openssl_ca_init(OPENSSL_CA_DIR);
-    if(rc == false)
-        return rc;
-
-    // Gen ca.key & ca.crt
-    rc = openssl_gen_ca(OPENSSL_CA_DIR, OPENVPN_CA_KEY, OPENVPN_CA_CRT, DAYS_EXPIRE, BITS_SIZE_CA);
-    if(rc == false)
-        return rc;
-
-    // Request and sign cert for Server
-    char* subject = "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=example.com/emailAddress=server@gmail.com";
-    rc = openssl_req(OPENVPN_SERVER_KEY, OPENVPN_SERVER_REQ, DAYS_EXPIRE, BITS_SIZE_SERVER, subject);
-    if(rc == false)
-        return rc;
-
-    rc = openssl_sign(OPENSSL_CA_DIR, OPENVPN_SERVER_REQ, OPENVPN_SEREVR_CERT, DAYS_EXPIRE);
-    if(rc == false)
-        return rc;
-
-    //Gen DH param
-    rc = openssl_gen_dh(OPENVPN_DH_PEM, BITS_SIZE_DH);
-    if(rc == false)
-        return rc;
-
-    //Gen ta key
-    rc = openvpn_gen_ta(OPENVPN_TA_KEY);
-    if(rc == false)
-        return rc;
-
-    return true;
-}
-
-static bool oepnvpn_gen_ta(const char* ta_key)
+static bool openvpn_gen_ta(const char* ta_key)
 {
     int rc;
     char cmd_gen_ta[256];
 
     snprintf(cmd_gen_ta, sizeof(cmd_gen_ta), "openvpn --genkey --secret %s", ta_key);
     rc = system(cmd_gen_ta);
-
     if(rc == 0)
+    {
+        syslog(LOG_INFO, "openvpn_gen_ta: %s return %d\n",
+        cmd_gen_ta, rc);
         return true;
+    }
 
+    return false;
+}
+
+static bool init_rsa_database()
+{
+    if(openssl_ca_init(OPENSSL_CA_DIR) == false)
+    {
+        syslog(LOG_ERR, "can NOT init CA Directory: %s\n", OPENSSL_CA_DIR);
+        goto err;
+    }
+
+    // Gen ca.key & ca.crt
+    if(openssl_gen_ca(OPENSSL_CA_DIR, OPENVPN_CA_KEY, OPENVPN_CA_CRT, DAYS_EXPIRE, BITS_SIZE_CA) == false)
+    {
+        syslog(LOG_ERR, "can NOT gen CA\n");
+        goto err;
+    }
+
+    // Request and sign cert for Server
+    char subject[256];
+    snprintf(subject, sizeof(subject), "%s","/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=example.com/emailAddress=server@gmail.com");
+    if(openssl_req(OPENVPN_SERVER_KEY, OPENVPN_SERVER_REQ, DAYS_EXPIRE, BITS_SIZE_SERVER, subject) == false)
+    {
+        syslog(LOG_ERR, "can NOT gen REQ for %s\n", OPENVPN_SERVER_REQ);
+        goto err;
+    }
+
+    if(openssl_sign(OPENSSL_CA_DIR, OPENVPN_SERVER_REQ, OPENVPN_SEREVR_CERT, DAYS_EXPIRE) == false)
+    {
+        syslog(LOG_ERR, "can NOT SIGN req for %s\n", OPENVPN_SERVER_REQ);
+        goto err;
+    }
+
+    //Gen DH param
+    if(openssl_gen_dh(OPENVPN_DH_PEM, BITS_SIZE_DH) == false)
+    {
+        syslog(LOG_ERR, "can NOT gen DH\n");
+        goto err;
+    }
+
+    //Gen ta key
+    if(openvpn_gen_ta(OPENVPN_TA_KEY) == false)
+    {
+        syslog(LOG_ERR, "can NOT gen TA key\n");
+        goto err;
+    }
+
+    return true;
+
+err:
     return false;
 }
 

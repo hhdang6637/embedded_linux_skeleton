@@ -26,6 +26,7 @@ clean:
 install:
 	cp *.h       $(ROOTFS_DIR)/usr/include
 	cp rpc/*.h       $(ROOTFS_DIR)/usr/include
+	cp rsa_util/*.h       $(ROOTFS_DIR)/usr/include
 	cp libfdt/*.h       $(ROOTFS_DIR)/usr/include
 	cp $(SHARED) $(ROOTFS_DIR)/usr/lib
 
