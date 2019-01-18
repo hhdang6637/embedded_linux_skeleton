@@ -10,6 +10,8 @@
 #include <fstream>
 
 #include "openVpnManager.h"
+#include <sys/stat.h>
+#include <string>
 
 #define OPENVPN_KEY_DB_PATH "/data/openvpndb/"
 #define OPENVPN_CA_KEY OPENVPN_KEY_DB_PATH "ca.key"
@@ -255,5 +257,6 @@ bool openVpnManager_openvpnCfg_set(app::openvpnCfg_t *openvpnCfg_ptr) {
 err:
     // any failes, set state back to false;
     openvpnCfg.state = false;
+
     return false;
 }
