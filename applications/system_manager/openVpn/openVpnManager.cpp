@@ -14,8 +14,11 @@
 #include <string>
 
 #define OPENVPN_KEY_DB_PATH "/data/openvpndb/"
-#define OPENVPN_CA_KEY OPENVPN_KEY_DB_PATH "ca.key"
-#define OPENVPN_CA_CRT OPENVPN_KEY_DB_PATH "ca.crt"
+#define OPENVPN_CA_KEY OPENVPN_KEY_DB_PATH "keys/ca.key"
+#define OPENVPN_SERVER_KEY OPENVPN_KEY_DB_PATH "keys/server.key"
+#define OPENVPN_CA_CRT OPENVPN_KEY_DB_PATH "certs/ca.crt"
+#define OPENVPN_SERVER_CRT OPENVPN_KEY_DB_PATH "certs/server.crt"
+#define OPENVPN_TLS_AUTH_PEM OPENVPN_KEY_DB_PATH "ta.key"
 #define OPENVPN_DH_PEM OPENVPN_KEY_DB_PATH "dh.pem"
 #define OPENVPN_INDEX_TXT OPENVPN_KEY_DB_PATH "index.txt"
 #define OPENVPN_SERIAL OPENVPN_KEY_DB_PATH "serial"
@@ -91,23 +94,55 @@ err_exist:
     return false;
 }
 
+bool load_text_from_file(std::string &str, const char *txtfile) {
+    return false;
+}
+
 static bool openVpnManager_generate_openvpncfg(void) {
     // generate openvpn.conf to OPENVPN_CONF_FILE
     mkdir(CONFIG_DIR, 0755);
+
+    std::string server_key;
+    std::string ca_crt;
+    std::string server_crt;
+    std::string tls_auth;
+    std::string dh_pa;
+
+    load_text_from_file(server_key, OPENVPN_SERVER_KEY);
+    load_text_from_file(ca_crt, OPENVPN_CA_CRT);
+    load_text_from_file(server_crt, OPENVPN_SERVER_CRT);
+    load_text_from_file(tls_auth, OPENVPN_TLS_AUTH_PEM);
+    load_text_from_file(dh_pa, OPENVPN_DH_PEM);
 
     std::ofstream openvpn_conf_file(OPENVPN_CONF_FILE);
 
     if (openvpn_conf_file.is_open())
     {
         openvpn_conf_file <<
-                            "port 1194\n"
+                            "port " << openvpnCfg.port << "\n" <<
                             "proto udp\n"
-                            "dev tun\n"
-                            "ca ca.crt\n"
-                            "cert server.crt\n"
-                            "key server.key\n"
-                            "tls-auth ta.key 0\n"
-                            "dh dh2048.pem\n"
+                            "dev tun\n"\
+                            // server key
+                            "<key>\n"
+                            << server_key <<
+                            "</key>\n"
+                            // ca cert
+                            "<ca>\n"
+                            << ca_crt <<
+                            "</ca>\n"
+                            // server cert
+                            "<cert>\n"
+                            << server_crt <<
+                            "</cert>\n"
+                            // tls-auth
+                            "<tls-auth>\n"
+                            << tls_auth <<
+                            "</tls-auth>\n"
+                            // tls-auth
+                            "<dh>\n"
+                            << dh_pa <<
+                            "</dh>\n"
+
                             "server 10.8.0.0 255.255.255.0\n"
                             "ifconfig-pool-persist ipp.txt\n"
                             "push \"redirect-gateway def1 bypass-dhcp\"\n"
