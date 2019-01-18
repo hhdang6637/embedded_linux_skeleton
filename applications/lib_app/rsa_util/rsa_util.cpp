@@ -23,7 +23,8 @@
 #define OPENSSL_SERIAL_FILE OPENSSL_CA_DIR"/serial"
 
 
-static int openssl_rsa_system(const char *cmd) {
+static int openssl_rsa_system(const char *cmd)
+{
     // we need this wrapper to replace system by
     // another function in the future
     return system(cmd);
@@ -36,8 +37,7 @@ bool openssl_ca_init()
     char cmd_gen_serial_file[256];
     std::ofstream ca_confg_file(OPENSSL_CA_CONFIG);
 
-    if(ca_confg_file.is_open())
-    {
+    if(ca_confg_file.is_open()) {
         ca_confg_file <<   "[ ca ]\n"
                             "default_ca      = local_ca\n"
                             "[ local_ca ]\n"
@@ -86,16 +86,23 @@ bool openssl_ca_init()
     mkdir(OPENSSL_CA_DIR, 0755);
     mkdir(OPENSSL_CERTS_DIR, 0755);
     mkdir(OPENSSL_KEYS_DIR, 0755);
-    snprintf(cmd_gen_index_file,  sizeof(cmd_gen_index_file),  "touch %s",      OPENSSL_INDEX_FILE);
-    snprintf(cmd_gen_serial_file, sizeof(cmd_gen_serial_file), "echo 01 >> %s", OPENSSL_SERIAL_FILE);
+
+    snprintf(cmd_gen_index_file,  sizeof(cmd_gen_index_file),
+        "touch %s", OPENSSL_INDEX_FILE);
+
+    snprintf(cmd_gen_serial_file, sizeof(cmd_gen_serial_file),
+        "echo 01 >> %s", OPENSSL_SERIAL_FILE);
 
     rc = openssl_rsa_system(cmd_gen_index_file);
-    syslog(LOG_INFO, "openssl_ca_init:cmd_gen_index_file: %s return %d\n", cmd_gen_index_file, rc);
+    syslog(LOG_INFO, "openssl_ca_init:cmd_gen_index_file: %s return %d\n",
+        cmd_gen_index_file, rc);
+
     if(rc != 0)
         return false;
 
     rc = openssl_rsa_system(cmd_gen_serial_file);
-    syslog(LOG_INFO, "openssl_ca_init:cmd_gen_serial_file: %s return %d\n", cmd_gen_serial_file, rc);
+    syslog(LOG_INFO, "openssl_ca_init:cmd_gen_serial_file: %s return %d\n",
+        cmd_gen_serial_file, rc);
     if(rc != 0)
         return false;
 
@@ -105,22 +112,23 @@ bool openssl_ca_init()
 bool openssl_req(const char *dst_key, const char* dst_csr, int days, int bitSize, char* subject)
 {
     // ex: openssl req -nodes -newkey rsa:1024 -keyout /tmp/myCA/keys/server.pem -days 365 -keyform PEM -out /tmp/myCA/reqs/server.pem -outform PEM
-        //-subj "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=example.com/emailAddress=server@gmail.com"
+    //-subj "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=example.com/emailAddress=server@gmail.com"
+
     int rc;
     char cmd_openssl_gen_req[256];
+
     snprintf(cmd_openssl_gen_req, sizeof(cmd_openssl_gen_req),
-                                                            "openssl req  -newkey rsa:%d -keyout %s -days %d -keyform PEM -out %s -outform PEM -subj \" %s \"",
-                                                            bitSize, dst_key, days, dst_csr, subject);
+        "openssl req  -newkey rsa:%d -keyout %s -days %d -keyform PEM -out %s -outform PEM -subj \" %s \"",
+        bitSize, dst_key, days, dst_csr, subject);
 
     rc = openssl_rsa_system(cmd_openssl_gen_req);
-
     syslog(LOG_INFO, "openssl_req: %s return %d\n", cmd_openssl_gen_req, rc);
 
-    if(rc == 0)
-    {
+    if(rc == 0) {
         return true;
+    } else {
+        return false;
     }
-    return false;
 }
 
 bool openssl_gen_ca(const char* ca_key, const char* ca_crt, int days, int bitSize)
@@ -134,16 +142,19 @@ bool openssl_gen_ca(const char* ca_key, const char* ca_crt, int days, int bitSiz
 
     rc = openssl_rsa_system(cmd_openssl_gen_rsa_key);
 
-    syslog(LOG_INFO, "openssl_gen_ca_key: %s return %d\n", cmd_openssl_gen_rsa_key, rc);
+    syslog(LOG_INFO, "openssl_gen_ca_key: %s return %d\n",
+        cmd_openssl_gen_rsa_key, rc);
 
     if(rc == 0) {
         char cmd_gen_ca_cert[256];
         snprintf(cmd_gen_ca_cert, sizeof(cmd_gen_ca_cert),
-                                                        "openssl req -config %s -new -x509 -days %d -key %s -out %s -outform PEM",
-                                                        OPENSSL_CA_CONFIG ,days, ca_key, ca_crt);
+            "openssl req -config %s -new -x509 -days %d -key %s -out %s -outform PEM",
+            OPENSSL_CA_CONFIG ,days, ca_key, ca_crt);
 
         rc = openssl_rsa_system(cmd_gen_ca_cert);
-        syslog(LOG_INFO, "openssl_gen_ca_cert: %s return %d\n", cmd_gen_ca_cert, rc);
+        syslog(LOG_INFO, "openssl_gen_ca_cert: %s return %d\n",
+            cmd_gen_ca_cert, rc);
+
         if(rc == 0) {
             return true;
         } else {
@@ -161,11 +172,12 @@ bool openssl_sign(const char* src_csr, const char* dst_crt, int days)
     int rc;
     char cmd_sign_req[256];
     snprintf(cmd_sign_req, sizeof(cmd_sign_req),
-                                                "yes | openssl ca -config %s -in %s -days %d -out %s",
-                                                OPENSSL_CA_CONFIG, src_csr, days, dst_crt);
+        "yes | openssl ca -config %s -in %s -days %d -out %s",
+        OPENSSL_CA_CONFIG, src_csr, days, dst_crt);
 
     rc = openssl_rsa_system(cmd_sign_req);
     syslog(LOG_INFO, "openssl_sign: %s return %d\n", cmd_sign_req, rc);
+
     if(rc == 0)
     {
         return true;
@@ -184,12 +196,9 @@ bool openssl_gen_dh(const char* dh_key, int bitsize)
 
     syslog(LOG_INFO, "openssl_gen_dh: %s return %d\n", cmd_gen_dh, rc);
 
-    if( rc == 0)
-    {
+    if( rc == 0) {
         return true;
-    }
-    else
-    {
+    } else {
         return false;
     }
 }
