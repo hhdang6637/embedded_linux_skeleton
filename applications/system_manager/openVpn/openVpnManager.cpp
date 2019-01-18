@@ -63,6 +63,11 @@ static bool openVpnManager_rsa_key_is_ok(void) {
         goto err_exist;
     }
 
+    if(access(OPENVPN_SERVER_KEY, F_OK) == -1) {
+        syslog(LOG_ERR, OPENVPN_SERVER_KEY" not found");
+        goto err_exist;
+    }
+
     if(access(OPENVPN_CA_CRT, F_OK) == -1) {
         syslog(LOG_ERR, OPENVPN_CA_CRT" not found");
         goto err_exist;
