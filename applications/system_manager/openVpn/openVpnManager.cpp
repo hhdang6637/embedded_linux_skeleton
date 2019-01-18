@@ -110,6 +110,7 @@ bool load_text_from_file(std::string &str, const char *txtfile) {
         str_stream << file.rdbuf();
         str = str_stream.str();
         file.close();
+        return true;
     }
 
     return false;
