@@ -166,6 +166,12 @@ static bool openVpnManager_start_openvpn_service(void) {
     return true;
 }
 
+static bool init_rsa_database()
+{
+    // init CA, Server, index, ...
+    return false;
+}
+
 static bool openvpn_cfg_handler (int socket_fd)
 {
     app::rpcMessageOpenvpnCfg msgOpenvpnCfg;
