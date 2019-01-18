@@ -103,13 +103,14 @@ err_exist:
 
 bool load_text_from_file(std::string &str, const char *txtfile) {
 
-    std::ifstream file;
-    file.open(txtfile);
+    std::ifstream file(txtfile);
 
-    std::stringstream str_stream;
-
-    str_stream << file.rdbuf();
-    str = str_stream.str();
+    if (file.is_open()) {
+        std::stringstream str_stream;
+        str_stream << file.rdbuf();
+        str = str_stream.str();
+        file.close();
+    }
 
     return false;
 }
