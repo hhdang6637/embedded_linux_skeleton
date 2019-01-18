@@ -95,13 +95,22 @@ err_exist:
 }
 
 bool load_text_from_file(std::string &str, const char *txtfile) {
+
+    std::ifstream file(txtfile);
+
+    if (file.is_open()) {
+
+        file >> str;
+        file.close();
+
+        return true;
+    }
+
     return false;
 }
 
 static bool openVpnManager_generate_openvpncfg(void) {
     // generate openvpn.conf to OPENVPN_CONF_FILE
-    mkdir(CONFIG_DIR, 0755);
-
     std::string server_key;
     std::string ca_crt;
     std::string server_crt;
@@ -114,6 +123,8 @@ static bool openVpnManager_generate_openvpncfg(void) {
     load_text_from_file(tls_auth, OPENVPN_TLS_AUTH_PEM);
     load_text_from_file(dh_pa, OPENVPN_DH_PEM);
 
+    mkdir(CONFIG_DIR, 0755);
+
     std::ofstream openvpn_conf_file(OPENVPN_CONF_FILE);
 
     if (openvpn_conf_file.is_open())
@@ -125,23 +136,23 @@ static bool openVpnManager_generate_openvpncfg(void) {
                             // server key
                             "<key>\n"
                             << server_key <<
-                            "</key>\n"
+                            "\n</key>\n"
                             // ca cert
                             "<ca>\n"
                             << ca_crt <<
-                            "</ca>\n"
+                            "\n</ca>\n"
                             // server cert
                             "<cert>\n"
                             << server_crt <<
-                            "</cert>\n"
+                            "\n</cert>\n"
                             // tls-auth
                             "<tls-auth>\n"
                             << tls_auth <<
-                            "</tls-auth>\n"
+                            "\n</tls-auth>\n"
                             // tls-auth
                             "<dh>\n"
                             << dh_pa <<
-                            "</dh>\n"
+                            "\n</dh>\n"
 
                             "server 10.8.0.0 255.255.255.0\n"
                             "ifconfig-pool-persist ipp.txt\n"
