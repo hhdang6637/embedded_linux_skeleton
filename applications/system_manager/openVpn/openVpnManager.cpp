@@ -141,11 +141,13 @@ static bool openVpnManager_generate_openvpncfg(void)
 
     load_text_from_file(server_key, OPENVPN_SERVER_KEY);
     load_text_from_file(ca_crt, OPENVPN_CA_CRT);
-    load_text_from_file(server_crt, OPENVPN_SERVER_CRT);
+    load_text_from_file(server_crt, OPENVPN_SEREVR_CERT);
     load_text_from_file(tls_auth, OPENVPN_TLS_AUTH_PEM);
     load_text_from_file(dh_pa, OPENVPN_DH_PEM);
 
     mkdir(CONFIG_DIR, 0755);
+
+    std::ofstream openvpn_conf_file(OPENVPN_CONF_FILE);
 
     if (openvpn_conf_file.is_open())
     {
@@ -251,13 +253,13 @@ static bool openvpn_gen_ta(const char* ta_key)
 
 static bool init_rsa_database()
 {
-    if (openssl_ca_init(OPENSSL_CA_DIR) == false) {
-        syslog(LOG_ERR, "can NOT init CA Directory: %s\n", OPENSSL_CA_DIR);
+    if (openssl_ca_init(OPENVPN_DB_PATH) == false) {
+        syslog(LOG_ERR, "can NOT init CA Directory: %s\n", OPENVPN_DB_PATH);
         goto err;
     }
 
     // Gen ca.key & ca.crt
-    if (openssl_gen_ca(OPENSSL_CA_DIR, OPENVPN_CA_KEY, OPENVPN_CA_CRT, DAYS_EXPIRE, BITS_SIZE_CA) == false) {
+    if (openssl_gen_ca(OPENVPN_DB_PATH, OPENVPN_CA_KEY, OPENVPN_CA_CRT, DAYS_EXPIRE, BITS_SIZE_CA) == false) {
         syslog(LOG_ERR, "can NOT gen CA\n");
         goto err;
     }
@@ -271,7 +273,7 @@ static bool init_rsa_database()
         goto err;
     }
 
-    if (openssl_sign(OPENSSL_CA_DIR, OPENVPN_SERVER_REQ, OPENVPN_SEREVR_CERT, DAYS_EXPIRE) == false) {
+    if (openssl_sign(OPENVPN_DB_PATH, OPENVPN_SERVER_REQ, OPENVPN_SEREVR_CERT, DAYS_EXPIRE) == false) {
         syslog(LOG_ERR, "can NOT SIGN req for %s\n", OPENVPN_SERVER_REQ);
         goto err;
     }
@@ -283,7 +285,7 @@ static bool init_rsa_database()
     }
 
     //Gen ta key
-    if (openvpn_gen_ta(OPENVPN_TA_KEY) == false) {
+    if (openvpn_gen_ta(OPENVPN_TLS_AUTH_PEM) == false) {
         syslog(LOG_ERR, "can NOT gen TA key\n");
         goto err;
     }
