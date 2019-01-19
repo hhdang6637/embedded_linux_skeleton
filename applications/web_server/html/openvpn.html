@@ -44,6 +44,7 @@
 </style>
 
 <div class="container">
+    <div class="status"></div>
     <div class="tab">
         <button id="defaultOpen" class="tablinks" onclick="openTab(event, 'VPN_CFG')">VPN Configuration</button>
         <button class="tablinks" onclick="openTab(event, 'CA_INFO')">CA & Server Informations</button>
@@ -137,31 +138,36 @@ $(function () {
 
     addUserForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        post_form_data();
+        post_form_data($, 'js-openvpn_setting-form', function(json) {
+        $(".status").empty();
+            if (json.status == "succeeded") {
+              $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+            } else {
+              $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+              showInfor();
+            }
+        });
     })
 }(jQuery);
 
-function post_form_data()
-{
-    var port_vpn = document.getElementById("port").value;
-    var state = document.getElementById("enable_vpn").checked;
+function post_form_data($, id, onSuccess) {
 
     var formData = new FormData();
-    formData.append('port_vpn', port_vpn);
-    formData.append('state', 0);
+    $.each($('#' + id +' [name]'), function(i, elem) {
+        formData.append($(elem).attr('name'), $(elem).val());
+    });
 
-    if (state == true)
-    {
-        formData.append('state', 1);
-    }
+    $.ajax({
+        type: "POST",
+        url: $('#' + id).attr('action'),
+        data: formData,
+        enctype: 'multipart/form-data',
+        processData: false,
+        contentType: false,
+        cache: false,
 
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', '/json/openvpn_cfg', true);
-    xhr.onload = function () {
-        //TODO show the progress
-    };
-
-    xhr.send(formData);
+        success: onSuccess,
+    });
 }
 
 function openTab(evt, tabName) {
