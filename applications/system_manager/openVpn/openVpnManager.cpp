@@ -80,7 +80,7 @@ static bool openVpnManager_rsa_key_is_ok(void)
 
     if(access(OPENVPN_SERVER_KEY, F_OK) == -1) {
         syslog(LOG_ERR, OPENVPN_SERVER_KEY" not found");
-        goto err_exist;
+        goto err_exit;
     }
 
     if(access(OPENVPN_CA_CRT, F_OK) == -1) {
@@ -95,7 +95,7 @@ static bool openVpnManager_rsa_key_is_ok(void)
 
     if(access(OPENVPN_TLS_AUTH_PEM, F_OK) == -1) {
         syslog(LOG_ERR, OPENVPN_TLS_AUTH_PEM" not found");
-        goto err_exist;
+        goto err_exit;
     }
 
     if (access(OPENVPN_INDEX_TXT, F_OK) == -1) {
