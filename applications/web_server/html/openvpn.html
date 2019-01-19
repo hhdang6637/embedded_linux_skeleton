@@ -8,7 +8,7 @@
 }
 /* Style the buttons that are used to open the tab content */
 .tab button {
-    background-color: inherit;
+    background-color: rgba(0,123,255,.25);
     float: left;
     border: none;
     outline: none;
@@ -22,7 +22,7 @@
 }
 /* Create an active/current tablink class */
 .tab button.active {
-    background-color: #ccc;
+    background-color: #4d94ff;
 }
 /* Style the tab content */
 .tabcontent {
@@ -45,7 +45,7 @@
 
 <div class="container">
     <div class="tab">
-        <button class="tablinks" onclick="openTab(event, 'VPN_CFG')">VPN Configuration</button>
+        <button id="defaultOpen" class="tablinks" onclick="openTab(event, 'VPN_CFG')">VPN Configuration</button>
         <button class="tablinks" onclick="openTab(event, 'CA_INFO')">CA & Server Informations</button>
         <button class="tablinks" onclick="openTab(event, 'CLIENT_INFO')">Client Informations</button>
     </div>
@@ -71,7 +71,7 @@
         </div>
     </div>
     <div id="CA_INFO" class="tabcontent card">
-        <div class="card-body">
+        <div class="cardcurrentTarget-body">
             <h5 class="card-title text-center">CA and Server Certificate</h5>
             <form action="/json/openvpn_cert" method="post" enctype="multipart/form-data" id="js-openvpn_cert-form">
                 <div class="form-group">
@@ -107,8 +107,6 @@
             </form>
         </div>
     </div>
-
-    <button class="tablinks" hidden onclick="openTab(event, 'VPN_CFG')" id="defaultOpen"></button>
 </div>
 <script>
 $(function () {
