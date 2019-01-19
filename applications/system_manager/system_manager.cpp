@@ -23,6 +23,8 @@
 #include "rpcMessageUsers.h"
 #include "rpcMessageAuthentication.h"
 
+#include "timeManager.h"
+
 #define CONFIG_DIR "/tmp/configs"
 
 void mount_sd_card() {
@@ -216,6 +218,8 @@ void system_manager_service_loop()
     rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::handle_firmware_action, firmware_action_handler);
     rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::handle_users_action, users_action_handler);
     rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::handle_users_login, users_login_handler);
+
+    timeManager_init(*rpcServer);
 
     std::list<int> listReadFd;
     listReadFd.push_back(server_socket);

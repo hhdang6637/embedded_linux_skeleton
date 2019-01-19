@@ -9,6 +9,7 @@ SRCS += rpc/rpcMessageResourceHistory.o rpc/rpcMessageFirmware.o rpc/rpcMessageU
 SRCS += rpc/rpcMessageEvents.o rpc/rpcMessageAuthentication.o
 SRCS += libfdt/fdt_ro.o backtrace_signal.o netlink_socket.o conversion.o
 SRCS += ini.o user.o
+SRCS += rpc/rpcMessageTime.o
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@
