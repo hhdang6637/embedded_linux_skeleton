@@ -160,8 +160,8 @@ namespace app{
 
         msg.setMsgAction(app::rpcMessageOpenvpnCfgActionType::GET_OPENVPN_CFG);
 
-        if (rpcClient.doRpc(&msg) == false &&
-                msg.getMsgResult() == app::rpcMessageOpenvpnResultType::SUCCESS) {
+        if (rpcClient.doRpc(&msg) == false ||
+                msg.getMsgResult() != app::rpcMessageOpenvpnResultType::SUCCESS) {
             syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
             return false;
         }
@@ -177,8 +177,8 @@ namespace app{
         msg.setMsgAction(app::rpcMessageOpenvpnCfgActionType::SET_OPENVPN_CFG);
         msg.setOpenvpnCfg_data(openvpnCfg_data);
 
-        if (rpcClient.doRpc(&msg) == false &&
-                msg.getMsgResult() == app::rpcMessageOpenvpnResultType::SUCCESS) {
+        if (rpcClient.doRpc(&msg) == false ||
+                msg.getMsgResult() != app::rpcMessageOpenvpnResultType::SUCCESS) {
             syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
             return false;
         }
