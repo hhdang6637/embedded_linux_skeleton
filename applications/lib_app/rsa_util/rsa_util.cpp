@@ -16,12 +16,7 @@
 
 #include "rsa_util.h"
 
-#define OPENSSL_CA_CONFIG "/CA.cnf"
-#define OPENSSL_CERTS_DIR "/certs"
-#define OPENSSL_KEYS_DIR "/keys"
-#define OPENSSL_REQS_DIR "/reqs"
-#define OPENSSL_INDEX_FILE "/index.txt"
-#define OPENSSL_SERIAL_FILE "/serial"
+#define OPENSSL_CA_CONFIG "CA.cnf"
 
 static int openssl_rsa_system(const char *cmd)
 {
@@ -33,18 +28,19 @@ static int openssl_rsa_system(const char *cmd)
 bool openssl_ca_init(const char* openssl_ca_dir)
 {
     int rc;
-    char cmd_gen_index_file[256];
-    char cmd_gen_serial_file[256];
-    char openssl_ca_config[256];
-    char openssl_keys_dir[256];
-    char openssl_certs_dir[256];
-    char openssl_index_file[256];
-    char openssl_serial_file[256];
-    char openssl_reqs_dir[256];
+    char tmp_path[256];
 
-    snprintf(openssl_ca_config, sizeof(openssl_ca_config), "%s%s", openssl_ca_dir, OPENSSL_CA_CONFIG);
+    struct stat st;
+    if (lstat(openssl_ca_dir, &st) == -1) {
+        mkdir(openssl_ca_dir, 0755);
+    } else if (!S_ISDIR(st.st_mode)) {
+        syslog(LOG_ERR, "openssl_ca_init: %s is not a directory", openssl_ca_dir);
+        return false;
+    }
 
-    std::ofstream ca_confg_file(openssl_ca_config);
+    snprintf(tmp_path, sizeof(tmp_path), "%s/%s", openssl_ca_dir, OPENSSL_CA_CONFIG);
+
+    std::ofstream ca_confg_file(tmp_path);
 
     if (ca_confg_file.is_open()) {
         ca_confg_file << "[ ca ]\n"
@@ -90,34 +86,44 @@ bool openssl_ca_init(const char* openssl_ca_dir)
                       "\n";
 
         ca_confg_file.close();
+    } else {
+        syslog(LOG_ERR, "cannot open file %s", tmp_path);
+        return false;
     }
 
-    mkdir(openssl_ca_dir, 0755);
+    // make keys dir
+    snprintf(tmp_path, sizeof(tmp_path), "%s/keys", openssl_ca_dir);
+    if (mkdir(tmp_path, 0755) != 0) {
+        syslog(LOG_ERR, "cannot create the dir %s", tmp_path);
+    }
 
-    snprintf(openssl_certs_dir, sizeof(openssl_certs_dir), "%s%s", openssl_ca_dir, OPENSSL_CERTS_DIR);
-    mkdir(openssl_certs_dir, 0755);
+    // make cert dir
+    snprintf(tmp_path, sizeof(tmp_path), "%s/certs", openssl_ca_dir);
+    if (mkdir(tmp_path, 0755) != 0) {
+        syslog(LOG_ERR, "cannot create the dir %s", tmp_path);
+    }
 
-    snprintf(openssl_reqs_dir, sizeof(openssl_reqs_dir), "%s%s", openssl_ca_dir, OPENSSL_REQS_DIR);
-    mkdir(openssl_reqs_dir, 0755);
+    // make reqs dir
+    snprintf(tmp_path, sizeof(tmp_path), "%s/reqs", openssl_ca_dir);
+    if (mkdir(tmp_path, 0755) != 0) {
+        syslog(LOG_ERR, "cannot create the dir %s", tmp_path);
+    }
 
-    snprintf(openssl_keys_dir, sizeof(openssl_keys_dir), "%s%s", openssl_ca_dir, OPENSSL_KEYS_DIR);
-    mkdir(openssl_keys_dir, 0755);
+    snprintf(tmp_path, sizeof(tmp_path), "touch %s/index.txt", openssl_ca_dir);
 
-    snprintf(openssl_index_file, sizeof(openssl_index_file), "%s%s", openssl_ca_dir, OPENSSL_INDEX_FILE);
-    snprintf(cmd_gen_index_file, sizeof(cmd_gen_index_file), "touch %s", openssl_index_file);
-
-    snprintf(openssl_serial_file, sizeof(openssl_serial_file), "%s%s", openssl_ca_dir, OPENSSL_SERIAL_FILE);
-    snprintf(cmd_gen_serial_file, sizeof(cmd_gen_serial_file), "echo 01 >> %s", openssl_serial_file);
-
-    rc = openssl_rsa_system(cmd_gen_index_file);
-    syslog(LOG_INFO, "openssl_ca_init:cmd_gen_index_file: %s return %d\n", cmd_gen_index_file, rc);
-    if (rc != 0)
+    rc = openssl_rsa_system(tmp_path);
+    syslog(LOG_INFO, "openssl_ca_init: %s return %d\n", tmp_path, rc);
+    if (rc != 0) {
         return false;
+    }
 
-    rc = openssl_rsa_system(cmd_gen_serial_file);
-    syslog(LOG_INFO, "openssl_ca_init:cmd_gen_serial_file: %s return %d\n", cmd_gen_serial_file, rc);
-    if (rc != 0)
+    snprintf(tmp_path, sizeof(tmp_path), "echo 01 >> %s/serial", openssl_ca_dir);
+
+    rc = openssl_rsa_system(tmp_path);
+    syslog(LOG_INFO, "openssl_ca_init: %s return %d\n", tmp_path, rc);
+    if (rc != 0) {
         return false;
+    }
 
     return true;
 }
@@ -151,7 +157,7 @@ bool openssl_gen_ca(const char* openssl_ca_dir, const char* ca_key, const char* 
     char cmd_openssl_gen_rsa_key[256];
     char openssl_ca_config[256];
 
-    snprintf(openssl_ca_config, sizeof(openssl_ca_config), "%s%s", openssl_ca_dir, OPENSSL_CA_CONFIG);
+    snprintf(openssl_ca_config, sizeof(openssl_ca_config), "%s/%s", openssl_ca_dir, OPENSSL_CA_CONFIG);
 
     snprintf(cmd_openssl_gen_rsa_key, sizeof(cmd_openssl_gen_rsa_key), "openssl genrsa -out %s %d", ca_key, bitSize);
 
@@ -185,7 +191,7 @@ bool openssl_sign(const char* openssl_ca_dir, const char* src_csr, const char* d
     int rc;
     char cmd_sign_req[256];
     char openssl_ca_config[256];
-    snprintf(openssl_ca_config, sizeof(openssl_ca_config), "%s%s", openssl_ca_dir, OPENSSL_CA_CONFIG);
+    snprintf(openssl_ca_config, sizeof(openssl_ca_config), "%s/%s", openssl_ca_dir, OPENSSL_CA_CONFIG);
 
     snprintf(cmd_sign_req, sizeof(cmd_sign_req), "yes | openssl ca -config %s -in %s -days %d -out %s",
              openssl_ca_config, src_csr, days, dst_crt);
