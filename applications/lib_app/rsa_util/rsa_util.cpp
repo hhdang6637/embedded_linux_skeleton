@@ -43,10 +43,11 @@ bool openssl_ca_init(const char* openssl_ca_dir)
     std::ofstream ca_confg_file(tmp_path);
 
     if (ca_confg_file.is_open()) {
-        ca_confg_file << "[ ca ]\n"
+        ca_confg_file <<
+                      "dir             = " << openssl_ca_dir << "\n"
+                      "[ ca ]\n"
                       "default_ca      = local_ca\n"
                       "[ local_ca ]\n"
-                      "dir             = " << openssl_ca_dir << "\n"
                       "certificate     = $dir/certs/ca.crt\n"
                       "database        = $dir/index.txt\n"
                       "new_certs_dir   = $dir/certs\n"
@@ -134,10 +135,10 @@ bool openssl_req(const char *dst_key, const char* dst_csr, int days, int bitSize
     //-subj "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=example.com/emailAddress=server@gmail.com"
 
     int rc;
-    char cmd_openssl_gen_req[256];
+    char cmd_openssl_gen_req[512];
 
     snprintf(cmd_openssl_gen_req, sizeof(cmd_openssl_gen_req),
-             "openssl req  -newkey rsa:%d -keyout %s -days %d -keyform PEM -out %s -outform PEM -subj \" %s \"",
+             "openssl req -nodes -newkey rsa:%d -keyout %s -days %d -keyform PEM -out %s -outform PEM -subj \"%s\"",
              bitSize, dst_key, days, dst_csr, subject);
 
     rc = openssl_rsa_system(cmd_openssl_gen_req);
@@ -208,6 +209,7 @@ bool openssl_sign(const char* openssl_ca_dir, const char* src_csr, const char* d
 
 bool openssl_gen_dh(const char* dh_key, int bitsize)
 {
+#if 0
     int rc;
     char cmd_gen_dh[256];
     snprintf(cmd_gen_dh, sizeof(cmd_gen_dh), "openssl dhparam -out %s %d", dh_key, bitsize);
@@ -221,4 +223,32 @@ bool openssl_gen_dh(const char* dh_key, int bitsize)
     } else {
         return false;
     }
+#else
+    std::ofstream dh_file(dh_key);
+
+    if (dh_file.is_open()) {
+        dh_file <<
+"-----BEGIN DH PARAMETERS-----\n"
+"MIICCAKCAgEA22vBE1bv+y2zWLe3uKAMNU5ZC9ft+0QcHwM1fDW1Bszy9Hop0zft\n"
+"11QzCNPacONPxHihTsbikfjjxkJQ+8L/k4MBPN91nuigSO6X6Gnccq7rxwHcv+UG\n"
+"MZFmXekPbLkmS9/xo484yglrgzi7JrznsO8zibq6bPG4ApZqQC1DfBUKADUKjSNZ\n"
+"5aqiAWMoUduW+lAc6JTnVxeeNV/0BXDjlAbPj5tURC0JYUe9+rMa5lerOPjD7c/2\n"
+"h/hfEaB0xgiqqq9RDucZloJJadz6OEdkYxgsLR8VH88seEa95TLFCNJ7A02w2GtM\n"
+"SIevgdtxsdFURRLqbtZuYs9qFlHSfLBJeI0Qn/3oqKKzkDliZWxzQgKVcppFWtvB\n"
+"KomAUyY2sEw8P75FEMqIUY3n05N+4Iy+GihivAL9SQJTxqOip8lr80f+4wyi4Zt/\n"
+"GNUm+c3/E7eup7W/FSepD0oIDrLZw25yrmWa2ZNPpGW8xLr/Vl5rnjvEaVIu2Gb4\n"
+"1yBc7aUBSHBr43JkZO4WafQ4zreQwzDw5yT/8C1cP/aCb2uBRERq47+ZLQwNIwEV\n"
+"OopGQg3NwztkGOjarDgc5zeo7OPfFW/4f9zhNoTapVT99blVRS1wofGzIbE6/V8T\n"
+"z33ZPgMLRlc/G1a2hRgfa5hXGAN9T+206TIe5tx84qy7ZHH0RuwvzUMCAQI=\n"
+"-----END DH PARAMETERS-----\n"
+                      "\n";
+
+        dh_file.close();
+    } else {
+        syslog(LOG_ERR, "cannot open file %s", dh_key);
+        return false;
+    }
+
+    return true;
+#endif
 }
