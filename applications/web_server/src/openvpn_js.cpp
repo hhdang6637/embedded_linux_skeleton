@@ -46,7 +46,7 @@ std::string json_handle_openvpn_cfg(FCGX_Request *request)
                 POSTParser.SetContentType(contentType);
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
-                openvpnCfg.state = POSTParser.GetFieldText("enable_vpn").compare("on") == 0 ? 1 : 0;
+                openvpnCfg.state = POSTParser.GetFieldText("enable_vpn").compare("true") == 0 ? 1 : 0;
                 openvpnCfg.port = std::atoi(POSTParser.GetFieldText("port").c_str());
 
                 if (app::rpcMessageOpenvpnCfg::rpcSetOpenvpnCfg_data(*app::rpcUnixClient::getInstance(), openvpnCfg))

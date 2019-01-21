@@ -157,7 +157,12 @@ function post_form_data($, id, onSuccess) {
 
     var formData = new FormData();
     $.each($('#' + id +' [name]'), function(i, elem) {
-        formData.append($(elem).attr('name'), $(elem).val());
+        if ($(elem).attr('type') == 'checkbox')
+        {
+            formData.append($(elem).attr('name'), $(elem).prop('checked'));
+        } else {
+            formData.append($(elem).attr('name'), $(elem).val());
+        }
     });
 
     $.ajax({
