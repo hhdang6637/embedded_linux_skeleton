@@ -17,6 +17,8 @@
 #define NTP_CONFIG_DIR  "/tmp/ntp/"
 #define NTP_PID_FILE    "/var/run/ntpd.pid"
 
+static app::ntpConfig_t ntpCfg;
+
 namespace app
 {
 
@@ -50,6 +52,8 @@ serviceNtp* serviceNtp::getInstance()
 
 bool serviceNtp::init()
 {
+    // TODO
+
     mkdir(NTP_CONFIG_DIR, 0755);
 
     return copy_file(NTP_PERSISTENT_CONFIG, NTP_CONFIG_DIR"ntp.conf");
@@ -63,6 +67,19 @@ bool serviceNtp::start()
     system(command.c_str());
 
     return true;
+}
+
+bool serviceNtp::setNtpCfg(const ntpConfig_t &cfg)
+{
+    // TODO
+    init();
+    return start();
+}
+
+ntpConfig_t const &serviceNtp::getNtpCfg() const
+{
+    // TODO
+    return ntpCfg;
 }
 
 } /* namespace app */

@@ -23,7 +23,13 @@ namespace app
     enum rpcMessageTimeActionType: int16_t {
         GET_SYSTEM_TIME,
         SET_SYSTEM_TIME,
+        GET_NTP_CONFIG,
+        SET_NTP_CONFIG
     };
+
+    typedef struct {
+        // TODO:
+    } ntpConfig_t;
 
     class rpcMessageTime: public rpcMessage
     {
@@ -40,11 +46,16 @@ namespace app
         app::rpcMessageTimeResultType        getMsgResult(void) const;
         void                                 setMsgResult(const rpcMessageTimeResultType result);
 
-        struct tm                            getSystemTime(void) const;
+        struct tm const                      &getSystemTime(void) const;
         void                                 setSystemTime(const struct tm &time);
+
+        ntpConfig_t const                    &getNtpCfg(void) const;
+        void                                 setNtpCfg(const ntpConfig_t &cfg);
 
         static app::rpcMessageTimeResultType rpcSetSystemTime(app::rpcUnixClient &rpcClient, const struct tm& time);
         static app::rpcMessageTimeResultType rpcGetSystemTime(app::rpcUnixClient &rpcClient, struct tm& time);
+        static app::rpcMessageTimeResultType rpcSetNtpCfg(app::rpcUnixClient &rpcClient, const ntpConfig_t& cfg);
+        static app::rpcMessageTimeResultType rpcGetNtpCfg(app::rpcUnixClient &rpcClient, ntpConfig_t& cfg);
 
         static std::string                   timeMsgResult2Str(const rpcMessageTimeResultType &result);
 
@@ -52,6 +63,7 @@ namespace app
         app::rpcMessageTimeResultType msgResult;
         app::rpcMessageTimeActionType msgAction;
         struct tm                     systemTime;
+        ntpConfig_t                   ntpCfg;
     };
 
 } /* namespace app */

@@ -9,6 +9,7 @@
 #define APPLICATIONS_SYSTEM_MANAGER_SERVICENTP_H_
 
 #include "service.h"
+#include "rpcMessageTime.h"
 
 namespace app
 {
@@ -25,6 +26,9 @@ public:
     virtual std::string service_name();
     virtual bool init();
     virtual bool start();
+
+    bool              setNtpCfg(const ntpConfig_t &cfg);
+    ntpConfig_t const &getNtpCfg() const;
 
     static serviceNtp* getInstance();
 };

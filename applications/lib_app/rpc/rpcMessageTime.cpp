@@ -60,7 +60,7 @@ namespace app
         this->msgResult = result;
     }
 
-    struct tm rpcMessageTime::getSystemTime() const
+    struct tm const &rpcMessageTime::getSystemTime() const
     {
         return this->systemTime;
     }
@@ -68,6 +68,16 @@ namespace app
     void rpcMessageTime::setSystemTime(const struct tm &time)
     {
         this->systemTime = time;
+    }
+
+    ntpConfig_t const &rpcMessageTime::getNtpCfg() const
+    {
+        return this->ntpCfg;
+    }
+
+    void rpcMessageTime::setNtpCfg(const ntpConfig_t &cfg)
+    {
+        this->ntpCfg = cfg;
     }
 
     app::rpcMessageTimeResultType rpcMessageTime::rpcGetSystemTime(app::rpcUnixClient &rpcClient, struct tm& time)
@@ -93,6 +103,38 @@ namespace app
         msg.setMsgAction(app::rpcMessageTimeActionType::SET_SYSTEM_TIME);
 
         msg.setSystemTime(time);
+
+        if (rpcClient.doRpc(&msg) == false) {
+            syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+            return app::rpcMessageTimeResultType::UNKNOWN;
+        }
+
+        return msg.getMsgResult();
+    }
+
+    app::rpcMessageTimeResultType rpcMessageTime::rpcGetNtpCfg(app::rpcUnixClient &rpcClient, ntpConfig_t& cfg)
+    {
+        app::rpcMessageTime msg;
+
+        msg.setMsgAction(app::rpcMessageTimeActionType::GET_NTP_CONFIG);
+
+        if (rpcClient.doRpc(&msg) == false) {
+            syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+            return app::rpcMessageTimeResultType::UNKNOWN;
+        }
+
+        cfg = msg.getNtpCfg();
+
+        return msg.getMsgResult();
+    }
+
+    app::rpcMessageTimeResultType rpcMessageTime::rpcSetNtpCfg(app::rpcUnixClient &rpcClient, const ntpConfig_t& cfg)
+    {
+        app::rpcMessageTime msg;
+
+        msg.setMsgAction(app::rpcMessageTimeActionType::SET_NTP_CONFIG);
+
+        msg.setNtpCfg(cfg);
 
         if (rpcClient.doRpc(&msg) == false) {
             syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
