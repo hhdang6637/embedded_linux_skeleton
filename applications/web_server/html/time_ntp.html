@@ -46,7 +46,20 @@ $(function () {
 
     function showTime_Ntp() {
     $.getJSON( "/json/time_ntp", function(data) {
-
+        if(data != null)
+        {
+            if(data.json_time_ntp.enable_ntp == 0)
+            {
+                $("#chkNtpEnable").attr('checked', false);
+                $("#txtDate").val(data.json_time_ntp.date);
+                document.getElementById("txtTime").value = data.json_time_ntp.time;
+            }
+            else
+            {
+                $("#chkNtpEnable").attr('checked', true);
+                $("#txtNtpServerAddress").val(data.json_time_ntp.ntp_server);
+            }
+        }
         });
     }
 }(jQuery);
@@ -66,5 +79,61 @@ $("#chkNtpEnable").change(function () {
     }
 })
 .change();
+
+
+(function($) {
+
+    var time_ntp_form = document.getElementById('js-time_ntp-form');
+
+    time_ntp_form.addEventListener('submit', function(e) {
+    $(".status").empty();
+
+    var checkBox = document.getElementById("chkNtpEnable");
+    var chkNtpEnable = 0;
+    var txtNtpServer, txtDate, txtTime;
+    if(checkBox.checked == true)
+    {
+        chkNtpEnable = 1;
+        txtNtpServer = $('#txtNtpServerAddress').val();
+        txtTime="";
+        txtDate="";
+    }
+    else
+    {
+        chkNtpEnable = 0;
+        txtNtpServer = "";
+        txtDate = $('#txtDate').val();
+        txtTime = $('#txtTime').val();
+    }
+
+    e.preventDefault();
+
+    var formData = new FormData();
+    formData.append('enable_ntp', chkNtpEnable);
+    formData.append('ntp_server', txtNtpServer);
+    formData.append('date', txtDate);
+    formData.append('time', txtTime);
+
+    $.ajax ({
+        type: "POST",
+        url: $(time_ntp_form).attr('action'),
+        data: formData,
+        enctype: 'multipart/form-data',
+        processData: false,  // Important!
+        contentType: false,
+        cache: false,
+
+        success: function(json) {
+            console.log(json);
+            if (json.status == "succeeded") {
+                $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+            } else {
+                $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+            }
+        },
+  });
+})
+
+})(jQuery);
 
 </script>
