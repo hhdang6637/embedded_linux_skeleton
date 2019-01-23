@@ -252,3 +252,27 @@ bool openssl_gen_dh(const char* dh_key, int bitsize)
     return true;
 #endif
 }
+
+bool openssl_get_subject_crt(const char *server_crt_path, char *server_subject, size_t size_name)
+{
+    char line[256];
+    char cmd_str[256];
+
+    snprintf(cmd_str, sizeof(cmd_str), "openssl x509 -noout -subject -in %s", server_crt_path);
+
+    FILE *f = popen(cmd_str, "r");
+    if (f == NULL) {
+        syslog(LOG_ERR, "cannot run command : %s", cmd_str);
+        return false;
+    }
+
+    if (fgets(line, sizeof(line), f) > 0) {
+        if (strlen(line) <= size_name) {
+            snprintf(server_subject, size_name, "%s", line);
+        }
+    }
+
+    pclose(f);
+
+    return true;
+}
