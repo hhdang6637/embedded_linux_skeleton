@@ -3,6 +3,7 @@
 
 #include <fcgiapp.h>
 #include <syslog.h>
+#include <time.h>
 
 #include "utilities.h"
 #include "wifisetting_js.h"
@@ -45,7 +46,6 @@ std::string json_handle_time_ntp(FCGX_Request *request)
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
                 std::string enable_ntp = POSTParser.GetField("enable_ntp")->GetTextTypeContent();
-                printf("json_handle_time_ntp: enable_ntp: %s\n", enable_ntp.c_str());
                 syslog(LOG_INFO, "json_handle_time_ntp: enable_ntp: %s\n", enable_ntp.c_str());
                 if(stoi(enable_ntp) == 1) // enable
                 {
@@ -54,11 +54,17 @@ std::string json_handle_time_ntp(FCGX_Request *request)
                 }
                 else
                 {
+                    struct tm date_time;
                     std::string date = POSTParser.GetField("date")->GetTextTypeContent();
                     syslog(LOG_INFO, "json_handle_time_ntp: date: %s\n", date.c_str());
+                    strptime(date.c_str(), "%Y-%m-%d", &date_time);
 
                     std::string time = POSTParser.GetField("time")->GetTextTypeContent();
                     syslog(LOG_INFO,"json_handle_time_ntp: time: %s\n", time.c_str());
+                    strptime(time.c_str(), "%H:%M", &date_time);
+
+                    syslog(LOG_INFO, "json_handle_time_ntp: time2: H=%d M=%d\n", date_time.tm_hour, date_time.tm_min);
+                    syslog(LOG_INFO, "json_handle_time_ntp: date2: d=%d m=%d y=%d\n", date_time.tm_mday, date_time.tm_mon, date_time.tm_year);
                 }
 
                 return build_time_ntp_rsp_json("succeeded", "succeeded");
