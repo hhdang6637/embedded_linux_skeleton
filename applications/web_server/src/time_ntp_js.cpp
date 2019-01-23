@@ -45,21 +45,21 @@ std::string json_handle_time_ntp(FCGX_Request *request)
 
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
-                std::string enable_ntp = POSTParser.GetField("enable_ntp")->GetTextTypeContent();
+                std::string enable_ntp = POSTParser.GetFieldText("enable_ntp");
                 syslog(LOG_INFO, "json_handle_time_ntp: enable_ntp: %s\n", enable_ntp.c_str());
                 if(stoi(enable_ntp) == 1) // enable
                 {
-                    std::string ntp_server = POSTParser.GetField("ntp_server")->GetTextTypeContent();
+                    std::string ntp_server = POSTParser.GetFieldText("ntp_server");
                     syslog(LOG_INFO, "json_handle_time_ntp: ntp_server: %s\n", ntp_server.c_str());
                 }
                 else
                 {
                     struct tm date_time;
-                    std::string date = POSTParser.GetField("date")->GetTextTypeContent();
+                    std::string date = POSTParser.GetFieldText("date");
                     syslog(LOG_INFO, "json_handle_time_ntp: date: %s\n", date.c_str());
                     strptime(date.c_str(), "%Y-%m-%d", &date_time);
 
-                    std::string time = POSTParser.GetField("time")->GetTextTypeContent();
+                    std::string time = POSTParser.GetFieldText("time");
                     syslog(LOG_INFO,"json_handle_time_ntp: time: %s\n", time.c_str());
                     strptime(time.c_str(), "%H:%M", &date_time);
 
