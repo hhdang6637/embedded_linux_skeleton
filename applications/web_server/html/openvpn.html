@@ -119,6 +119,7 @@ $(function () {
 
     $(document).ready(function(){
         showInfor();
+        showCert();
     });
 
     function showInfor()
@@ -134,12 +135,13 @@ $(function () {
             } else {
                 $("#enable_vpn").prop('checked', false);
             }
+
         });
     }
 
-    var addUserForm = document.getElementById('js-openvpn_setting-form');
+    var openvpn_ConfigForm = document.getElementById('js-openvpn_setting-form');
 
-    addUserForm.addEventListener('submit', function(e) {
+    openvpn_ConfigForm.addEventListener('submit', function(e) {
         e.preventDefault();
         post_form_data($, 'js-openvpn_setting-form', function(json) {
         $(".status").empty();
@@ -151,6 +153,33 @@ $(function () {
             }
         });
     })
+
+    function showCert()
+    {
+        $.getJSON( "/json/openvpn_cert", function(data) {
+
+            var cert = data.json_openvpn_cert;
+
+            $("#ca").val(cert.ca_name);
+            $("#server").val(cert.server_name);
+        });
+    }
+
+    var openvpn_CertForm = document.getElementById('js-openvpn_cert-form');
+
+    openvpn_CertForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        post_cert_form($, 'js-openvpn_cert-form', function(json) {
+        $(".status").empty();
+            if (json.status == "succeeded") {
+              $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+            } else {
+              $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+              showCert();
+            }
+        });
+    })
+
 }(jQuery);
 
 function post_form_data($, id, onSuccess) {
@@ -163,6 +192,26 @@ function post_form_data($, id, onSuccess) {
         } else {
             formData.append($(elem).attr('name'), $(elem).val());
         }
+    });
+
+    $.ajax({
+        type: "POST",
+        url: $('#' + id).attr('action'),
+        data: formData,
+        enctype: 'multipart/form-data',
+        processData: false,
+        contentType: false,
+        cache: false,
+
+        success: onSuccess,
+    });
+}
+
+function post_cert_form($, id, onSuccess) {
+
+    var formData = new FormData();
+    $.each($('#' + id +' [name]'), function(i, elem) {
+        formData.append($(elem).attr('name'), $(elem).val());
     });
 
     $.ajax({
