@@ -84,7 +84,7 @@
                     <input type="text" class="form-control" id="server" name="server" placeholder="Server name">
                 </div>
                 <div class="row justify-content-md-center">
-                    <button type="submit" class="btn btn-primary btn-lg">Apply</button>
+                    <button type="submit" class="btn btn-primary btn-lg">Re-Gen</button>
                 </div>
             </form>
         </div>
@@ -165,21 +165,6 @@ $(function () {
         });
     }
 
-    var openvpn_CertForm = document.getElementById('js-openvpn_cert-form');
-
-    openvpn_CertForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        post_cert_form($, 'js-openvpn_cert-form', function(json) {
-        $(".status").empty();
-            if (json.status == "succeeded") {
-              $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
-            } else {
-              $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
-              showCert();
-            }
-        });
-    })
-
 }(jQuery);
 
 function post_form_data($, id, onSuccess) {
@@ -192,26 +177,6 @@ function post_form_data($, id, onSuccess) {
         } else {
             formData.append($(elem).attr('name'), $(elem).val());
         }
-    });
-
-    $.ajax({
-        type: "POST",
-        url: $('#' + id).attr('action'),
-        data: formData,
-        enctype: 'multipart/form-data',
-        processData: false,
-        contentType: false,
-        cache: false,
-
-        success: onSuccess,
-    });
-}
-
-function post_cert_form($, id, onSuccess) {
-
-    var formData = new FormData();
-    $.each($('#' + id +' [name]'), function(i, elem) {
-        formData.append($(elem).attr('name'), $(elem).val());
     });
 
     $.ajax({
