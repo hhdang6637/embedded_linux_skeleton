@@ -6,7 +6,7 @@
  */
 
 #include "rpcUnixClient.h"
-
+#include <memory>
 #include "rpcMessageTime.h"
 
 namespace app
@@ -28,14 +28,144 @@ namespace app
 
     bool rpcMessageTime::serialize(int fd)
     {
-        // TODO
+        uint16_t tmpValue;
+        tmpValue = (uint16_t) this->msgAction;
+        if (rpcMessage::sendInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+            return false;
+        }
+
+        switch (this->msgAction)
+        {
+            case app::rpcMessageTimeActionType::GET_NTP_CONFIG:
+            case app::rpcMessageTimeActionType::SET_NTP_CONFIG:
+            {
+                int buff_len = 0;
+                int offset = 0;
+
+                buff_len += sizeof(uint16_t) + strlen(this->ntpCfg.ntp_server);
+                buff_len += sizeof(uint16_t);
+
+                std::unique_ptr<char> buff_ptr(new char[buff_len]);
+                std::string ntp_server(this->ntpCfg.ntp_server);
+                offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, ntp_server);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->ntpCfg.state);
+
+                if (buff_len != offset) {
+                    syslog(LOG_ERR, "%s-%u something wrong happened", __FUNCTION__, __LINE__);
+                    return false;
+                }
+
+                if (rpcMessage::sendInterruptRetry(fd, buff_ptr.get(), offset) != true) {
+                    return false;
+                }
+
+                break;
+            }
+            case app::rpcMessageTimeActionType::GET_SYSTEM_TIME:
+            case app::rpcMessageTimeActionType::SET_SYSTEM_TIME:
+            {
+                int buff_len = 0;
+                int offset = 0;
+
+                buff_len += sizeof(int); // for day
+                buff_len += sizeof(int); // for month
+                buff_len += sizeof(int); // for year
+                buff_len += sizeof(int); // for hh
+                buff_len += sizeof(int); // for mm
+                buff_len += sizeof(int); // for ss
+
+                std::unique_ptr<char> buff_ptr(new char[buff_len]);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->systemTime.tm_mday);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->systemTime.tm_mon);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->systemTime.tm_year);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->systemTime.tm_hour);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->systemTime.tm_min);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->systemTime.tm_sec);
+
+                if (buff_len != offset) {
+                    syslog(LOG_ERR, "%s-%u something wrong happened", __FUNCTION__, __LINE__);
+                    return false;
+                }
+
+                if (rpcMessage::sendInterruptRetry(fd, buff_ptr.get(), offset) != true) {
+                    return false;
+                }
+
+                break;
+            }
+            default:
+                break;
+        }
 
         return true;
     }
 
     bool rpcMessageTime::deserialize(int fd)
     {
-        // TODO
+        uint16_t tmpValue;
+        if (rpcMessage::recvInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+            return false;
+        }
+
+        this->msgAction = app::rpcMessageTimeActionType(tmpValue);
+
+        switch (this->msgAction)
+        {
+            case app::rpcMessageTimeActionType::GET_NTP_CONFIG:
+            case app::rpcMessageTimeActionType::SET_NTP_CONFIG:
+            {
+                uint16_t ntp_server_size;
+
+                if (rpcMessage::recvInterruptRetry(fd, &ntp_server_size, sizeof(uint16_t)) != true) {
+                    return false;
+                }
+
+                if(ntp_server_size > 0)
+                {
+                    memset(this->ntpCfg.ntp_server, 0, sizeof(this->ntpCfg.ntp_server));
+                    if (rpcMessage::recvInterruptRetry(fd, this->ntpCfg.ntp_server, ntp_server_size) != true) {
+                        return false;
+                    }
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->ntpCfg.state, sizeof(uint16_t)) != true) {
+                    return false;
+                }
+
+                break;
+            }
+            case app::rpcMessageTimeActionType::GET_SYSTEM_TIME:
+            case app::rpcMessageTimeActionType::SET_SYSTEM_TIME:
+            {
+                if (rpcMessage::recvInterruptRetry(fd, &this->systemTime.tm_mday, sizeof(int)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->systemTime.tm_mon, sizeof(int)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->systemTime.tm_year, sizeof(int)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->systemTime.tm_hour, sizeof(int)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->systemTime.tm_min, sizeof(int)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->systemTime.tm_sec, sizeof(int)) != true) {
+                    return false;
+                }
+
+                break;
+            }
+            default:
+                break;
+        }
 
         return true;
     }
