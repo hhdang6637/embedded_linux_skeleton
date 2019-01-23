@@ -1,0 +1,139 @@
+<div class="container">
+    <div class="status"></div>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <h3>Time - NTP</h3>
+            <form action="/json/time_ntp" id="js-time_ntp-form">
+
+                <div class="checkbox">
+                    <label><input type="checkbox" data-target="#chkNtpEnable" class="collapsed" aria-expanded="false" id="chkNtpEnable" name="ntp_enable"> NTP Enable</label>
+                </div>
+
+                <div class="form-group" name="divNtpServerAddress" id="divNtpServerAddress">
+                    <label for="txtNtpServerAddress">NTP server address</label>
+                    <input type="text" placeholder="Enter IP address" class="form-control" name="txtNtpServerAddress" id="txtNtpServerAddress">
+                </div>
+
+                <div id="divTime">
+                    <div class="form-group">
+                        <label for="txtDate">Date</label>
+                        <input type="date" class="form-control" name="txtDate" id="txtDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="txtTime">Time</label>
+                        <input type="time" class="form-control" data-format="hh:mm:ss" name="txtTime" id="txtTime">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-default bg-primary text-white">Apply</button>
+            </form>
+        </div>
+    </div>
+</div> <!-- /container -->
+<script>
+
+$(function () {
+    $("#myTopnav").find("a[href='/pages/time_ntp']").addClass("active")
+});
+
++ function($) {
+    'use strict';
+
+    $(document).ready(function(){
+    showTime_Ntp();
+    });
+
+    function showTime_Ntp() {
+    $.getJSON( "/json/time_ntp", function(data) {
+        if(data != null)
+        {
+            if(data.json_time_ntp.enable_ntp == 0)
+            {
+                $("#chkNtpEnable").attr('checked', false);
+                $("#txtDate").val(data.json_time_ntp.date);
+                document.getElementById("txtTime").value = data.json_time_ntp.time;
+            }
+            else
+            {
+                $("#chkNtpEnable").attr('checked', true);
+                $("#txtNtpServerAddress").val(data.json_time_ntp.ntp_server);
+            }
+        }
+        });
+    }
+}(jQuery);
+
+$("#chkNtpEnable").change(function () {
+    var checkBox = document.getElementById("chkNtpEnable");
+    if( checkBox.checked == true ) /* value of the Enable NTP type is 0*/
+    {
+        $('#divNtpServerAddress').removeAttr("hidden");
+        $("#txtNtpServerAddress").val('');
+        $('#divTime').attr('hidden', 'true');
+    }
+    else
+    {
+        $('#divTime').removeAttr("hidden");
+        $('#divNtpServerAddress').attr('hidden', 'true');
+    }
+})
+.change();
+
+
+(function($) {
+
+    var time_ntp_form = document.getElementById('js-time_ntp-form');
+
+    time_ntp_form.addEventListener('submit', function(e) {
+    $(".status").empty();
+
+    var checkBox = document.getElementById("chkNtpEnable");
+    var chkNtpEnable = 0;
+    var txtNtpServer, txtDate, txtTime;
+    if(checkBox.checked == true)
+    {
+        chkNtpEnable = 1;
+        txtNtpServer = $('#txtNtpServerAddress').val();
+        txtTime="";
+        txtDate="";
+    }
+    else
+    {
+        chkNtpEnable = 0;
+        txtNtpServer = "";
+        txtDate = $('#txtDate').val();
+        txtTime = $('#txtTime').val();
+    }
+
+    e.preventDefault();
+
+    var formData = new FormData();
+    formData.append('enable_ntp', chkNtpEnable);
+    formData.append('ntp_server', txtNtpServer);
+    formData.append('date', txtDate);
+    formData.append('time', txtTime);
+
+    $.ajax ({
+        type: "POST",
+        url: $(time_ntp_form).attr('action'),
+        data: formData,
+        enctype: 'multipart/form-data',
+        processData: false,  // Important!
+        contentType: false,
+        cache: false,
+
+        success: function(json) {
+            console.log(json);
+            if (json.status == "succeeded") {
+                $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+            } else {
+                $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+            }
+        },
+  });
+})
+
+})(jQuery);
+
+</script>
