@@ -252,3 +252,49 @@ bool openssl_gen_dh(const char* dh_key, int bitsize)
     return true;
 #endif
 }
+
+bool get_server_subject(const char *server_crt_path, char *server_subject, size_t size_name)
+{
+    char temp[256];
+    char command_line[256];
+
+    snprintf(command_line, sizeof(command_line), "openssl x509 -noout -subject -in %s", server_crt_path);
+
+    FILE *f = popen(command_line, "r");
+    if (f == NULL) {
+        return false;
+    }
+
+    if (fgets(temp, sizeof(temp), f) > 0) {
+        if (strlen(temp) <= size_name) {
+            snprintf(server_subject, size_name, "%s", temp);
+        }
+    }
+
+    pclose(f);
+
+    return true;
+}
+
+bool get_ca_subject(const char *ca_crt_path, char *ca_subject, size_t size_name)
+{
+    char temp[256];
+    char command_line[256];
+
+    snprintf(command_line, sizeof(command_line), "openssl x509 -noout -subject -in %s", ca_crt_path);
+
+    FILE *f = popen(command_line, "r");
+    if (f == NULL) {
+        return false;
+    }
+
+    if (fgets(temp, sizeof(temp), f) > 0) {
+        if (strlen(temp) <= size_name) {
+            snprintf(ca_subject, size_name, "%s", temp);
+        }
+    }
+
+    pclose(f);
+
+    return true;
+}
