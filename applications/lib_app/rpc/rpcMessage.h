@@ -56,6 +56,12 @@ public:
         return sizeof(t);
     }
 
+    static int bufferAppendU32(void*dst, uint32_t t)
+    {
+        memcpy(dst, &t, sizeof(t));
+        return sizeof(t);
+    }
+
     static int bufferAppendBool(void*dst, bool t)
     {
         memcpy(dst, &t, sizeof(t));

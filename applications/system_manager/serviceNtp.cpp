@@ -52,33 +52,60 @@ serviceNtp* serviceNtp::getInstance()
 
 bool serviceNtp::init()
 {
-    // TODO
-
     mkdir(NTP_CONFIG_DIR, 0755);
+    std::ofstream ntp_config_file(NTP_CONFIG_DIR"ntp.conf");
+    if(ntp_config_file.is_open())
+    {
+        ntp_config_file << "server " << ntpCfg.ntp_server << "\n";
 
-    return copy_file(NTP_PERSISTENT_CONFIG, NTP_CONFIG_DIR"ntp.conf");
+        ntp_config_file.close();
+    }
+    return true;
 }
+
+bool serviceNtp::stop()
+{
+    // verify pid file and stop openvpn service
+    if (access("/var/run/ntpd.pid", F_OK) != -1) {
+        if(system("killall ntpd") == 0)
+            return true;
+    }
+    return false;
+}
+
 
 bool serviceNtp::start()
 {
     std::string command;
     command = "/usr/sbin/ntpd -g -c " NTP_CONFIG_DIR "ntp.conf -p " NTP_PID_FILE;
 
-    system(command.c_str());
+    if(system(command.c_str()) == 0)
+        return true;
 
-    return true;
+    return false;
 }
 
 bool serviceNtp::setNtpCfg(const ntpConfig_t &cfg)
 {
-    // TODO
+    // TODO validate cfg
+
+    stop();
+    memset(&ntpCfg, 0, sizeof(ntpCfg));
+    memcpy(&ntpCfg, &cfg, sizeof(cfg));
     init();
-    return start();
+
+    if(cfg.state != 0)
+    {
+        return start();
+    }
+    return true;
 }
 
 ntpConfig_t const &serviceNtp::getNtpCfg() const
 {
     // TODO
+    syslog(LOG_INFO, "serviceNtp::getNtpCfg: enbale: %d\n", ntpCfg.state);
+    syslog(LOG_INFO, "serviceNtp::getNtpCfg: ntp_server: %s\n", ntpCfg.ntp_server);
     return ntpCfg;
 }
 

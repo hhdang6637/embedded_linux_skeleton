@@ -31,6 +31,7 @@ public:
     ntpConfig_t const &getNtpCfg() const;
 
     static serviceNtp* getInstance();
+    bool stop();
 };
 
 } /* namespace app */

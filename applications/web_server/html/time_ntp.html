@@ -53,11 +53,15 @@ $(function () {
                 $("#chkNtpEnable").attr('checked', false);
                 $("#txtDate").val(data.json_time_ntp.date);
                 document.getElementById("txtTime").value = data.json_time_ntp.time;
+                $('#divTime').removeAttr("hidden");
+                $('#divNtpServerAddress').attr('hidden', 'true');
             }
             else
             {
                 $("#chkNtpEnable").attr('checked', true);
                 $("#txtNtpServerAddress").val(data.json_time_ntp.ntp_server);
+                $('#divNtpServerAddress').removeAttr("hidden");
+                $('#divTime').attr('hidden', 'true');
             }
         }
         });
