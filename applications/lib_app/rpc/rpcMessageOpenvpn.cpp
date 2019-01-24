@@ -187,4 +187,154 @@ namespace app{
 
     }
 
+    //rpcMessageOpenvpnRsaInfo
+
+    rpcMessageOpenvpnRsaInfo::rpcMessageOpenvpnRsaInfo() :
+            rpcMessage(rpcMessageType::handle_openvpn_cert, rpcMessageAddr::system_manager_addr_t),
+            msgResult(app::rpcMessageOpenvpnResultType::UNKNOW),
+            msgAction(app::rpcMessageOpenvpnRsaInfoActionType::GET_OPENVPN_RSA_INFO),
+            openvpn_rsa_info()
+    {
+        //TO-DO
+    }
+
+    rpcMessageOpenvpnRsaInfo::~rpcMessageOpenvpnRsaInfo()
+    {
+        //TO-DO
+    }
+
+    bool rpcMessageOpenvpnRsaInfo::serialize(int fd)
+    {
+        int buff_len;
+        int offset;
+        uint16_t tmpValue;
+
+        buff_len = 0;
+        offset = 0;
+
+        tmpValue = (uint16_t)this->msgAction;
+        if (rpcMessage::sendInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+            return false;
+        }
+
+        switch (this->msgAction)
+        {
+            case app::rpcMessageOpenvpnRsaInfoActionType::SET_OPENVPN_RSA_INFO:
+            case app::rpcMessageOpenvpnRsaInfoActionType::GET_OPENVPN_RSA_INFO:
+            {
+                buff_len += sizeof(app::rpcMessageOpenvpnResultType);
+                buff_len += sizeof(app::rpcMessageOpenvpnRsaInfoActionType);
+                buff_len += sizeof(app::openvpn_rsa_info_t);
+
+                std::unique_ptr<char> buff_ptr(new char[buff_len]());
+
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, (uint16_t)this->msgResult);
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, (uint16_t)this->msgAction);
+
+                memcpy(buff_ptr.get() + offset, &this->openvpn_rsa_info, sizeof(this->openvpn_rsa_info));
+                offset += sizeof(this->openvpn_rsa_info);
+
+                if (buff_len != offset) {
+                    syslog(LOG_ERR, "%s-%u something wrong happened", __FUNCTION__, __LINE__);
+                    return false;
+                }
+
+                if (rpcMessage::sendInterruptRetry(fd, buff_ptr.get(), offset) != true) {
+                    return false;
+                }
+
+                break;
+            }
+
+            default:
+                break;
+        }
+
+        return true;
+    }
+
+    bool rpcMessageOpenvpnRsaInfo::deserialize(int fd)
+    {
+        uint16_t tmpValue;
+        if (rpcMessage::recvInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+            return false;
+        }
+
+        this->msgAction = app::rpcMessageOpenvpnRsaInfoActionType(tmpValue);
+
+        switch (this->msgAction)
+        {
+            case app::rpcMessageOpenvpnRsaInfoActionType::SET_OPENVPN_RSA_INFO:
+            case app::rpcMessageOpenvpnRsaInfoActionType::GET_OPENVPN_RSA_INFO:
+            {
+                if (rpcMessage::recvInterruptRetry(fd, &this->msgResult,
+                        sizeof(this->msgResult)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->msgAction,
+                        sizeof(this->msgAction)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->openvpn_rsa_info,
+                        sizeof(this->openvpn_rsa_info)) != true) {
+                    return false;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+        return true;
+    }
+
+    app::rpcMessageOpenvpnRsaInfoActionType rpcMessageOpenvpnRsaInfo::getMsgAction() const
+    {
+        return this->msgAction;
+    }
+
+    void rpcMessageOpenvpnRsaInfo::setMsgAction(const rpcMessageOpenvpnRsaInfoActionType action)
+    {
+        this->msgAction = action;
+    }
+
+    app::rpcMessageOpenvpnResultType rpcMessageOpenvpnRsaInfo::getMsgResult() const
+    {
+        return this->msgResult;
+    }
+
+    void rpcMessageOpenvpnRsaInfo::setMsgResult(const rpcMessageOpenvpnResultType result)
+    {
+        this->msgResult = result;
+    }
+
+    void rpcMessageOpenvpnRsaInfo::getOpenvpnRsaInfo(app::openvpn_rsa_info_t &openvpn_rsa_info)
+    {
+        openvpn_rsa_info = this->openvpn_rsa_info;
+    }
+
+    void rpcMessageOpenvpnRsaInfo::setOpenvpnRsaInfo(app::openvpn_rsa_info_t &openvpn_rsa_info)
+    {
+        this->openvpn_rsa_info = openvpn_rsa_info;
+    }
+
+    bool rpcMessageOpenvpnRsaInfo::rpcGetOpenvpnRsaInfo(app::rpcUnixClient &rpcClient, app::openvpn_rsa_info_t &openvpn_rsa_info)
+    {
+        app::rpcMessageOpenvpnRsaInfo msg;
+
+        msg.setMsgAction(app::rpcMessageOpenvpnRsaInfoActionType::GET_OPENVPN_RSA_INFO);
+
+        if (rpcClient.doRpc(&msg) == false ||
+                msg.getMsgResult() != app::rpcMessageOpenvpnResultType::SUCCESS) {
+            syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+            return false;
+        }
+
+        msg.getOpenvpnRsaInfo(openvpn_rsa_info);
+
+        return true;
+    }
+
 }
