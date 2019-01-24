@@ -168,8 +168,8 @@ $(function () {
     var openvpn_RsaForm = document.getElementById('js-openvpn_rsa-form');
     openvpn_RsaForm.addEventListener('submit', function(e) {
         e.preventDefault();
-       if (confirm("This action will remove all current client profiles too!!!")== true) {
-            post_form_data($, 'js-openvpn_setting-form', function(json) {
+       if (confirm("This action will remove all current client profiles too!!!") == true) {
+            post_form_data($, 'js-openvpn_rsa-form', function(json) {
             $(".status").empty();
                 if (json.status == "succeeded") {
                   $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
