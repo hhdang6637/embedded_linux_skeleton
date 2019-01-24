@@ -268,7 +268,10 @@ bool openssl_get_subject_crt(const char *server_crt_path, char *server_subject, 
 
     if (fgets(line, sizeof(line), f) > 0) {
 
-        line[strlen(line) -1] = '\0'; //delete \n (fail json)
+        if (line[strlen(line) -1] == '\n') {
+            line[strlen(line) -1] = '\0'; // remove the \n character
+        }
+
         if (strlen(line) <= size_name) {
             snprintf(server_subject, size_name, "%s", line);
         }
