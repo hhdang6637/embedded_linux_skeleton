@@ -258,7 +258,7 @@ bool openssl_get_subject_crt(const char *server_crt_path, char *server_subject, 
     char line[256];
     char cmd_str[256];
 
-    snprintf(cmd_str, sizeof(cmd_str), "openssl x509 -noout -subject -in %s", server_crt_path);
+    snprintf(cmd_str, sizeof(cmd_str), "openssl x509 -noout -subject -in %s 2>/dev/null", server_crt_path);
 
     FILE *f = popen(cmd_str, "r");
     if (f == NULL) {
@@ -267,6 +267,11 @@ bool openssl_get_subject_crt(const char *server_crt_path, char *server_subject, 
     }
 
     if (fgets(line, sizeof(line), f) > 0) {
+
+        if (line[strlen(line) -1] == '\n') {
+            line[strlen(line) -1] = '\0'; // remove the \n character
+        }
+
         if (strlen(line) <= size_name) {
             snprintf(server_subject, size_name, "%s", line);
         }

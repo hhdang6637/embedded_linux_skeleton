@@ -21,18 +21,6 @@ namespace app
         uint16_t    port;
     } openvpnCfg_t;
 
-    typedef struct  {
-        char caCrtName[50];         // ca.crt
-    } openvpnCfg_Ca_t;
-
-    typedef struct {
-        char clientCrtName[50];
-    } openvpnCfg_Ca_Client_t;
-
-    typedef struct {
-        char serverCrtName[50];
-    } openvpnCfg_Ca_Server_t;
-
     std::string openMsgResult2Str(const rpcMessageOpenvpnResultType &result);
 
     class rpcMessageOpenvpnCfg : public rpcMessage
@@ -61,6 +49,45 @@ namespace app
                                                 app::openvpnCfg_t &openvpnCfg_data);
         static bool                         rpcSetOpenvpnCfg_data(app::rpcUnixClient &rpcClient,
                                                 app::openvpnCfg_t &openvpnCfg_data);
+    };
+
+    enum rpcMessageOpenvpnRsaInfoActionType: int16_t {
+        GET_OPENVPN_RSA_INFO,
+        SET_OPENVPN_RSA_INFO
+    };
+
+    typedef struct  {
+        char ca_subjects[256];
+        char server_subjects[256];
+    } openvpn_rsa_info_t;
+
+    class rpcMessageOpenvpnRsaInfo : public rpcMessage
+    {
+    private:
+        app::rpcMessageOpenvpnResultType    msgResult;
+        app::rpcMessageOpenvpnRsaInfoActionType msgAction;
+        app::openvpn_rsa_info_t             openvpn_rsa_info;
+
+    public:
+                                            rpcMessageOpenvpnRsaInfo(/* args */);
+        virtual                             ~rpcMessageOpenvpnRsaInfo();
+        virtual bool                        serialize(int fd);
+        virtual bool                        deserialize(int);
+
+        app::rpcMessageOpenvpnRsaInfoActionType getMsgAction() const;
+        void                                setMsgAction(const rpcMessageOpenvpnRsaInfoActionType action);
+
+        app::rpcMessageOpenvpnResultType    getMsgResult() const;
+        void                                setMsgResult(const rpcMessageOpenvpnResultType result);
+
+        void                                getOpenvpnRsaInfo(app::openvpn_rsa_info_t &openvpn_rsa_info);
+        void                                setOpenvpnRsaInfo(app::openvpn_rsa_info_t &openvpn_rsa_info);
+
+        static bool                         rpcGetOpenvpnRsaInfo(app::rpcUnixClient &rpcClient,
+                                                app::openvpn_rsa_info_t &openvpn_rsa_info);
+
+        static bool                         rpcReGenOpevpnRsaInfo(app::rpcUnixClient &rpcClient);
+
     };
 }
 

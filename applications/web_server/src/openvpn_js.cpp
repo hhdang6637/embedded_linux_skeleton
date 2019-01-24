@@ -89,3 +89,44 @@ std::string json_handle_openvpn_cfg(FCGX_Request *request)
 
     return build_openvpn_rsp_json(status, "failed");
 }
+
+std::string json_handle_openvpn_rsa(FCGX_Request *request)
+{
+    const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
+    const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
+    std::string status      = "failed";
+
+    if (method && (strcmp(method, "GET") == 0)) {
+        std::ostringstream ss_json;
+        app::openvpn_rsa_info_t openvpnRsa_info;
+
+        app::rpcMessageOpenvpnRsaInfo::rpcGetOpenvpnRsaInfo(*app::rpcUnixClient::getInstance(), openvpnRsa_info);
+
+        ss_json << "{\"json_openvpn_rsa\": {";
+
+        ss_json << "\"ca_name\": ";
+        ss_json << "\"";
+        ss_json << openvpnRsa_info.ca_subjects;
+        ss_json << "\", ";
+
+        ss_json << "\"server_name\": ";
+        ss_json << "\"";
+        ss_json << openvpnRsa_info.server_subjects;
+        ss_json << "\"";
+
+        ss_json << "}}";
+
+        return ss_json.str();
+
+    } else if (method && (strcmp(method, "POST") == 0) && contentType) {
+
+        if (app::rpcMessageOpenvpnRsaInfo::rpcReGenOpevpnRsaInfo(*app::rpcUnixClient::getInstance())) {
+            status = "succeeded";
+        }
+
+        return build_openvpn_rsp_json(status, "success");
+
+    }
+
+    return build_openvpn_rsp_json(status, "failed");
+}

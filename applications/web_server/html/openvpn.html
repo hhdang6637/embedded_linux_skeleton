@@ -74,7 +74,7 @@
     <div id="CA_INFO" class="tabcontent card">
         <div class="cardcurrentTarget-body">
             <h5 class="card-title text-center">CA and Server Certificate</h5>
-            <form action="/json/openvpn_cert" method="post" enctype="multipart/form-data" id="js-openvpn_cert-form">
+            <form action="/json/openvpn_rsa" method="post" enctype="multipart/form-data" id="js-openvpn_rsa-form">
                 <div class="form-group">
                     <label for="ca">CA:</label>
                     <input type="text" class="form-control" id="ca" name="ca" placeholder="CA name">
@@ -84,7 +84,7 @@
                     <input type="text" class="form-control" id="server" name="server" placeholder="Server name">
                 </div>
                 <div class="row justify-content-md-center">
-                    <button type="submit" class="btn btn-primary btn-lg">Apply</button>
+                    <button type="submit" class="btn btn-primary btn-lg">Generate RSA suite</button>
                 </div>
             </form>
         </div>
@@ -119,6 +119,7 @@ $(function () {
 
     $(document).ready(function(){
         showInfor();
+        showCert();
     });
 
     function showInfor()
@@ -134,12 +135,13 @@ $(function () {
             } else {
                 $("#enable_vpn").prop('checked', false);
             }
+
         });
     }
 
-    var addUserForm = document.getElementById('js-openvpn_setting-form');
+    var openvpn_ConfigForm = document.getElementById('js-openvpn_setting-form');
 
-    addUserForm.addEventListener('submit', function(e) {
+    openvpn_ConfigForm.addEventListener('submit', function(e) {
         e.preventDefault();
         post_form_data($, 'js-openvpn_setting-form', function(json) {
         $(".status").empty();
@@ -151,6 +153,34 @@ $(function () {
             }
         });
     })
+
+    function showCert()
+    {
+        $.getJSON( "/json/openvpn_rsa", function(data) {
+
+            var cert = data.json_openvpn_rsa;
+
+            $("#ca").val(cert.ca_name);
+            $("#server").val(cert.server_name);
+        });
+    }
+
+    var openvpn_RsaForm = document.getElementById('js-openvpn_rsa-form');
+    openvpn_RsaForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+       if (confirm("This action will remove all current client profiles too!!!") == true) {
+            post_form_data($, 'js-openvpn_rsa-form', function(json) {
+            $(".status").empty();
+                if (json.status == "succeeded") {
+                  $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+                } else {
+                  $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+                }
+                showCert();
+            });
+        }
+    })
+
 }(jQuery);
 
 function post_form_data($, id, onSuccess) {
