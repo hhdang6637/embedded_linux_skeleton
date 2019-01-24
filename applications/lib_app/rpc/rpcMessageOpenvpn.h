@@ -85,6 +85,9 @@ namespace app
 
         static bool                         rpcGetOpenvpnRsaInfo(app::rpcUnixClient &rpcClient,
                                                 app::openvpn_rsa_info_t &openvpn_rsa_info);
+
+        static bool                         rpcReGenOpevpnRsaInfo(app::rpcUnixClient &rpcClient);
+
     };
 }
 

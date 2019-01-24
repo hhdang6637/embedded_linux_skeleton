@@ -337,4 +337,19 @@ namespace app{
         return true;
     }
 
+    bool rpcMessageOpenvpnRsaInfo::rpcReGenOpevpnRsaInfo(app::rpcUnixClient &rpcClient)
+    {
+        app::rpcMessageOpenvpnRsaInfo msg;
+
+        msg.setMsgAction(app::rpcMessageOpenvpnRsaInfoActionType::SET_OPENVPN_RSA_INFO);
+
+        if (rpcClient.doRpc(&msg) == false ||
+                msg.getMsgResult() != app::rpcMessageOpenvpnResultType::SUCCESS) {
+            syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+            return false;
+        }
+
+        return true;
+    }
+
 }
