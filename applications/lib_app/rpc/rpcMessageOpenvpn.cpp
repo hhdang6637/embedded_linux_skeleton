@@ -190,7 +190,7 @@ namespace app{
     //rpcMessageOpenvpnRsaInfo
 
     rpcMessageOpenvpnRsaInfo::rpcMessageOpenvpnRsaInfo() :
-            rpcMessage(rpcMessageType::handle_openvpn_cert, rpcMessageAddr::system_manager_addr_t),
+            rpcMessage(rpcMessageType::handle_openvpn_rsa_info, rpcMessageAddr::system_manager_addr_t),
             msgResult(app::rpcMessageOpenvpnResultType::UNKNOW),
             msgAction(app::rpcMessageOpenvpnRsaInfoActionType::GET_OPENVPN_RSA_INFO),
             openvpn_rsa_info()

@@ -90,7 +90,7 @@ std::string json_handle_openvpn_cfg(FCGX_Request *request)
     return build_openvpn_rsp_json(status, "failed");
 }
 
-std::string json_handle_openvpn_cert(FCGX_Request *request)
+std::string json_handle_openvpn_rsa(FCGX_Request *request)
 {
     const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
     std::string status      = "failed";
@@ -101,7 +101,7 @@ std::string json_handle_openvpn_cert(FCGX_Request *request)
 
         app::rpcMessageOpenvpnRsaInfo::rpcGetOpenvpnRsaInfo(*app::rpcUnixClient::getInstance(), openvpnRsa_info);
 
-        ss_json << "{\"json_openvpn_cert\": {";
+        ss_json << "{\"json_openvpn_rsa\": {";
 
         ss_json << "\"ca_name\": ";
         ss_json << "\"";

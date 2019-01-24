@@ -74,7 +74,7 @@
     <div id="CA_INFO" class="tabcontent card">
         <div class="cardcurrentTarget-body">
             <h5 class="card-title text-center">CA and Server Certificate</h5>
-            <form action="/json/openvpn_cert" method="post" enctype="multipart/form-data" id="js-openvpn_cert-form">
+            <form action="/json/openvpn_rsa" method="post" enctype="multipart/form-data" id="js-openvpn_cert-form">
                 <div class="form-group">
                     <label for="ca">CA:</label>
                     <input type="text" class="form-control" id="ca" name="ca" placeholder="CA name">
@@ -156,9 +156,9 @@ $(function () {
 
     function showCert()
     {
-        $.getJSON( "/json/openvpn_cert", function(data) {
+        $.getJSON( "/json/openvpn_rsa", function(data) {
 
-            var cert = data.json_openvpn_cert;
+            var cert = data.json_openvpn_rsa;
 
             $("#ca").val(cert.ca_name);
             $("#server").val(cert.server_name);

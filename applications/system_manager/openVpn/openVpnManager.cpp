@@ -371,7 +371,7 @@ void openVpnManager_init(app::rpcUnixServer &rpcServer)
     ca_subjects_load();
     openvpnCfg_set_default(&openvpnCfg);
     rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_openvpn_cfg, openvpn_cfg_handler);
-    rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_openvpn_cert, openvpn_rsa_info_handler);
+    rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_openvpn_rsa_info, openvpn_rsa_info_handler);
 }
 
 bool openVpnManager_openvpnCfg_get(app::openvpnCfg_t *openvpnCfg_ptr)

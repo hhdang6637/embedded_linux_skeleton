@@ -35,7 +35,7 @@ public:
         handle_users_login,
         handle_wifi_setting,
         handle_openvpn_cfg,
-        handle_openvpn_cert
+        handle_openvpn_rsa_info
     };
 protected:
     rpcMessageType  msgType;
