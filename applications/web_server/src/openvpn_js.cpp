@@ -97,15 +97,21 @@ std::string json_handle_openvpn_cert(FCGX_Request *request)
 
     if (method && (strcmp(method, "GET") == 0)) {
         std::ostringstream ss_json;
+        app::openvpn_rsa_info_t openvpnRsa_info;
+
+        app::rpcMessageOpenvpnRsaInfo::rpcGetOpenvpnRsaInfo(*app::rpcUnixClient::getInstance(), openvpnRsa_info);
 
         ss_json << "{\"json_openvpn_cert\": {";
 
-        ss_json << "\"ca_name\":";
-        ss_json << "\"CA name\"";
-        ss_json << ", ";
+        ss_json << "\"ca_name\": ";
+        ss_json << "\"";
+        ss_json << openvpnRsa_info.ca_subjects;
+        ss_json << "\", ";
 
-        ss_json << "\"server_name\":";
-        ss_json << "\"SERVER name\"";
+        ss_json << "\"server_name\": ";
+        ss_json << "\"";
+        ss_json << openvpnRsa_info.server_subjects;
+        ss_json << "\"";
 
         ss_json << "}}";
 

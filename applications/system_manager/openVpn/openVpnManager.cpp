@@ -344,11 +344,34 @@ static bool openvpn_cfg_handler(int socket_fd)
     return false;
 }
 
+static bool openvpn_rsa_info_handler(int socket_fd)
+{
+    app::rpcMessageOpenvpnRsaInfo msgOpenvpnRsaInfo;
+
+    if (msgOpenvpnRsaInfo.deserialize(socket_fd)) {
+
+        if (msgOpenvpnRsaInfo.getMsgAction() == app::rpcMessageOpenvpnRsaInfoActionType::GET_OPENVPN_RSA_INFO) {
+            app::openvpn_rsa_info_t openvpn_rsa_info;
+            openVpnManager_rsa_info_get(&openvpn_rsa_info); // nerver fail
+            msgOpenvpnRsaInfo.setOpenvpnRsaInfo(openvpn_rsa_info);
+            msgOpenvpnRsaInfo.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
+
+        } else {
+            msgOpenvpnRsaInfo.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
+        }
+
+        return msgOpenvpnRsaInfo.serialize(socket_fd);
+    }
+
+    return false;
+}
+
 void openVpnManager_init(app::rpcUnixServer &rpcServer)
 {
     ca_subjects_load();
     openvpnCfg_set_default(&openvpnCfg);
     rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_openvpn_cfg, openvpn_cfg_handler);
+    rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_openvpn_cert, openvpn_rsa_info_handler);
 }
 
 bool openVpnManager_openvpnCfg_get(app::openvpnCfg_t *openvpnCfg_ptr)
