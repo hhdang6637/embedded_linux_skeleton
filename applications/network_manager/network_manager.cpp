@@ -69,7 +69,15 @@ void network_manager_init()
     if (_network_manager_wake_up("eth0")) {
         // start udhcp
         app::serviceDhcpC::getInstance()->init();
+#if defined (orange_pi_zero)
+        // hack, we're using orange_pi_zero as vpn server with bridge mode.
+        system("/bin/busybox brctl addbr br0");
+        system("/bin/busybox brctl addif br0 eth0");
+        _network_manager_wake_up("br0");
+        app::serviceDhcpC::getInstance()->addManagedInterfaces("br0");
+#else
         app::serviceDhcpC::getInstance()->addManagedInterfaces("eth0");
+#endif
         app::serviceDhcpC::getInstance()->start();
     }
 
