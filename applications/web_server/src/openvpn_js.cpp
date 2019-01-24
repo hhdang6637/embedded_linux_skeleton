@@ -93,7 +93,6 @@ std::string json_handle_openvpn_cfg(FCGX_Request *request)
 std::string json_handle_openvpn_rsa(FCGX_Request *request)
 {
     const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
-    std::string status      = "failed";
 
     if (method && (strcmp(method, "GET") == 0)) {
         std::ostringstream ss_json;
@@ -116,7 +115,9 @@ std::string json_handle_openvpn_rsa(FCGX_Request *request)
         ss_json << "}}";
 
         return ss_json.str();
+    } else if (method && (strcmp(method, "POST") == 0)) {
+       return build_openvpn_rsp_json("succeeded", "failed");
     }
 
-    return build_openvpn_rsp_json(status, "failed");
+    return build_openvpn_rsp_json("failed", "failed");
 }
