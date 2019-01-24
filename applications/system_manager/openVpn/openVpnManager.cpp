@@ -356,6 +356,30 @@ static bool openvpn_rsa_info_handler(int socket_fd)
             msgOpenvpnRsaInfo.setOpenvpnRsaInfo(openvpn_rsa_info);
             msgOpenvpnRsaInfo.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
 
+        } else if (msgOpenvpnRsaInfo.getMsgAction() == app::rpcMessageOpenvpnRsaInfoActionType::SET_OPENVPN_RSA_INFO) {
+
+            if (access(OPENVPN_DB_PATH, F_OK) == -1) {
+                if (!init_rsa_database()) {
+                    msgOpenvpnRsaInfo.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
+                } else {
+                    ca_subjects_load();
+                    msgOpenvpnRsaInfo.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
+                }
+            } else {
+                if (system("rm -rf " OPENVPN_DB_PATH) != 0) {
+
+                    syslog(LOG_ERR, "cannot remove the dir %s", OPENVPN_DB_PATH);
+                    msgOpenvpnRsaInfo.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
+                } else {
+                    if (!init_rsa_database()) {
+                        msgOpenvpnRsaInfo.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
+                    } else {
+                        ca_subjects_load();
+                        msgOpenvpnRsaInfo.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
+                    }
+                }
+            }
+
         } else {
             msgOpenvpnRsaInfo.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
         }
