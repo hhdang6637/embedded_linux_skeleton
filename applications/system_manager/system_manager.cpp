@@ -12,7 +12,6 @@
 
 #include "utilities.h"
 #include "serviceHiawatha.h"
-#include "serviceNtp.h"
 #include "serviceOpenvpn.h"
 #include "userManager.h"
 #include "simpleTimerSync.h"
@@ -71,8 +70,6 @@ void system_manager_init()
     // start web server
     app::serviceHiawatha::getInstance()->init();
     app::serviceHiawatha::getInstance()->start();
-    app::serviceNtp::getInstance()->init();
-    app::serviceNtp::getInstance()->start();
     app::serviceOpenvpn::getInstance()->init();
     app::serviceOpenvpn::getInstance()->start();
 

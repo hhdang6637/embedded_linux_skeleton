@@ -1,5 +1,5 @@
 BIN=system_manager_daemon
-SRCS=main.o system_manager.o serviceHiawatha.o firmwareManager.o userManager.o serviceNtp.o serviceOpenvpn.o
+SRCS=main.o system_manager.o serviceHiawatha.o firmwareManager.o userManager.o serviceOpenvpn.o
 SRCS+=timeManager.o
 
 %.o : %.cpp
