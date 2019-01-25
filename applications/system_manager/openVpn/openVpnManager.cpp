@@ -132,7 +132,7 @@ err_exit:
     return false;
 }
 
-bool load_text_from_file(std::string &str, const char *txtfile)
+static bool load_text_from_file(std::string &str, const char *txtfile)
 {
 
     std::ifstream file(txtfile);
