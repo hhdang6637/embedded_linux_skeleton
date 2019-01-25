@@ -105,7 +105,7 @@
             </table>
             <div class="btn-toolbar d-flex justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
                 <div class="btn-group mr-2" role="group" aria-label="First group">
-                    <button type="button" class="btn btn-primary btn-lg">Generate Config</button>
+                    <button type="button" onclick="gen_config()" class="btn btn-primary btn-lg">Generate Config</button>
                 </div>
             </div>
         </div>
@@ -224,6 +224,35 @@ function post_form_data($, id, onSuccess) {
 
         success: onSuccess,
     });
+}
+
+function gen_config()
+{
+    var name_cert = prompt("Please enter the certificate name?", "pqtri");
+
+    var formData = new FormData();
+
+    if (name_cert != null) {
+        formData.append('name_cert', name_cert);
+
+        $.ajax({
+            type: "POST",
+            url: "/json/openvpn_client_cert",
+            data: formData,
+            enctype: 'multipart/form-data',
+            processData: false,
+            contentType: false,
+            cache: false,
+
+            success: function(json) {
+                if (json.status == "succeeded") {
+                  $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+                } else {
+                  $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+                }
+            },
+        });
+    }
 }
 
 function openTab(evt, tabName) {
