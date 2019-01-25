@@ -43,18 +43,24 @@ namespace app
                 int offset = 0;
 
                 buff_len += sizeof(uint16_t) + strlen(this->getNtpCfg().ntp_server);
-                buff_len += sizeof(uint16_t);
+                buff_len += sizeof(uint16_t) + strlen(this->getNtpCfg().ntp_server1);
+                buff_len += sizeof(uint16_t) + strlen(this->getNtpCfg().ntp_server2);
+                buff_len += sizeof(uint16_t) + strlen(this->getNtpCfg().ntp_server3);
+                buff_len += sizeof(uint16_t); // for state
                 buff_len += sizeof(uint16_t); // this->msgResult;
 
                 std::unique_ptr<char> buff_ptr(new char[buff_len]);
                 std::string ntp_server(this->getNtpCfg().ntp_server);
+                std::string ntp_server1(this->getNtpCfg().ntp_server1);
+                std::string ntp_server2(this->getNtpCfg().ntp_server2);
+                std::string ntp_server3(this->getNtpCfg().ntp_server3);
+
                 offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, ntp_server);
+                offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, ntp_server1);
+                offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, ntp_server2);
+                offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, ntp_server3);
                 offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->getNtpCfg().state);
                 offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->getMsgResult());
-
-                syslog(LOG_INFO, "rpcMessage::serialize: ntp_server_size: %d\n", strlen(this->getNtpCfg().ntp_server));
-                syslog(LOG_INFO, "rpcMessage::serialize: enable_ntp: %d\n", this->getNtpCfg().state);
-                syslog(LOG_INFO, "rpcMessage::serialize: ntp_server: %s\n", this->getNtpCfg().ntp_server);
 
                 if (buff_len != offset) {
                     syslog(LOG_ERR, "%s-%u something wrong happened", __FUNCTION__, __LINE__);
@@ -88,9 +94,6 @@ namespace app
                 offset += rpcMessage::bufferAppendU32(buff_ptr.get() + offset, (uint32_t) getSystemTime().tm_min);
                 offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, this->getMsgResult());
 
-                syslog(LOG_INFO, "Serialize: time: H=%d M=%d\n", getSystemTime().tm_hour, getSystemTime().tm_min);
-                syslog(LOG_INFO, "Serialize: date: d=%d m=%d y=%d\n", getSystemTime().tm_mday, getSystemTime().tm_mon, getSystemTime().tm_year);
-
                 if (buff_len != offset) {
                     syslog(LOG_ERR, "%s-%u something wrong happened", __FUNCTION__, __LINE__);
                     return false;
@@ -123,13 +126,12 @@ namespace app
             case app::rpcMessageTimeActionType::GET_NTP_CONFIG:
             case app::rpcMessageTimeActionType::SET_NTP_CONFIG:
             {
-                uint16_t ntp_server_size;
+                uint16_t ntp_server_size, ntp_server_size1, ntp_server_size2, ntp_server_size3;
                 app::ntpConfig_t ntpCfgTmp;
 
                 if (rpcMessage::recvInterruptRetry(fd, &ntp_server_size, sizeof(uint16_t)) != true) {
                     return false;
                 }
-                syslog(LOG_INFO, "rpcMessage::recvInterruptRetry: ntp_server_size: %d\n", ntp_server_size);
 
                 if(ntp_server_size > 0)
                 {
@@ -141,6 +143,48 @@ namespace app
                     strncpy(ntpCfgTmp.ntp_server, ntp_server, ntp_server_size);
                 }
 
+                if (rpcMessage::recvInterruptRetry(fd, &ntp_server_size1, sizeof(uint16_t)) != true) {
+                    return false;
+                }
+
+                if(ntp_server_size1 > 0)
+                {
+                    memset(ntpCfgTmp.ntp_server1, 0, sizeof(ntpCfgTmp.ntp_server1));
+                    char ntp_server1[ntp_server_size1];
+                    if (rpcMessage::recvInterruptRetry(fd, ntp_server1, ntp_server_size1) != true) {
+                        return false;
+                    }
+                    strncpy(ntpCfgTmp.ntp_server1, ntp_server1, ntp_server_size1);
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &ntp_server_size2, sizeof(uint16_t)) != true) {
+                    return false;
+                }
+
+                if(ntp_server_size2 > 0)
+                {
+                    memset(ntpCfgTmp.ntp_server2, 0, sizeof(ntpCfgTmp.ntp_server2));
+                    char ntp_server2[ntp_server_size2];
+                    if (rpcMessage::recvInterruptRetry(fd, ntp_server2, ntp_server_size2) != true) {
+                        return false;
+                    }
+                    strncpy(ntpCfgTmp.ntp_server2, ntp_server2, ntp_server_size2);
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &ntp_server_size3, sizeof(uint16_t)) != true) {
+                    return false;
+                }
+
+                if(ntp_server_size3 > 0)
+                {
+                    memset(ntpCfgTmp.ntp_server3, 0, sizeof(ntpCfgTmp.ntp_server3));
+                    char ntp_server3[ntp_server_size3];
+                    if (rpcMessage::recvInterruptRetry(fd, ntp_server3, ntp_server_size3) != true) {
+                        return false;
+                    }
+                    strncpy(ntpCfgTmp.ntp_server3, ntp_server3, ntp_server_size3);
+                }
+
                 if (rpcMessage::recvInterruptRetry(fd, &ntpCfgTmp.state, sizeof(uint16_t)) != true) {
                     return false;
                 }
@@ -150,8 +194,6 @@ namespace app
                 }
 
                 this->setNtpCfg(ntpCfgTmp);
-                syslog(LOG_INFO, "rpcMessage::recvInterruptRetry: enable_ntp: %d\n", this->getNtpCfg().state);
-                syslog(LOG_INFO, "rpcMessage::recvInterruptRetry: ntp_server: %s\n", this->getNtpCfg().ntp_server);
                 break;
             }
             case app::rpcMessageTimeActionType::GET_SYSTEM_TIME:
@@ -183,8 +225,6 @@ namespace app
                 }
 
                 this->setSystemTime(date_time);
-                syslog(LOG_INFO, "Deserialize: time: H=%d M=%d\n", getSystemTime().tm_hour, getSystemTime().tm_min);
-                syslog(LOG_INFO, "Deserialize: date: d=%d m=%d y=%d\n", getSystemTime().tm_mday, getSystemTime().tm_mon, getSystemTime().tm_year);
                 break;
             }
             default:

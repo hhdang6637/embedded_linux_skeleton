@@ -9,9 +9,26 @@
                     <label><input type="checkbox" data-target="#chkNtpEnable" class="collapsed" aria-expanded="false" id="chkNtpEnable" name="ntp_enable"> NTP Enable</label>
                 </div>
 
-                <div class="form-group" name="divNtpServerAddress" id="divNtpServerAddress">
-                    <label for="txtNtpServerAddress">NTP server address</label>
-                    <input type="text" placeholder="Enter IP address" class="form-control" name="txtNtpServerAddress" id="txtNtpServerAddress">
+                <div id="divNtpAddress">
+                    <div class="form-group" >
+                        <label for="txtNtpServerAddress">NTP server address 1</label>
+                        <input type="text" placeholder="Enter IP address 1" class="form-control" name="txtNtpServerAddress" id="txtNtpServerAddress">
+                    </div>
+
+                    <div class="form-group" >
+                        <label for="txtNtpServerAddress">NTP server address 2</label>
+                        <input type="text" placeholder="Enter IP address 2" class="form-control" name="txtNtpServerAddress1" id="txtNtpServerAddress1">
+                    </div>
+
+                    <div class="form-group" >
+                        <label for="txtNtpServerAddress">NTP server address 3</label>
+                        <input type="text" placeholder="Enter IP address 3" class="form-control" name="txtNtpServerAddress2" id="txtNtpServerAddress2">
+                    </div>
+
+                    <div class="form-group" >
+                        <label for="txtNtpServerAddress">NTP server address 4</label>
+                        <input type="text" placeholder="Enter IP address 4" class="form-control" name="txtNtpServerAddress3" id="txtNtpServerAddress3">
+                    </div>
                 </div>
 
                 <div id="divTime">
@@ -51,18 +68,22 @@ $(function () {
             if(data.json_time_ntp.enable_ntp == 0)
             {
                 $("#chkNtpEnable").attr('checked', false);
-                $("#txtDate").val(data.json_time_ntp.date);
-                document.getElementById("txtTime").value = data.json_time_ntp.time;
                 $('#divTime').removeAttr("hidden");
-                $('#divNtpServerAddress').attr('hidden', 'true');
+                $('#divNtpAddress').attr('hidden', 'true');
             }
             else
             {
                 $("#chkNtpEnable").attr('checked', true);
-                $("#txtNtpServerAddress").val(data.json_time_ntp.ntp_server);
-                $('#divNtpServerAddress').removeAttr("hidden");
+                $('#divNtpAddress').removeAttr("hidden");
                 $('#divTime').attr('hidden', 'true');
             }
+
+            $("#txtDate").val(data.json_time_ntp.date);
+            document.getElementById("txtTime").value = data.json_time_ntp.time;
+            $("#txtNtpServerAddress").val(data.json_time_ntp.ntp_server);
+            $("#txtNtpServerAddress1").val(data.json_time_ntp.ntp_server1);
+            $("#txtNtpServerAddress2").val(data.json_time_ntp.ntp_server2);
+            $("#txtNtpServerAddress3").val(data.json_time_ntp.ntp_server3);
         }
         });
     }
@@ -72,14 +93,13 @@ $("#chkNtpEnable").change(function () {
     var checkBox = document.getElementById("chkNtpEnable");
     if( checkBox.checked == true ) /* value of the Enable NTP type is 0*/
     {
-        $('#divNtpServerAddress').removeAttr("hidden");
-        $("#txtNtpServerAddress").val('');
+        $('#divNtpAddress').removeAttr("hidden");
         $('#divTime').attr('hidden', 'true');
     }
     else
     {
         $('#divTime').removeAttr("hidden");
-        $('#divNtpServerAddress').attr('hidden', 'true');
+        $('#divNtpAddress').attr('hidden', 'true');
     }
 })
 .change();
@@ -94,11 +114,14 @@ $("#chkNtpEnable").change(function () {
 
     var checkBox = document.getElementById("chkNtpEnable");
     var chkNtpEnable = 0;
-    var txtNtpServer, txtDate, txtTime;
+    var txtNtpServer, txtNtpServer1, txtNtpServer2, txtNtpServer3, txtDate, txtTime;
     if(checkBox.checked == true)
     {
         chkNtpEnable = 1;
         txtNtpServer = $('#txtNtpServerAddress').val();
+        txtNtpServer1 = $('#txtNtpServerAddress1').val();
+        txtNtpServer2 = $('#txtNtpServerAddress2').val();
+        txtNtpServer3 = $('#txtNtpServerAddress3').val();
         txtTime="";
         txtDate="";
     }
@@ -106,6 +129,9 @@ $("#chkNtpEnable").change(function () {
     {
         chkNtpEnable = 0;
         txtNtpServer = "";
+        txtNtpServer1 = "";
+        txtNtpServer2 = "";
+        txtNtpServer3 = "";
         txtDate = $('#txtDate').val();
         txtTime = $('#txtTime').val();
     }
@@ -115,6 +141,9 @@ $("#chkNtpEnable").change(function () {
     var formData = new FormData();
     formData.append('enable_ntp', chkNtpEnable);
     formData.append('ntp_server', txtNtpServer);
+    formData.append('ntp_server1', txtNtpServer1);
+    formData.append('ntp_server2', txtNtpServer2);
+    formData.append('ntp_server3', txtNtpServer3);
     formData.append('date', txtDate);
     formData.append('time', txtTime);
 
