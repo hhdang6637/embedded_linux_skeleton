@@ -5,12 +5,13 @@
  *      Author: nmhien
  */
 #include <time.h>
-
-#include "rpcMessageTime.h"
-#include "timeManager.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fstream>
+#include <string.h>
+
+#include "rpcMessageTime.h"
+#include "timeManager.h"
 #include "utilities.h"
 
 #define NTP_PERSISTENT_CONFIG   "/data/ntp.conf"
@@ -18,26 +19,6 @@
 #define NTP_PID_FILE    "/var/run/ntpd.pid"
 
 static app::ntpConfig_t ntpCfg;
-
-static bool configChange(const app::ntpConfig_t newCfg, const app::ntpConfig_t oldCfg)
-{
-    if(newCfg.state != oldCfg.state)
-        return true;
-
-    if(strcmp(newCfg.ntp_server, oldCfg.ntp_server) != 0 && strlen(newCfg.ntp_server) != 0)
-        return true;
-
-    if(strcmp(newCfg.ntp_server1, oldCfg.ntp_server1) != 0 && strlen(newCfg.ntp_server1) != 0)
-        return true;
-
-    if(strcmp(newCfg.ntp_server2, oldCfg.ntp_server2) != 0 && strlen(newCfg.ntp_server2) != 0)
-        return true;
-
-    if(strcmp(newCfg.ntp_server3, oldCfg.ntp_server3) != 0 && strlen(newCfg.ntp_server3) != 0)
-        return true;
-
-    return false;
-}
 
 static bool initNtp()
 {
@@ -91,7 +72,7 @@ static bool setNtpCfg(const app::ntpConfig_t cfg)
 {
     // TODO validate cfg
     bool result_start = false;
-    if(configChange(cfg, ntpCfg) == true)
+    if(::memcmp(&cfg, &ntpCfg, sizeof(app::ntpConfig_t)) != 0)
     {
         stopNtp();
         memset(&ntpCfg, 0, sizeof(ntpCfg));
