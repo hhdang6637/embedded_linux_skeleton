@@ -30,7 +30,6 @@ std::string json_handle_time_ntp(FCGX_Request *request)
 {
     const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
     const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
-    std::string status      = "failed";
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::ntpConfig_t ntpCfg = app::ntpConfig_t();
     tm sysTime;
@@ -38,10 +37,12 @@ std::string json_handle_time_ntp(FCGX_Request *request)
     if (method && (strcmp(method, "POST") == 0) && contentType) {
 
         std::string data;
+        std::string status = "failed";
 
         if (get_post_data(request, data)) {
             try {
                 MPFD::Parser POSTParser;
+                app::rpcMessageTimeResultType result;
 
                 POSTParser.SetContentType(contentType);
 
@@ -57,14 +58,12 @@ std::string json_handle_time_ntp(FCGX_Request *request)
                     std::string ntp_server2 = POSTParser.GetFieldText("ntp_server2");
                     std::string ntp_server3 = POSTParser.GetFieldText("ntp_server3");
 
-                    strncpy(ntpCfg.ntp_server, ntp_server.c_str(), strlen(ntp_server.c_str()));
-                    strncpy(ntpCfg.ntp_server1, ntp_server1.c_str(), strlen(ntp_server1.c_str()));
-                    strncpy(ntpCfg.ntp_server2, ntp_server2.c_str(), strlen(ntp_server2.c_str()));
-                    strncpy(ntpCfg.ntp_server3, ntp_server3.c_str(), strlen(ntp_server3.c_str()));
+                    string_copy(ntpCfg.ntp_server, ntp_server);
+                    string_copy(ntpCfg.ntp_server1, ntp_server1);
+                    string_copy(ntpCfg.ntp_server2, ntp_server2);
+                    string_copy(ntpCfg.ntp_server3, ntp_server3);
 
-                    if (app::rpcMessageTime::rpcSetNtpCfg(*rpcClient, ntpCfg) != app::rpcMessageTimeResultType::SUCCESS) {
-                        status = "failed";
-                    }
+                    result = app::rpcMessageTime::rpcSetNtpCfg(*rpcClient, ntpCfg);
                 }
                 else
                 {
@@ -76,16 +75,18 @@ std::string json_handle_time_ntp(FCGX_Request *request)
                     snprintf(date_time, sizeof(date_time), "%s %s", date.c_str(), mytime.c_str());
                     strptime(date_time, "%Y-%m-%d %H:%M", &sysTime);
 
-                    if (app::rpcMessageTime::rpcSetSystemTime(*rpcClient, sysTime) != app::rpcMessageTimeResultType::SUCCESS) {
-                        status = "failed";
-                    }
+                    result = app::rpcMessageTime::rpcSetSystemTime(*rpcClient, sysTime);
                 }
 
-                return build_time_ntp_rsp_json("succeeded", "succeeded");
+                if (result == app::rpcMessageTimeResultType::SUCCESS) {
+                    status = "succeeded";
+                }
+
+                return build_time_ntp_rsp_json(status, app::rpcMessageTime::timeMsgResult2Str(result));
 
             } catch (MPFD::Exception &e) {
                 syslog(LOG_ERR, "%s\n", e.GetError().c_str());
-                return build_time_ntp_rsp_json(status, e.GetError().c_str());
+                return build_time_ntp_rsp_json("failed", e.GetError().c_str());
             }
 
         } else {
