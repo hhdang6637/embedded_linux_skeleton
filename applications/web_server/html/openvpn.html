@@ -92,20 +92,22 @@
     <div id="CLIENT_INFO" class="tabcontent card">
         <div class="card-body">
             <h5 class="card-title text-center">Client Certificate</h5>
-            <form method="post" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="client_cert">Client Certificate:</label>
-                    <input type="text" class="form-control" id="client_cert" name="client_cert" placeholder="Client Certificate">
+            <table id='table' class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Client Name</th>
+                        <th>Expire (day)</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <div class="btn-toolbar d-flex justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
+                <div class="btn-group mr-2" role="group" aria-label="First group">
+                    <button type="button" class="btn btn-primary btn-lg">Generate Config</button>
                 </div>
-                <div class="btn-toolbar d-flex justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
-                    <div class="btn-group mr-2" role="group" aria-label="First group">
-                        <button type="button" class="btn btn-primary btn-lg">Generate Config</button>
-                    </div>
-                    <div class="btn-group" role="group" aria-label="Third group">
-                        <button type="button" class="btn btn-primary btn-lg">Download</button>
-                    </div>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
@@ -120,6 +122,7 @@ $(function () {
     $(document).ready(function(){
         showInfor();
         showCert();
+        showClient_Cert()
     });
 
     function showInfor()
@@ -180,6 +183,21 @@ $(function () {
             });
         }
     })
+
+    function showClient_Cert()
+    {
+        $.getJSON( "/json/openvpn_client_cert", function(data) {
+
+            var html = "";
+            var jsClient_Cert = data.json_client_cert;
+            for (var i = 0; i < jsClient_Cert.length; i++) {
+                var client = jsClient_Cert[i];
+
+                html += "<tr><td>" + client.name + "</td><td>" + client.expire + "</td><td class=\"text-center\"><button type=\"button\"  onclick=\"downLoad('" + client.name + "')\"" + "class=\"btn btn-primary btn-lg\">" + "Download" + "</button></td></tr>";
+            }
+            $('#table > tbody:last-child').append(html);
+        });
+    }
 
 }(jQuery);
 
