@@ -16,7 +16,6 @@
 
 static inline std::string build_time_ntp_rsp_json(std::string status, std::string message = "")
 {
-
     std::ostringstream ss_json;
 
     ss_json << "{";
@@ -33,7 +32,6 @@ std::string json_handle_time_ntp(FCGX_Request *request)
     const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
     std::string status      = "failed";
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
-    app::rpcMessageTime rpcTime;
     app::ntpConfig_t ntpCfg;
     tm sysTime;
 
@@ -69,7 +67,7 @@ std::string json_handle_time_ntp(FCGX_Request *request)
                     strncpy(ntpCfg.ntp_server2, ntp_server2.c_str(), strlen(ntp_server2.c_str()));
                     strncpy(ntpCfg.ntp_server3, ntp_server3.c_str(), strlen(ntp_server3.c_str()));
 
-                    if (rpcTime.rpcSetNtpCfg(*rpcClient, ntpCfg) != app::rpcMessageTimeResultType::SUCCESS) {
+                    if (app::rpcMessageTime::rpcSetNtpCfg(*rpcClient, ntpCfg) != app::rpcMessageTimeResultType::SUCCESS) {
                         status = "failed";
                     }
                 }
@@ -83,7 +81,7 @@ std::string json_handle_time_ntp(FCGX_Request *request)
                     snprintf(date_time, sizeof(date_time), "%s %s", date.c_str(), mytime.c_str());
                     strptime(date_time, "%Y-%m-%d %H:%M", &sysTime);
 
-                    if(rpcTime.rpcSetSystemTime(*rpcClient,sysTime) != app::rpcMessageTimeResultType::SUCCESS){
+                    if (app::rpcMessageTime::rpcSetSystemTime(*rpcClient, sysTime) != app::rpcMessageTimeResultType::SUCCESS) {
                         status = "failed";
                     }
                 }
@@ -102,16 +100,13 @@ std::string json_handle_time_ntp(FCGX_Request *request)
 
     } else if (method && (strcmp(method, "GET") == 0)) {
 
-        app::rpcMessageTime rpcTime;
         memset(&ntpCfg, 0, sizeof(ntpCfg));
         memset(&sysTime, 0, sizeof(sysTime));
 
-        auto resultRpcGetNtpCfg = rpcTime.rpcGetNtpCfg(*rpcClient, ntpCfg);
-        if (resultRpcGetNtpCfg != app::rpcMessageTimeResultType::SUCCESS)
+        if (app::rpcMessageTime::rpcGetNtpCfg(*rpcClient, ntpCfg) != app::rpcMessageTimeResultType::SUCCESS)
             return build_time_ntp_rsp_json("failed", "RPC rpcGetNtpCfg error");
 
-        auto resultRpcGetSystemTime = rpcTime.rpcGetSystemTime(*rpcClient, sysTime);
-        if(resultRpcGetSystemTime != app::rpcMessageTimeResultType::SUCCESS)
+        if (app::rpcMessageTime::rpcGetSystemTime(*rpcClient, sysTime) != app::rpcMessageTimeResultType::SUCCESS)
             return build_time_ntp_rsp_json("failed", "RPC rpcGetSystemTime error");
 
         char date[11];

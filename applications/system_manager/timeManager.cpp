@@ -20,49 +20,51 @@
 
 static app::ntpConfig_t ntpCfg;
 
-static bool initNtp()
+static bool buildNtpConfigFile()
 {
     mkdir(NTP_CONFIG_DIR, 0755);
     std::ofstream ntp_config_file(NTP_CONFIG_DIR"ntp.conf");
 
-    if(ntp_config_file.is_open())
-    {
+    if(ntp_config_file.is_open()) {
         ntp_config_file << "server " << ntpCfg.ntp_server << "\n"
                         << "server " << ntpCfg.ntp_server1 << "\n"
                         << "server " << ntpCfg.ntp_server2 << "\n"
                         << "server " << ntpCfg.ntp_server3 << "\n";
         ntp_config_file.close();
+        return true;
     }
 
-    return true;
+    return false;
 }
 
-static bool setNtpCfgDefault(app::ntpConfig_t *cfg)
+static void setNtpCfgDefault(app::ntpConfig_t *cfg)
 {
-    strncpy(cfg->ntp_server, "0.asia.pool.ntp.org", strlen("0.asia.pool.ntp.org"));
-    strncpy(cfg->ntp_server1, "1.asia.pool.ntp.org", strlen("1.asia.pool.ntp.org"));
-    strncpy(cfg->ntp_server2, "2.asia.pool.ntp.org", strlen("2.asia.pool.ntp.org"));
-    strncpy(cfg->ntp_server3, "3.asia.pool.ntp.org", strlen("3.asia.pool.ntp.org"));
-    return true;
+    std::string server("0.asia.pool.ntp.org");
+    std::string server1("1.asia.pool.ntp.org");
+    std::string server2("2.asia.pool.ntp.org");
+    std::string server3("3.asia.pool.ntp.org");
+
+    string_copy(cfg->ntp_server, server);
+    string_copy(cfg->ntp_server1, server1);
+    string_copy(cfg->ntp_server2, server2);
+    string_copy(cfg->ntp_server3, server3);
 }
 
 static bool stopNtp()
 {
     // verify pid file and stop ntpd service
     if (access("/var/run/ntpd.pid", F_OK) != -1) {
-        if(system("killall ntpd") == 0)
+        if (system("killall ntpd") == 0)
             return true;
     }
+
     return false;
 }
 
 
 static bool startNtp()
 {
-    std::string command;
-    command = "/usr/sbin/ntpd -g -c " NTP_CONFIG_DIR "ntp.conf -p " NTP_PID_FILE;
-
-    if(system(command.c_str()) == 0)
+    if(system("/usr/sbin/ntpd -g -c " NTP_CONFIG_DIR "ntp.conf -p " NTP_PID_FILE) == 0)
         return true;
 
     return false;
@@ -71,21 +73,20 @@ static bool startNtp()
 static bool setNtpCfg(const app::ntpConfig_t cfg)
 {
     // TODO validate cfg
-    bool result_start = false;
-    if(::memcmp(&cfg, &ntpCfg, sizeof(app::ntpConfig_t)) != 0)
-    {
+    if (::memcmp(&cfg, &ntpCfg, sizeof(app::ntpConfig_t)) != 0) {
         stopNtp();
         memset(&ntpCfg, 0, sizeof(ntpCfg));
         memcpy(&ntpCfg, &cfg, sizeof(cfg));
+
+        if (cfg.state != 0) {
+            if (buildNtpConfigFile() == true)
+                return startNtp();
+            else
+                return false;
+        }
     }
 
-    if(cfg.state != 0)
-    {
-        if( initNtp() == true)
-            result_start = startNtp();
-    }
-
-    return result_start;
+    return true;
 }
 
 static app::ntpConfig_t getNtpCfg()
@@ -102,6 +103,8 @@ static bool setSystemTime(const struct tm &date_time)
     char cmd_set_time[30];
     char _time[6];
 
+    // disable NTP
+    ntpCfg.state = 0;
     stopNtp();
 
     strftime(date, sizeof(date), "%Y-%m-%d", &date_time);
@@ -110,20 +113,18 @@ static bool setSystemTime(const struct tm &date_time)
     strftime(_time, sizeof(_time), "%H:%M", &date_time);
     snprintf(cmd_set_time, sizeof(cmd_set_time),"date --s \"%s\"",_time);
 
-    if( (system(cmd_set_date) != 0) ||
-        (system(cmd_set_time) != 0) )
-    {
+    if ((system(cmd_set_date) != 0) || (system(cmd_set_time) != 0)) {
         return false;
     }
     syslog(LOG_INFO,"setSystemTime: date %s time: %s", date, _time);
     return true;
 }
 
-static struct tm getSystemTime()
+static struct tm& getSystemTime()
 {
     time_t t = time(NULL);
-    tm sysTime = *localtime(&t);
-    return sysTime;
+
+    return *localtime(&t);
 }
 
 static bool time_cfg_handler (int socket_fd)
@@ -141,14 +142,9 @@ static bool time_cfg_handler (int socket_fd)
             }
             case app::rpcMessageTimeActionType::SET_SYSTEM_TIME:
             {
-                ntpCfg.state = 0;
-                bool result = setSystemTime(msg.getSystemTime());
-                if(result == true)
-                {
+                if (setSystemTime(msg.getSystemTime()) == true) {
                     msg.setMsgResult(app::rpcMessageTimeResultType::SUCCESS);
-                }
-                else
-                {
+                } else {
                     msg.setMsgResult(app::rpcMessageTimeResultType::FAILED);
                 }
 
@@ -158,19 +154,17 @@ static bool time_cfg_handler (int socket_fd)
             {
                 msg.setNtpCfg(getNtpCfg());
                 msg.setMsgResult(app::rpcMessageTimeResultType::SUCCESS);
+
                 break;
             }
             case app::rpcMessageTimeActionType::SET_NTP_CONFIG:
             {
-                bool result = setNtpCfg(msg.getNtpCfg());
-                if(result == true)
-                {
+                if (setNtpCfg(msg.getNtpCfg()) == true) {
                     msg.setMsgResult(app::rpcMessageTimeResultType::SUCCESS);
-                }
-                else
-                {
+                } else {
                     msg.setMsgResult(app::rpcMessageTimeResultType::FAILED);
                 }
+
                 break;
             }
         }
