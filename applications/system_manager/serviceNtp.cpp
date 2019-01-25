@@ -90,14 +90,17 @@ bool serviceNtp::setNtpCfg(const ntpConfig_t &cfg)
     // TODO validate cfg
 
     stop();
-    memset(&ntpCfg, 0, sizeof(ntpCfg));
-    memcpy(&ntpCfg, &cfg, sizeof(cfg));
-    init();
 
     if(cfg.state != 0)
     {
+        memset(&ntpCfg, 0, sizeof(ntpCfg));
+        memcpy(&ntpCfg, &cfg, sizeof(cfg));
+        init();
         return start();
     }
+
+    ntpCfg.state = cfg.state;
+
     return true;
 }
 
