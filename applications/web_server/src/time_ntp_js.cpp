@@ -32,7 +32,7 @@ std::string json_handle_time_ntp(FCGX_Request *request)
     const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
     std::string status      = "failed";
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
-    app::ntpConfig_t ntpCfg;
+    app::ntpConfig_t ntpCfg = app::ntpConfig_t();
     tm sysTime;
 
     if (method && (strcmp(method, "POST") == 0) && contentType) {
@@ -56,11 +56,6 @@ std::string json_handle_time_ntp(FCGX_Request *request)
                     std::string ntp_server1 = POSTParser.GetFieldText("ntp_server1");
                     std::string ntp_server2 = POSTParser.GetFieldText("ntp_server2");
                     std::string ntp_server3 = POSTParser.GetFieldText("ntp_server3");
-
-                    memset(ntpCfg.ntp_server, 0, sizeof(ntpCfg.ntp_server));
-                    memset(ntpCfg.ntp_server1, 0, sizeof(ntpCfg.ntp_server1));
-                    memset(ntpCfg.ntp_server2, 0, sizeof(ntpCfg.ntp_server2));
-                    memset(ntpCfg.ntp_server3, 0, sizeof(ntpCfg.ntp_server3));
 
                     strncpy(ntpCfg.ntp_server, ntp_server.c_str(), strlen(ntp_server.c_str()));
                     strncpy(ntpCfg.ntp_server1, ntp_server1.c_str(), strlen(ntp_server1.c_str()));
