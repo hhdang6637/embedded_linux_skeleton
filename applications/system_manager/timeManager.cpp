@@ -97,7 +97,6 @@ static bool setNtpCfg(const app::ntpConfig_t cfg)
         memset(&ntpCfg, 0, sizeof(ntpCfg));
         memcpy(&ntpCfg, &cfg, sizeof(cfg));
     }
-    ntpCfg.state = cfg.state;
 
     if(cfg.state != 0)
     {

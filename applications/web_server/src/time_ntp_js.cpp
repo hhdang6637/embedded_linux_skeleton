@@ -83,11 +83,6 @@ std::string json_handle_time_ntp(FCGX_Request *request)
                     snprintf(date_time, sizeof(date_time), "%s %s", date.c_str(), mytime.c_str());
                     strptime(date_time, "%Y-%m-%d %H:%M", &sysTime);
 
-                    memset(ntpCfg.ntp_server, 0, sizeof(ntpCfg.ntp_server));
-                    memset(ntpCfg.ntp_server1, 0, sizeof(ntpCfg.ntp_server1));
-                    memset(ntpCfg.ntp_server2, 0, sizeof(ntpCfg.ntp_server2));
-                    memset(ntpCfg.ntp_server3, 0, sizeof(ntpCfg.ntp_server3));
-
                     if(rpcTime.rpcSetSystemTime(*rpcClient,sysTime) != app::rpcMessageTimeResultType::SUCCESS){
                         status = "failed";
                     }
