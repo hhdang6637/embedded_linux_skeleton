@@ -130,3 +130,30 @@ std::string json_handle_openvpn_rsa(FCGX_Request *request)
 
     return build_openvpn_rsp_json(status, "failed");
 }
+
+std::string json_handle_openvpn_client_cert(FCGX_Request *request)
+{
+    const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
+    std::string status      = "failed";
+
+    if (method && (strcmp(method, "GET") == 0)) {
+        std::ostringstream ss_json;
+
+        ss_json << "{\"json_client_cert\": [{";
+
+        ss_json << "\"name\": ";
+        ss_json << "\"";
+        ss_json << "pqtri";
+        ss_json << "\", ";
+
+        ss_json << "\"expire\": ";
+        ss_json << "365";
+
+        ss_json << "}]}";
+
+        return ss_json.str();
+
+    }
+
+    return build_openvpn_rsp_json(status, "failed");
+}
