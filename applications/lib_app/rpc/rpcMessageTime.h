@@ -27,8 +27,13 @@ namespace app
         SET_NTP_CONFIG
     };
 
+    enum stateType: int16_t {
+        DISABLE = 0,
+        ENABLE
+    };
+
     typedef struct {
-        int16_t state;
+        stateType state;
         char ntp_server0[32];
         char ntp_server1[32];
         char ntp_server2[32];

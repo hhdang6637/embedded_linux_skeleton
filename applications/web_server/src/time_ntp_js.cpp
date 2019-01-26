@@ -48,10 +48,9 @@ std::string json_handle_time_ntp(FCGX_Request *request)
 
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
-                std::string enable_ntp = POSTParser.GetFieldText("enable_ntp");
-                ntpCfg.state = std::atoi(enable_ntp.c_str());
+                ntpCfg.state = POSTParser.GetFieldText("enable_ntp") == "enable" ? app::stateType::ENABLE : app::stateType::DISABLE;
 
-                if(stoi(enable_ntp) == 1) // enable
+                if(ntpCfg.state == app::stateType::ENABLE)
                 {
                     string_copy(ntpCfg.ntp_server0, POSTParser.GetFieldText("ntp_server0"));
                     string_copy(ntpCfg.ntp_server1, POSTParser.GetFieldText("ntp_server1"));
@@ -107,7 +106,7 @@ std::string json_handle_time_ntp(FCGX_Request *request)
 
         ss_json << "\"enable_ntp\": ";
         ss_json << "\"";
-        ss_json << ((ntpCfg.state == 0) ? "0" : "1");
+        ss_json << ((ntpCfg.state == app::stateType::ENABLE) ? "enable" : "disable");
         ss_json << "\", ";
 
         ss_json << "\"ntp_server0\": ";

@@ -73,7 +73,7 @@ static bool setNtpCfg(const app::ntpConfig_t cfg)
         memset(&ntpCfg, 0, sizeof(ntpCfg));
         memcpy(&ntpCfg, &cfg, sizeof(cfg));
 
-        if (cfg.state != 0) {
+        if (cfg.state == app::stateType::ENABLE) {
             if (buildNtpConfigFile() == true)
                 return startNtp();
             else
@@ -99,7 +99,7 @@ static bool setSystemTime(const struct tm &date_time)
     char _time[6];
 
     // disable NTP
-    ntpCfg.state = 0;
+    ntpCfg.state = app::stateType::DISABLE;
     stopNtp();
 
     strftime(date, sizeof(date), "%Y-%m-%d", &date_time);
