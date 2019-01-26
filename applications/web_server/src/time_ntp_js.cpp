@@ -53,26 +53,17 @@ std::string json_handle_time_ntp(FCGX_Request *request)
 
                 if(stoi(enable_ntp) == 1) // enable
                 {
-                    std::string ntp_server0 = POSTParser.GetFieldText("ntp_server0");
-                    std::string ntp_server1 = POSTParser.GetFieldText("ntp_server1");
-                    std::string ntp_server2 = POSTParser.GetFieldText("ntp_server2");
-                    std::string ntp_server3 = POSTParser.GetFieldText("ntp_server3");
-
-                    string_copy(ntpCfg.ntp_server0, ntp_server0);
-                    string_copy(ntpCfg.ntp_server1, ntp_server1);
-                    string_copy(ntpCfg.ntp_server2, ntp_server2);
-                    string_copy(ntpCfg.ntp_server3, ntp_server3);
+                    string_copy(ntpCfg.ntp_server0, POSTParser.GetFieldText("ntp_server0"));
+                    string_copy(ntpCfg.ntp_server1, POSTParser.GetFieldText("ntp_server1"));
+                    string_copy(ntpCfg.ntp_server2, POSTParser.GetFieldText("ntp_server2"));
+                    string_copy(ntpCfg.ntp_server3, POSTParser.GetFieldText("ntp_server3"));
 
                     result = app::rpcMessageTime::rpcSetNtpCfg(*rpcClient, ntpCfg);
                 }
                 else
                 {
-                    std::string date = POSTParser.GetFieldText("date");
-
-                    std::string mytime = POSTParser.GetFieldText("time");
-
                     char date_time[17];
-                    snprintf(date_time, sizeof(date_time), "%s %s", date.c_str(), mytime.c_str());
+                    snprintf(date_time, sizeof(date_time), "%s %s", POSTParser.GetFieldText("date").c_str(), POSTParser.GetFieldText("time").c_str());
                     strptime(date_time, "%Y-%m-%d %H:%M", &sysTime);
 
                     result = app::rpcMessageTime::rpcSetSystemTime(*rpcClient, sysTime);
