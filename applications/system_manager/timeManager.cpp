@@ -39,15 +39,10 @@ static bool buildNtpConfigFile()
 
 static void setNtpCfgDefault(app::ntpConfig_t *cfg)
 {
-    std::string server0("0.asia.pool.ntp.org");
-    std::string server1("1.asia.pool.ntp.org");
-    std::string server2("2.asia.pool.ntp.org");
-    std::string server3("3.asia.pool.ntp.org");
-
-    string_copy(cfg->ntp_server0, server0);
-    string_copy(cfg->ntp_server1, server1);
-    string_copy(cfg->ntp_server2, server2);
-    string_copy(cfg->ntp_server3, server3);
+    string_copy(cfg->ntp_server0, "0.asia.pool.ntp.org");
+    string_copy(cfg->ntp_server1, "1.asia.pool.ntp.org");
+    string_copy(cfg->ntp_server2, "2.asia.pool.ntp.org");
+    string_copy(cfg->ntp_server3, "3.asia.pool.ntp.org");
 }
 
 static bool stopNtp()
