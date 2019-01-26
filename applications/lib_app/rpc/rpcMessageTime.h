@@ -29,7 +29,7 @@ namespace app
 
     typedef struct {
         int16_t state;
-        char ntp_server[32];
+        char ntp_server0[32];
         char ntp_server1[32];
         char ntp_server2[32];
         char ntp_server3[32];

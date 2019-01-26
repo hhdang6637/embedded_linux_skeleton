@@ -26,7 +26,7 @@ static bool buildNtpConfigFile()
     std::ofstream ntp_config_file(NTP_CONFIG_DIR"ntp.conf");
 
     if(ntp_config_file.is_open()) {
-        ntp_config_file << "server " << ntpCfg.ntp_server << "\n"
+        ntp_config_file << "server " << ntpCfg.ntp_server0 << "\n"
                         << "server " << ntpCfg.ntp_server1 << "\n"
                         << "server " << ntpCfg.ntp_server2 << "\n"
                         << "server " << ntpCfg.ntp_server3 << "\n";
@@ -39,12 +39,12 @@ static bool buildNtpConfigFile()
 
 static void setNtpCfgDefault(app::ntpConfig_t *cfg)
 {
-    std::string server("0.asia.pool.ntp.org");
+    std::string server0("0.asia.pool.ntp.org");
     std::string server1("1.asia.pool.ntp.org");
     std::string server2("2.asia.pool.ntp.org");
     std::string server3("3.asia.pool.ntp.org");
 
-    string_copy(cfg->ntp_server, server);
+    string_copy(cfg->ntp_server0, server0);
     string_copy(cfg->ntp_server1, server1);
     string_copy(cfg->ntp_server2, server2);
     string_copy(cfg->ntp_server3, server3);

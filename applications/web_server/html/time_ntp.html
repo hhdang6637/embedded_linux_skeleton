@@ -12,7 +12,7 @@
                 <div id="divNtpAddress">
                     <div class="form-group" >
                         <label for="txtNtpServerAddress">NTP server address 1</label>
-                        <input type="text" placeholder="Enter IP address 1" class="form-control" name="txtNtpServerAddress" id="txtNtpServerAddress">
+                        <input type="text" placeholder="Enter IP address 1" class="form-control" name="txtNtpServerAddress0" id="txtNtpServerAddress0">
                     </div>
 
                     <div class="form-group" >
@@ -80,7 +80,7 @@ $(function () {
 
             $("#txtDate").val(data.json_time_ntp.date);
             document.getElementById("txtTime").value = data.json_time_ntp.time;
-            $("#txtNtpServerAddress").val(data.json_time_ntp.ntp_server);
+            $("#txtNtpServerAddress0").val(data.json_time_ntp.ntp_server0);
             $("#txtNtpServerAddress1").val(data.json_time_ntp.ntp_server1);
             $("#txtNtpServerAddress2").val(data.json_time_ntp.ntp_server2);
             $("#txtNtpServerAddress3").val(data.json_time_ntp.ntp_server3);
@@ -114,11 +114,11 @@ $("#chkNtpEnable").change(function () {
 
     var checkBox = document.getElementById("chkNtpEnable");
     var chkNtpEnable = 0;
-    var txtNtpServer, txtNtpServer1, txtNtpServer2, txtNtpServer3, txtDate, txtTime;
+    var txtNtpServer0, txtNtpServer1, txtNtpServer2, txtNtpServer3, txtDate, txtTime;
     if(checkBox.checked == true)
     {
         chkNtpEnable = 1;
-        txtNtpServer = $('#txtNtpServerAddress').val();
+        txtNtpServer0 = $('#txtNtpServerAddress0').val();
         txtNtpServer1 = $('#txtNtpServerAddress1').val();
         txtNtpServer2 = $('#txtNtpServerAddress2').val();
         txtNtpServer3 = $('#txtNtpServerAddress3').val();
@@ -128,7 +128,7 @@ $("#chkNtpEnable").change(function () {
     else
     {
         chkNtpEnable = 0;
-        txtNtpServer = "";
+        txtNtpServer0 = "";
         txtNtpServer1 = "";
         txtNtpServer2 = "";
         txtNtpServer3 = "";
@@ -140,7 +140,7 @@ $("#chkNtpEnable").change(function () {
 
     var formData = new FormData();
     formData.append('enable_ntp', chkNtpEnable);
-    formData.append('ntp_server', txtNtpServer);
+    formData.append('ntp_server0', txtNtpServer0);
     formData.append('ntp_server1', txtNtpServer1);
     formData.append('ntp_server2', txtNtpServer2);
     formData.append('ntp_server3', txtNtpServer3);

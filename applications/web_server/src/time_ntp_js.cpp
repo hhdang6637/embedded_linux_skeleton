@@ -53,12 +53,12 @@ std::string json_handle_time_ntp(FCGX_Request *request)
 
                 if(stoi(enable_ntp) == 1) // enable
                 {
-                    std::string ntp_server = POSTParser.GetFieldText("ntp_server");
+                    std::string ntp_server0 = POSTParser.GetFieldText("ntp_server0");
                     std::string ntp_server1 = POSTParser.GetFieldText("ntp_server1");
                     std::string ntp_server2 = POSTParser.GetFieldText("ntp_server2");
                     std::string ntp_server3 = POSTParser.GetFieldText("ntp_server3");
 
-                    string_copy(ntpCfg.ntp_server, ntp_server);
+                    string_copy(ntpCfg.ntp_server0, ntp_server0);
                     string_copy(ntpCfg.ntp_server1, ntp_server1);
                     string_copy(ntpCfg.ntp_server2, ntp_server2);
                     string_copy(ntpCfg.ntp_server3, ntp_server3);
@@ -119,9 +119,9 @@ std::string json_handle_time_ntp(FCGX_Request *request)
         ss_json << ((ntpCfg.state == 0) ? "0" : "1");
         ss_json << "\", ";
 
-        ss_json << "\"ntp_server\": ";
+        ss_json << "\"ntp_server0\": ";
         ss_json << "\"";
-        ss_json << ntpCfg.ntp_server;
+        ss_json << ntpCfg.ntp_server0;
         ss_json << "\", ";
 
         ss_json << "\"ntp_server1\": ";
