@@ -16,7 +16,6 @@
 
 static inline std::string build_time_ntp_rsp_json(std::string status, std::string message = "")
 {
-
     std::ostringstream ss_json;
 
     ss_json << "{";
@@ -31,47 +30,63 @@ std::string json_handle_time_ntp(FCGX_Request *request)
 {
     const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
     const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
-    std::string status      = "failed";
+    app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
+    app::ntpConfig_t ntpCfg = app::ntpConfig_t();
+    tm sysTime;
 
     if (method && (strcmp(method, "POST") == 0) && contentType) {
 
         std::string data;
+        std::string status = "failed";
 
         if (get_post_data(request, data)) {
             try {
                 MPFD::Parser POSTParser;
+                app::rpcMessageTimeResultType result;
 
                 POSTParser.SetContentType(contentType);
 
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
                 std::string enable_ntp = POSTParser.GetFieldText("enable_ntp");
-                syslog(LOG_INFO, "json_handle_time_ntp: enable_ntp: %s\n", enable_ntp.c_str());
+                ntpCfg.state = std::atoi(enable_ntp.c_str());
+
                 if(stoi(enable_ntp) == 1) // enable
                 {
                     std::string ntp_server = POSTParser.GetFieldText("ntp_server");
-                    syslog(LOG_INFO, "json_handle_time_ntp: ntp_server: %s\n", ntp_server.c_str());
+                    std::string ntp_server1 = POSTParser.GetFieldText("ntp_server1");
+                    std::string ntp_server2 = POSTParser.GetFieldText("ntp_server2");
+                    std::string ntp_server3 = POSTParser.GetFieldText("ntp_server3");
+
+                    string_copy(ntpCfg.ntp_server, ntp_server);
+                    string_copy(ntpCfg.ntp_server1, ntp_server1);
+                    string_copy(ntpCfg.ntp_server2, ntp_server2);
+                    string_copy(ntpCfg.ntp_server3, ntp_server3);
+
+                    result = app::rpcMessageTime::rpcSetNtpCfg(*rpcClient, ntpCfg);
                 }
                 else
                 {
-                    struct tm date_time;
                     std::string date = POSTParser.GetFieldText("date");
-                    syslog(LOG_INFO, "json_handle_time_ntp: date: %s\n", date.c_str());
-                    strptime(date.c_str(), "%Y-%m-%d", &date_time);
 
-                    std::string time = POSTParser.GetFieldText("time");
-                    syslog(LOG_INFO,"json_handle_time_ntp: time: %s\n", time.c_str());
-                    strptime(time.c_str(), "%H:%M", &date_time);
+                    std::string mytime = POSTParser.GetFieldText("time");
 
-                    syslog(LOG_INFO, "json_handle_time_ntp: time2: H=%d M=%d\n", date_time.tm_hour, date_time.tm_min);
-                    syslog(LOG_INFO, "json_handle_time_ntp: date2: d=%d m=%d y=%d\n", date_time.tm_mday, date_time.tm_mon, date_time.tm_year);
+                    char date_time[17];
+                    snprintf(date_time, sizeof(date_time), "%s %s", date.c_str(), mytime.c_str());
+                    strptime(date_time, "%Y-%m-%d %H:%M", &sysTime);
+
+                    result = app::rpcMessageTime::rpcSetSystemTime(*rpcClient, sysTime);
                 }
 
-                return build_time_ntp_rsp_json("succeeded", "succeeded");
+                if (result == app::rpcMessageTimeResultType::SUCCESS) {
+                    status = "succeeded";
+                }
+
+                return build_time_ntp_rsp_json(status, app::rpcMessageTime::timeMsgResult2Str(result));
 
             } catch (MPFD::Exception &e) {
                 syslog(LOG_ERR, "%s\n", e.GetError().c_str());
-                return build_time_ntp_rsp_json(status, e.GetError().c_str());
+                return build_time_ntp_rsp_json("failed", e.GetError().c_str());
             }
 
         } else {
@@ -81,28 +96,57 @@ std::string json_handle_time_ntp(FCGX_Request *request)
 
     } else if (method && (strcmp(method, "GET") == 0)) {
 
+        memset(&ntpCfg, 0, sizeof(ntpCfg));
+        memset(&sysTime, 0, sizeof(sysTime));
+
+        if (app::rpcMessageTime::rpcGetNtpCfg(*rpcClient, ntpCfg) != app::rpcMessageTimeResultType::SUCCESS)
+            return build_time_ntp_rsp_json("failed", "RPC rpcGetNtpCfg error");
+
+        if (app::rpcMessageTime::rpcGetSystemTime(*rpcClient, sysTime) != app::rpcMessageTimeResultType::SUCCESS)
+            return build_time_ntp_rsp_json("failed", "RPC rpcGetSystemTime error");
+
+        char date[11];
+        char _time[6];
+        strftime(date, sizeof(date), "%Y-%m-%d", &sysTime);
+        strftime(_time, sizeof(_time), "%H:%M", &sysTime);
+
         std::ostringstream ss_json;
 
         ss_json << "{\"json_time_ntp\": {";
 
         ss_json << "\"enable_ntp\": ";
         ss_json << "\"";
-        ss_json << "0";
+        ss_json << ((ntpCfg.state == 0) ? "0" : "1");
         ss_json << "\", ";
 
         ss_json << "\"ntp_server\": ";
         ss_json << "\"";
-        ss_json << "";
+        ss_json << ntpCfg.ntp_server;
+        ss_json << "\", ";
+
+        ss_json << "\"ntp_server1\": ";
+        ss_json << "\"";
+        ss_json << ntpCfg.ntp_server1;
+        ss_json << "\", ";
+
+        ss_json << "\"ntp_server2\": ";
+        ss_json << "\"";
+        ss_json << ntpCfg.ntp_server2;
+        ss_json << "\", ";
+
+        ss_json << "\"ntp_server3\": ";
+        ss_json << "\"";
+        ss_json << ntpCfg.ntp_server3;
         ss_json << "\", ";
 
         ss_json << "\"date\": ";
         ss_json << "\"";
-        ss_json << "2019-01-22";
+        ss_json << date;
         ss_json << "\", ";
 
         ss_json << "\"time\": ";
         ss_json << "\"";
-        ss_json << "12:22";
+        ss_json << _time;
         ss_json << "\"";
 
         ss_json << "}}";

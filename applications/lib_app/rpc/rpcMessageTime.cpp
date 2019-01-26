@@ -6,7 +6,7 @@
  */
 
 #include "rpcUnixClient.h"
-
+#include <memory>
 #include "rpcMessageTime.h"
 
 namespace app
@@ -28,14 +28,111 @@ namespace app
 
     bool rpcMessageTime::serialize(int fd)
     {
-        // TODO
+        uint16_t tmpValue;
+        tmpValue = (uint16_t) this->msgAction;
+        if (rpcMessage::sendInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+            return false;
+        }
+
+        switch (this->msgAction)
+        {
+            case app::rpcMessageTimeActionType::GET_NTP_CONFIG:
+            case app::rpcMessageTimeActionType::SET_NTP_CONFIG:
+            {
+                int buff_len = 0;
+                int offset = 0;
+
+                buff_len += sizeof(this->msgResult);
+                buff_len += sizeof(ntpConfig_t);
+
+                std::unique_ptr<char> buff_ptr(new char[buff_len]);
+
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgResult);
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->ntpCfg);
+
+                if (buff_len != offset) {
+                    syslog(LOG_ERR, "%s-%u something wrong happened", __FUNCTION__, __LINE__);
+                    return false;
+                }
+
+                if (rpcMessage::sendInterruptRetry(fd, buff_ptr.get(), offset) != true) {
+                    return false;
+                }
+
+                break;
+            }
+            case app::rpcMessageTimeActionType::GET_SYSTEM_TIME:
+            case app::rpcMessageTimeActionType::SET_SYSTEM_TIME:
+            {
+                int buff_len = 0;
+                int offset = 0;
+
+                buff_len += sizeof(this->msgResult);
+                buff_len += sizeof(struct tm);
+
+                std::unique_ptr<char> buff_ptr(new char[buff_len]);
+
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->msgResult);
+                offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->systemTime);
+
+                if (buff_len != offset) {
+                    syslog(LOG_ERR, "%s-%u something wrong happened", __FUNCTION__, __LINE__);
+                    return false;
+                }
+
+                if (rpcMessage::sendInterruptRetry(fd, buff_ptr.get(), offset) != true) {
+                    return false;
+                }
+
+                break;
+            }
+            default:
+                break;
+        }
 
         return true;
     }
 
     bool rpcMessageTime::deserialize(int fd)
     {
-        // TODO
+        uint16_t tmpValue;
+        if (rpcMessage::recvInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+            return false;
+        }
+
+        this->msgAction = app::rpcMessageTimeActionType(tmpValue);
+
+        switch (this->msgAction)
+        {
+            case app::rpcMessageTimeActionType::GET_NTP_CONFIG:
+            case app::rpcMessageTimeActionType::SET_NTP_CONFIG:
+            {
+                if (rpcMessage::recvInterruptRetry(fd, &this->msgResult, sizeof(this->msgResult)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->ntpCfg, sizeof(this->ntpCfg)) != true) {
+                    return false;
+                }
+
+                break;
+            }
+            case app::rpcMessageTimeActionType::GET_SYSTEM_TIME:
+            case app::rpcMessageTimeActionType::SET_SYSTEM_TIME:
+            {
+                if (rpcMessage::recvInterruptRetry(fd, &this->msgResult, sizeof(this->msgResult)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &this->systemTime, sizeof(this->systemTime)) != true) {
+                    return false;
+                }
+
+                break;
+            }
+            default:
+                break;
+        }
 
         return true;
     }

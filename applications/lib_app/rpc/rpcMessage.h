@@ -56,6 +56,12 @@ public:
         return sizeof(t);
     }
 
+    template<typename T> static int bufferAppend(void*dst, T const &t)
+    {
+        memcpy(dst, &t, sizeof(t));
+        return sizeof(t);
+    }
+
     static int bufferAppendBool(void*dst, bool t)
     {
         memcpy(dst, &t, sizeof(t));

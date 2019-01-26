@@ -28,7 +28,11 @@ namespace app
     };
 
     typedef struct {
-        // TODO:
+        int16_t state;
+        char ntp_server[32];
+        char ntp_server1[32];
+        char ntp_server2[32];
+        char ntp_server3[32];
     } ntpConfig_t;
 
     class rpcMessageTime: public rpcMessage
