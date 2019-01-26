@@ -115,7 +115,7 @@ static bool setSystemTime(const struct tm &date_time)
     return true;
 }
 
-static struct tm& getSystemTime()
+static const struct tm& getSystemTime()
 {
     time_t t = time(NULL);
 
