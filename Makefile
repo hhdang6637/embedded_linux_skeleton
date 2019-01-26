@@ -23,6 +23,7 @@ include $(CONFIGS_DIR)/Makefile.variable
 export PATH := $(BUILDROOT_BUILD_DIR)/host/usr/bin:$(PATH)
 #export LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(BUILDROOT_BUILD_DIR)/host/usr/lib
 export CROSS_COMPILE=ccache arm-linux-
+export CROSS_COMPILE_STRIP=arm-linux-strip
 export CROSS_COMPILE_PATH=$(BUILDROOT_BUILD_DIR)/host/usr
 export BISON_PKGDATADIR=$(BUILDROOT_BUILD_DIR)/host/usr/share/bison
 export M4=$(BUILDROOT_BUILD_DIR)/host/usr/bin/m4
@@ -31,7 +32,7 @@ export ARCH=arm
 
 NUM_OF_CPU := $(nproc)
 
-all: compile_buildroot compile_uboot compile_linux_kernel make_disk
+all: compile_buildroot compile_linux_kernel make_firmware
 
 clean: clean_buildroot clean_linux_kernel clean_uboot clean_apps
 	rm -rf $(BUILD_DIR)
@@ -99,20 +100,19 @@ clean_apps:
 clean_uboot:
 	@rm -rf $(UBOOT_BUILD_DIR)
 
-make_disk: compile_apps
-	@echo "**********make_disk**********"
-	@rm -rf $(BUILD_DIR)/sdcard_boot
-	@mkdir $(BUILD_DIR)/sdcard_boot
+make_firmware: compile_apps
+	@echo "**********make_firmware**********"
+	# @rm -rf $(BUILD_DIR)/sdcard_boot
+	# @mkdir $(BUILD_DIR)/sdcard_boot
 
-	@cp $(BIN_BUILD_DIR)/$(DTB_FILE)              $(BUILD_DIR)/sdcard_boot
 
-	@mkimage -C none -A arm -T script -d $(SCRIPT_BUILD_DIR)/boot.cmd  $(BUILD_DIR)/sdcard_boot/boot.scr
-	@cp $(UBOOT_BUILD_DIR)/u-boot.bin    $(BUILD_DIR)/sdcard_boot/kernel.img
-	@cp $(BIN_BUILD_DIR)/zImage          $(BUILD_DIR)/sdcard_boot
-	@mkimage -A arm -T ramdisk -C none -n uInitrd -d $(BIN_BUILD_DIR)/rootfs.cpio $(BUILD_DIR)/sdcard_boot/uInitrd
-
+	# @mkimage -C none -A arm -T script -d $(SCRIPT_BUILD_DIR)/boot.cmd  $(BUILD_DIR)/sdcard_boot/boot.scr
+	# @cp $(UBOOT_BUILD_DIR)/u-boot.bin    $(BUILD_DIR)/sdcard_boot/kernel.img
+	@cp $(BIN_BUILD_DIR)/$(DTB_FILE)       $(BUILD_DIR)
+	@cp $(BIN_BUILD_DIR)/zImage            $(BUILD_DIR)
+	@cp $(SCRIPT_BUILD_DIR)/image.its      $(BUILD_DIR)
+	@mkimage -A arm -T ramdisk -C none -n uInitrd -d $(BIN_BUILD_DIR)/rootfs.cpio $(BUILD_DIR)/uInitrd
 	@fakeroot $(SCRIPT_BUILD_DIR)/fakeroot.sh
 
-	@cp $(SCRIPT_BUILD_DIR)/image.its $(BUILD_DIR)/sdcard_boot/
-	@mkimage -f $(BUILD_DIR)/sdcard_boot/image.its $(BUILD_DIR)/sdcard_boot/firmware
+	@mkimage -f $(BUILD_DIR)/image.its $(BUILD_DIR)/firmware
 	@echo "**********done**********"
