@@ -16,18 +16,28 @@
 #include "rsa_util.h"
 
 #define OPENVPN_DB_PATH "/data/openvpndb/"
+
 #define OPENVPN_DB_PATH_KEY OPENVPN_DB_PATH "keys/"
 #define OPENVPN_DB_PATH_CERTS OPENVPN_DB_PATH "certs/"
 #define OPENVPN_DB_PATH_REQS OPENVPN_DB_PATH "reqs/"
+
 #define OPENVPN_CA_KEY OPENVPN_DB_PATH_KEY "ca.key"
 #define OPENVPN_SERVER_KEY OPENVPN_DB_PATH_KEY "server.key"
+
 #define OPENVPN_CA_CRT OPENVPN_DB_PATH_CERTS "ca.crt"
 #define OPENVPN_SEREVR_CERT OPENVPN_DB_PATH_CERTS "server.crt"
+
 #define OPENVPN_SERVER_REQ OPENVPN_DB_PATH_REQS "server.csr"
+
 #define OPENVPN_TLS_AUTH_PEM OPENVPN_DB_PATH "ta.key"
 #define OPENVPN_DH_PEM OPENVPN_DB_PATH "dh.pem"
 #define OPENVPN_INDEX_TXT OPENVPN_DB_PATH "index.txt"
 #define OPENVPN_SERIAL OPENVPN_DB_PATH "serial"
+
+#define OPENVPN_DB_PATH_CLIENTS OPENVPN_DB_PATH "clients/"
+#define OPENVPN_DB_PATH_CLIENT_KEYS OPENVPN_DB_PATH_CLIENTS "keys/"
+#define OPENVPN_DB_PATH_CLIENT_CERTS OPENVPN_DB_PATH_CLIENTS "certs/"
+#define OPENVPN_DB_PATH_CLIENT_REQS OPENVPN_DB_PATH_CLIENTS "reqs/"
 
 #define DAYS_EXPIRE 365
 #define BITS_SIZE_CA 2048
@@ -263,6 +273,44 @@ static bool openvpn_gen_ta(const char* ta_key)
         return true;
     }
 
+    return false;
+}
+
+static bool openvpn_gen_client(const char *name)
+{
+    if (!openVpnManager_rsa_key_is_ok()) {
+        syslog(LOG_ERR, "RSA Key Management is not ready for Gen client");
+        goto err;
+    }
+
+    if (!openssl_client_init(OPENVPN_DB_PATH_CLIENTS)) {
+        syslog(LOG_ERR, OPENVPN_DB_PATH_CLIENTS " not found");
+        goto err;
+    }
+
+    char subject[256];
+    snprintf(subject, sizeof(subject), "%s",
+             "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=example.com/emailAddress=client@example.com");
+
+    char key[256], req[256], cert[256];
+
+    snprintf(key, sizeof(key), OPENVPN_DB_PATH_CLIENT_KEYS "%s.key", name);
+    snprintf(req, sizeof(req), OPENVPN_DB_PATH_CLIENT_REQS "%s.csr", name);
+    snprintf(cert, sizeof(cert), OPENVPN_DB_PATH_CLIENT_CERTS "%s.crt", name);
+
+    if (openssl_req(key, req, DAYS_EXPIRE, BITS_SIZE_SERVER, subject) == false) {
+        syslog(LOG_ERR, "can NOT gen REQ for %s\n", req);
+        goto err;
+    }
+
+    if (openssl_sign(OPENVPN_DB_PATH, req, cert, DAYS_EXPIRE) == false) {
+        syslog(LOG_ERR, "can NOT SIGN req for %s\n", req);
+        goto err;
+    }
+
+    return true;
+
+err:
     return false;
 }
 
