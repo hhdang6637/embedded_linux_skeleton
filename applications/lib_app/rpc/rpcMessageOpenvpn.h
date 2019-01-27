@@ -1,6 +1,7 @@
 #ifndef APPLICATIONS_LIB_APP_RPC_RPCMESSAGEWIFI_H_
 #define APPLICATIONS_LIB_APP_RPC_RPCMESSAGEWIFI_H_
 
+#include <list>
 #include "rpcMessage.h"
 
 namespace app
@@ -87,6 +88,41 @@ namespace app
                                                 app::openvpn_rsa_info_t &openvpn_rsa_info);
 
         static bool                         rpcReGenOpevpnRsaInfo(app::rpcUnixClient &rpcClient);
+
+    };
+
+    enum rpcMessageOpenvpnCertClientActionType: int16_t {
+        GET_OPENVPN_CLIENT_CERT,
+        SET_OPENVPN_CLIENT_CERT
+    };
+
+    typedef struct  {
+        char cert_client[256];
+    } openvpn_cert_client_t;
+
+    class rpcMessageOpenvpnCertClients : public rpcMessage
+    {
+        private:
+            app::rpcMessageOpenvpnResultType                  msgResult;
+            app::rpcMessageOpenvpnCertClientActionType        msgAction;
+            std::list<app::openvpn_cert_client_t>             openvpn_clients;
+
+        public:
+                                                rpcMessageOpenvpnCertClients(/* args */);
+            virtual                             ~rpcMessageOpenvpnCertClients();
+            virtual bool                        serialize(int fd);
+            virtual bool                        deserialize(int);
+
+            app::rpcMessageOpenvpnCertClientActionType getMsgAction() const;
+            void                                setMsgAction(const rpcMessageOpenvpnCertClientActionType action);
+
+            app::rpcMessageOpenvpnResultType    getMsgResult() const;
+            void                                setMsgResult(const rpcMessageOpenvpnResultType result);
+
+            std::list<app::openvpn_cert_client_t> getOpenvpnCertClients(std::list<app::openvpn_cert_client_t> &openvpn_clients);
+            void                                  setOpenvpnCertClients(const std::list<app::openvpn_cert_client_t> &openvpn_clients);
+            openvpn_cert_client_t&                getOpenvpnCertClient();
+            void                                  setOpenvpnCertClient(const openvpn_cert_client_t &openvpn_client);
 
     };
 }
