@@ -59,15 +59,10 @@ clean_buildroot:
 compile_linux_kernel: $(BIN_BUILD_DIR)
 	@echo "**********compile_linux_kernel**********"
 	@cp $(CONFIGS_DIR)/linux/config $(LINUX_BUILD_DIR)/.config
-	@if  ! $(CACHE_DIR)/get_linux_$(MODEL)_cache.sh > $(CURRENT_LOG) 2>&1 ; then \
-		if [ $(MODEL) = "orange_pi_zero" ] ; then \
-			$(MAKE) -j3 -C linux/linux-4.14.67 O=$(LINUX_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ; \
-			$(MAKE) -j3 -C linux/linux-4.14.67 O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install >> $(BUILD_DIR)/linux_kernel.log 2>&1 ; \
-		else \
-			$(MAKE) -j3 -C linux/linux-4.14.22 O=$(LINUX_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ; \
-			$(MAKE) -j3 -C linux/linux-4.14.22 O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install >> $(BUILD_DIR)/linux_kernel.log 2>&1 ; \
-		fi \
-	fi
+
+	@$(MAKE) -j3 -C linux/$(LINUX_KERNEL_DIR) O=$(LINUX_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
+	@$(MAKE) -j3 -C linux/$(LINUX_KERNEL_DIR) O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install >> $(BUILD_DIR)/linux_kernel.log 2>&1
+
 	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/zImage                      $(BIN_BUILD_DIR)
 	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/dts/*.dtb  $(BIN_BUILD_DIR)
 	@echo "**********done**********"

@@ -1,2 +1,2 @@
-#DTB_FILE=bcm2835-rpi-b-plus.dtb
+export LINUX_KERNEL_DIR=linux-4.14.22
 DTB_FILE=bcm2837-rpi-3-b.dtb
