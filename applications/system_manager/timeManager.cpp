@@ -91,27 +91,15 @@ static app::ntpConfig_t getNtpCfg()
 
 static bool setSystemTime(const struct tm &date_time)
 {
-    // Command set date: date +%Y%m%d -s "20120418"
-    // command set time: date +%T -s "11:14:00"
-    char cmd_set_date[30];
-    char date[11];
-    char cmd_set_time[30];
-    char _time[6];
-
+    tm tmp_date_time;
+    memcpy(&tmp_date_time, &date_time, sizeof(date_time));
     // disable NTP
     ntpCfg.state = app::stateType::DISABLE;
     stopNtp();
 
-    strftime(date, sizeof(date), "%Y-%m-%d", &date_time);
-    snprintf(cmd_set_date, sizeof(cmd_set_date),"date  --s \"%s\"",date);
-
-    strftime(_time, sizeof(_time), "%H:%M", &date_time);
-    snprintf(cmd_set_time, sizeof(cmd_set_time),"date --s \"%s\"",_time);
-
-    if ((system(cmd_set_date) != 0) || (system(cmd_set_time) != 0)) {
+    if(mktime(&tmp_date_time) == -1)
         return false;
-    }
-    syslog(LOG_INFO,"setSystemTime: date %s time: %s", date, _time);
+
     return true;
 }
 
