@@ -4,7 +4,6 @@ cd $BUILD_DIR
 mkdir -p rootfs_tmp
 cd rootfs_tmp
 cpio -i < $BIN_BUILD_DIR/rootfs.cpio
-mkdir -p lib/modules/4.14.22/kernel
 cp -r $LINUX_MOD_BUILD_DIR/lib .
 cp -r $SKELETON_ROOTFS_DIR/* .
 cp -r $ROOTFS_DIR/* .
@@ -33,6 +32,11 @@ cd etc && ln -sf ../tmp/passwd passwd && cd ..
 # mkdir /boot
 mkdir boot
 
-find . -print | cpio -o -H newc > ../sdcard_boot/rootfs.cpio
+$CROSS_COMPILE_STRIP -s ./sbin/*
+$CROSS_COMPILE_STRIP -s ./bin/*
+$CROSS_COMPILE_STRIP -s ./usr/sbin/*
+$CROSS_COMPILE_STRIP -s ./usr/bin/*
+
+find . -print | cpio -o -H newc > ../rootfs.cpio
 cd ..
 rm -rf rootfs_tmp

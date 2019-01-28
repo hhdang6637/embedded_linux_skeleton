@@ -178,6 +178,7 @@ out:
     void firmwareManager::doSystemReboot()
     {
         ::sync();
+        ::sleep(5);
         ::reboot(RB_AUTOBOOT);
     }
 
