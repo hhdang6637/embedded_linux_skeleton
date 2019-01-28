@@ -15,15 +15,14 @@
 #include "utilities.h"
 
 #define NTP_PERSISTENT_CONFIG   "/data/ntp.conf"
-#define NTP_CONFIG_DIR  "/tmp/ntp/"
+#define NTP_CONFIG_FILE "/tmp/configs/ntp.conf"
 #define NTP_PID_FILE    "/var/run/ntpd.pid"
 
 static app::ntpConfig_t ntpCfg;
 
 static bool buildNtpConfigFile()
 {
-    mkdir(NTP_CONFIG_DIR, 0755);
-    std::ofstream ntp_config_file(NTP_CONFIG_DIR"ntp.conf");
+    std::ofstream ntp_config_file(NTP_CONFIG_FILE);
 
     if(ntp_config_file.is_open()) {
         ntp_config_file << "server " << ntpCfg.ntp_server0 << "\n"
@@ -45,22 +44,27 @@ static void setNtpCfgDefault(app::ntpConfig_t *cfg)
     string_copy(cfg->ntp_server3, "3.asia.pool.ntp.org");
 }
 
-static bool stopNtp()
+static void stopNtp()
 {
-    // verify pid file and stop ntpd service
-    if (access("/var/run/ntpd.pid", F_OK) != -1) {
-        if (system("killall ntpd") == 0)
-            return true;
-    }
+    // verify pid file and stop openvpn service
+    char cmd[32];
+    pid_t ntp_pid;
 
-    return false;
+    ntp_pid = get_pid_from_pidfile(NTP_PID_FILE);
+    if (ntp_pid != -1) {
+        snprintf(cmd, 32, "kill %d", ntp_pid);
+        system(cmd);
+        sleep(1);
+    }
 }
 
 
 static bool startNtp()
 {
-    if(system("/usr/sbin/ntpd -g -c " NTP_CONFIG_DIR "ntp.conf -p " NTP_PID_FILE) == 0)
-        return true;
+    if(system("/usr/sbin/ntpd -g -c " NTP_CONFIG_FILE " -p " NTP_PID_FILE) != 0) {
+        syslog(LOG_ERR, "Cannot start NTP service");
+        return false;
+    }
 
     return false;
 }
@@ -70,23 +74,18 @@ static bool setNtpCfg(const app::ntpConfig_t cfg)
     // TODO validate cfg
     if (::memcmp(&cfg, &ntpCfg, sizeof(app::ntpConfig_t)) != 0) {
         stopNtp();
-        memset(&ntpCfg, 0, sizeof(ntpCfg));
         memcpy(&ntpCfg, &cfg, sizeof(cfg));
 
         if (cfg.state == app::stateType::ENABLE) {
-            if (buildNtpConfigFile() == true)
+            if (buildNtpConfigFile() == true) {
                 return startNtp();
-            else
+            } else {
                 return false;
+            }
         }
     }
 
     return true;
-}
-
-static app::ntpConfig_t getNtpCfg()
-{
-    return ntpCfg;
 }
 
 static bool setSystemTime(const struct tm &date_time)
@@ -97,17 +96,11 @@ static bool setSystemTime(const struct tm &date_time)
     ntpCfg.state = app::stateType::DISABLE;
     stopNtp();
 
-    if(mktime(&tmp_date_time) == -1)
+    if(mktime(&tmp_date_time) == -1) {
         return false;
+    }
 
     return true;
-}
-
-static const struct tm& getSystemTime()
-{
-    time_t t = time(NULL);
-
-    return *localtime(&t);
 }
 
 static bool time_cfg_handler (int socket_fd)
@@ -119,7 +112,9 @@ static bool time_cfg_handler (int socket_fd)
         {
             case app::rpcMessageTimeActionType::GET_SYSTEM_TIME:
             {
-                msg.setSystemTime(getSystemTime());
+                time_t t = time(NULL);
+
+                msg.setSystemTime(*localtime(&t));
                 msg.setMsgResult(app::rpcMessageTimeResultType::SUCCESS);
                 break;
             }
@@ -135,7 +130,7 @@ static bool time_cfg_handler (int socket_fd)
             }
             case app::rpcMessageTimeActionType::GET_NTP_CONFIG:
             {
-                msg.setNtpCfg(getNtpCfg());
+                msg.setNtpCfg(ntpCfg);
                 msg.setMsgResult(app::rpcMessageTimeResultType::SUCCESS);
 
                 break;
