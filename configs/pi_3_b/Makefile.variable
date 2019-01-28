@@ -1,2 +1,2 @@
-export LINUX_KERNEL_DIR=linux-4.14.22
+export LINUX_KERNEL_DIR=raspberrypi-kernel
 DTB_FILE=bcm2837-rpi-3-b.dtb
