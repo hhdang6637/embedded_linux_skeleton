@@ -171,6 +171,7 @@ static bool setSystemTime(const struct tm &date_time)
     // disable NTP
     ntpCfg.state = app::stateType::DISABLE;
     stopNtp();
+    ntpConfig_writeToFile();
 
     secs = mktime( &tmp_date_time );
 
