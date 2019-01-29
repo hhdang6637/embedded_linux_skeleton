@@ -22,6 +22,8 @@
 ::sysinit:/bin/mount -o remount,ro /
 ::sysinit:/bin/mount -t tmpfs tmpfs /tmp -o size=64m
 ::sysinit:/bin/mkdir /tmp/root
+# load wifi driver
+::sysinit:/sbin/modprobe xradio_wlan
 #::sysinit:/bin/mount -a
 ::sysinit:/bin/hostname -F /etc/hostname
 # now run any rc scripts
