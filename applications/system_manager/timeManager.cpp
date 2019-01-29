@@ -14,12 +14,78 @@
 #include "rpcMessageTime.h"
 #include "timeManager.h"
 #include "utilities.h"
+#include "ini.h"
 
 #define NTP_PERSISTENT_CONFIG   "/data/ntp.conf"
 #define NTP_CONFIG_FILE "/tmp/configs/ntp.conf"
 #define NTP_PID_FILE    "/var/run/ntpd.pid"
 
 static app::ntpConfig_t ntpCfg;
+
+static bool ntpConfig_writeToFile()
+{
+    char sect[32];
+    std::string value;
+    app::ini ntpConfigIni;
+
+    snprintf(sect, sizeof(sect), "ntp");
+
+    value = (ntpCfg.state == app::stateType::ENABLE) ? "enable" : "disable";
+    ntpConfigIni.set_string(sect, "state", value);
+
+    value = ntpCfg.ntp_server0;
+    ntpConfigIni.set_string(sect, "ntp_server0", value);
+
+    value = ntpCfg.ntp_server1;
+    ntpConfigIni.set_string(sect, "ntp_server1", value);
+
+    value = ntpCfg.ntp_server2;
+    ntpConfigIni.set_string(sect, "ntp_server2", value);
+
+    value = ntpCfg.ntp_server3;
+    ntpConfigIni.set_string(sect, "ntp_server3", value);
+
+    return ntpConfigIni.writeToFile(NTP_PERSISTENT_CONFIG);
+}
+
+static bool ntpConfig_initFromFile()
+{
+    app::ini ntpConfigIni;
+
+    if (ntpConfigIni.loadFromFile(NTP_PERSISTENT_CONFIG)) {
+
+        char sect[32];
+        std::string value;
+
+        snprintf(sect, sizeof(sect), "ntp");
+
+        if (ntpConfigIni.get_string(sect, "state", value)) {
+            ntpCfg.state = (value == "enable") ? app::stateType::ENABLE : app::stateType::DISABLE;
+        }
+
+        if (ntpConfigIni.get_string(sect, "ntp_server0", value)) {
+            string_copy(ntpCfg.ntp_server0, value);
+        }
+
+        if (ntpConfigIni.get_string(sect, "ntp_server1", value)) {
+            string_copy(ntpCfg.ntp_server1, value);
+        }
+
+        if (ntpConfigIni.get_string(sect, "ntp_server2", value)) {
+            string_copy(ntpCfg.ntp_server2, value);
+        }
+
+        if (ntpConfigIni.get_string(sect, "ntp_server3", value)) {
+            string_copy(ntpCfg.ntp_server3, value);
+        }
+
+        return true;
+    } else {
+        syslog(LOG_NOTICE, "cannot load NTP config from " NTP_PERSISTENT_CONFIG ", use default config");
+    }
+
+    return false;
+}
 
 static bool buildNtpConfigFile()
 {
@@ -37,12 +103,13 @@ static bool buildNtpConfigFile()
     return false;
 }
 
-static void setNtpCfgDefault(app::ntpConfig_t *cfg)
+static void setNtpCfgDefault()
 {
-    string_copy(cfg->ntp_server0, "0.asia.pool.ntp.org");
-    string_copy(cfg->ntp_server1, "1.asia.pool.ntp.org");
-    string_copy(cfg->ntp_server2, "2.asia.pool.ntp.org");
-    string_copy(cfg->ntp_server3, "3.asia.pool.ntp.org");
+    ntpCfg.state = app::stateType::DISABLE;
+    string_copy(ntpCfg.ntp_server0, "0.asia.pool.ntp.org");
+    string_copy(ntpCfg.ntp_server1, "1.asia.pool.ntp.org");
+    string_copy(ntpCfg.ntp_server2, "2.asia.pool.ntp.org");
+    string_copy(ntpCfg.ntp_server3, "3.asia.pool.ntp.org");
 }
 
 static void stopNtp()
@@ -67,7 +134,7 @@ static bool startNtp()
         return false;
     }
 
-    return false;
+    return true;
 }
 
 static bool setNtpCfg(const app::ntpConfig_t cfg)
@@ -76,6 +143,10 @@ static bool setNtpCfg(const app::ntpConfig_t cfg)
     if (::memcmp(&cfg, &ntpCfg, sizeof(app::ntpConfig_t)) != 0) {
         stopNtp();
         memcpy(&ntpCfg, &cfg, sizeof(cfg));
+
+        if (ntpConfig_writeToFile() != true) {
+            syslog(LOG_ERR, "cannot save NTP config");
+        }
 
         if (cfg.state == app::stateType::ENABLE) {
             if (buildNtpConfigFile() == true) {
@@ -100,6 +171,7 @@ static bool setSystemTime(const struct tm &date_time)
     // disable NTP
     ntpCfg.state = app::stateType::DISABLE;
     stopNtp();
+    ntpConfig_writeToFile();
 
     secs = mktime( &tmp_date_time );
 
@@ -160,7 +232,16 @@ static bool time_cfg_handler (int socket_fd)
 
 void timeManager_init(app::rpcUnixServer &rpcServer)
 {
-    setNtpCfgDefault(&ntpCfg);
+    if (ntpConfig_initFromFile() == false) {
+        setNtpCfgDefault();
+    }
+
+    if (ntpCfg.state == app::stateType::ENABLE) {
+        if (buildNtpConfigFile() == true) {
+            startNtp();
+        }
+    }
+
     rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_time_cfg, time_cfg_handler);
 }
 
