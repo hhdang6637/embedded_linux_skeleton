@@ -228,6 +228,12 @@ void timeManager_init(app::rpcUnixServer &rpcServer)
         setNtpCfgDefault();
     }
 
+    if (ntpCfg.state == app::stateType::ENABLE) {
+        if (buildNtpConfigFile() == true) {
+            startNtp();
+        }
+    }
+
     rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_time_cfg, time_cfg_handler);
 }
 
