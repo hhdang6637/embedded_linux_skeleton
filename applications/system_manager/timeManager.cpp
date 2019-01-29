@@ -5,6 +5,7 @@
  *      Author: nmhien
  */
 #include <time.h>
+#include <sys/time.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fstream>
@@ -90,15 +91,21 @@ static bool setNtpCfg(const app::ntpConfig_t cfg)
 
 static bool setSystemTime(const struct tm &date_time)
 {
-    tm tmp_date_time;
+    tm              tmp_date_time;
+    time_t          secs;
+    struct timeval  tv;
+
     memcpy(&tmp_date_time, &date_time, sizeof(date_time));
+
     // disable NTP
     ntpCfg.state = app::stateType::DISABLE;
     stopNtp();
 
-    if(mktime(&tmp_date_time) == -1) {
-        return false;
-    }
+    secs = mktime( &tmp_date_time );
+
+    tv.tv_sec  = secs;
+    tv.tv_usec = 0;
+    (void)settimeofday(&tv, NULL);
 
     return true;
 }
