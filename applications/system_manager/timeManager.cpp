@@ -133,7 +133,7 @@ static bool startNtp()
         return false;
     }
 
-    return false;
+    return true;
 }
 
 static bool setNtpCfg(const app::ntpConfig_t cfg)
