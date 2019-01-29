@@ -33,7 +33,8 @@ public:
         handle_firmware_action,
         handle_users_action,
         handle_users_login,
-        handle_wifi_setting
+        handle_wifi_setting,
+        handle_time_cfg,
     };
 protected:
     rpcMessageType  msgType;
@@ -50,6 +51,12 @@ public:
     bool receive(int fd);
 
     static int bufferAppendU16(void*dst, uint16_t t)
+    {
+        memcpy(dst, &t, sizeof(t));
+        return sizeof(t);
+    }
+
+    template<typename T> static int bufferAppend(void*dst, T const &t)
     {
         memcpy(dst, &t, sizeof(t));
         return sizeof(t);
