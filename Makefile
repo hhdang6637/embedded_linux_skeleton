@@ -78,6 +78,7 @@ compile_uboot: $(BIN_BUILD_DIR)
 		$(MAKE) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ; \
 	fi
 	@cp $(UBOOT_BUILD_DIR)/u-boot $(UBOOT_BUILD_DIR)/u-boot.bin $(BIN_BUILD_DIR)
+	@mkimage -C none -A arm -T script -d $(SCRIPT_BUILD_DIR)/boot.cmd  $(BUILD_DIR)/boot.scr
 	@echo "**********done**********"
 
 compile_apps: $(BIN_BUILD_DIR)
@@ -97,12 +98,6 @@ clean_uboot:
 
 make_firmware: compile_apps
 	@echo "**********make_firmware**********"
-	# @rm -rf $(BUILD_DIR)/sdcard_boot
-	# @mkdir $(BUILD_DIR)/sdcard_boot
-
-
-	# @mkimage -C none -A arm -T script -d $(SCRIPT_BUILD_DIR)/boot.cmd  $(BUILD_DIR)/sdcard_boot/boot.scr
-	# @cp $(UBOOT_BUILD_DIR)/u-boot.bin    $(BUILD_DIR)/sdcard_boot/kernel.img
 	@cp $(BIN_BUILD_DIR)/$(DTB_FILE)       $(BUILD_DIR)
 	@cp $(BIN_BUILD_DIR)/zImage            $(BUILD_DIR)
 	@cp $(SCRIPT_BUILD_DIR)/image.its      $(BUILD_DIR)
