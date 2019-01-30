@@ -93,11 +93,12 @@ namespace app
 
     enum rpcMessageOpenvpnCertClientActionType: int16_t {
         GET_OPENVPN_CLIENT_CERT,
-        SET_OPENVPN_CLIENT_CERT
+        GEN_OPENVPN_CLIENT_CERT
     };
 
     typedef struct  {
-        char cert_client[256];
+        char name[32];
+        int  expire_days;
     } openvpn_cert_client_t;
 
     class rpcMessageOpenvpnCertClients : public rpcMessage
@@ -119,10 +120,16 @@ namespace app
             app::rpcMessageOpenvpnResultType    getMsgResult() const;
             void                                setMsgResult(const rpcMessageOpenvpnResultType result);
 
-            std::list<app::openvpn_cert_client_t> getOpenvpnCertClients(std::list<app::openvpn_cert_client_t> &openvpn_clients);
-            void                                  setOpenvpnCertClients(const std::list<app::openvpn_cert_client_t> &openvpn_clients);
-            openvpn_cert_client_t&                getOpenvpnCertClient();
-            void                                  setOpenvpnCertClient(const openvpn_cert_client_t &openvpn_client);
+            const std::list<app::openvpn_cert_client_t>& getOpenvpnCertClients();
+            void                                         setOpenvpnCertClients(const std::list<app::openvpn_cert_client_t> &openvpn_clients);
+            const openvpn_cert_client_t&                 getOpenvpnCertClient();
+            void                                         setOpenvpnCertClient(const openvpn_cert_client_t &openvpn_client);
+
+            static bool                         rpcGetOpenvpnCertClients(app::rpcUnixClient &rpcClient,
+                                                                         std::list<app::openvpn_cert_client_t> &openvpn_clients);
+
+            static bool                         rpcGenOpevpnCertClient(app::rpcUnixClient &rpcClient,
+                                                                       const app::openvpn_cert_client_t &client);
 
     };
 }
