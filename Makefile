@@ -73,10 +73,8 @@ clean_linux_kernel:
 
 compile_uboot: $(BIN_BUILD_DIR)
 	@echo "**********compile_uboot**********"
-	@if  ! $(CACHE_DIR)/get_uboot_$(MODEL)_cache.sh > $(CURRENT_LOG) 2>&1 ; then \
-		cp $(CONFIGS_DIR)/uboot/config $(UBOOT_BUILD_DIR)/.config ; \
-		$(MAKE) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ; \
-	fi
+	cp $(CONFIGS_DIR)/uboot/config $(UBOOT_BUILD_DIR)/.config
+	$(MAKE) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
 	@cp $(UBOOT_BUILD_DIR)/u-boot $(UBOOT_BUILD_DIR)/u-boot.bin $(BIN_BUILD_DIR)
 	@mkimage -C none -A arm -T script -d $(SCRIPT_BUILD_DIR)/boot.cmd  $(BUILD_DIR)/boot.scr
 	@echo "**********done**********"
