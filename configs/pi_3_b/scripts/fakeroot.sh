@@ -1,11 +1,24 @@
 #!/bin/sh
 
+copy_mod () {
+   LIB_DIR="$ROOTFS_DIR/"$(dirname $1)
+   mkdir -p $LIB_DIR
+   cp "$LINUX_MOD_BUILD_DIR/$1" $LIB_DIR
+}
+
 cd $BUILD_DIR
 mkdir -p rootfs_tmp
 cd rootfs_tmp
 cpio -i < $BIN_BUILD_DIR/rootfs.cpio
-cp -r $LINUX_MOD_BUILD_DIR/lib .
+#cp -r $LINUX_MOD_BUILD_DIR/lib .
+#mkdir $(dirname $LINUX_KERNEL_MODS) && cp $LINUX_KERNEL_MODS $(dirname $LINUX_KERNEL_MODS)
 cp -r $SKELETON_ROOTFS_DIR/* .
+
+for MOD in $LINUX_KERNEL_MODS
+do
+	copy_mod $MOD
+done
+
 cp -r $ROOTFS_DIR/* .
 mkdir -p lib/firmware
 cp -r $FIRMWARE_NONFREE/* lib/firmware
@@ -36,6 +49,8 @@ $CROSS_COMPILE_STRIP -s ./sbin/*
 $CROSS_COMPILE_STRIP -s ./bin/*
 $CROSS_COMPILE_STRIP -s ./usr/sbin/*
 $CROSS_COMPILE_STRIP -s ./usr/bin/*
+
+tree . > ../rootfs.txt
 
 find . -print | cpio -o -H newc > ../rootfs.cpio
 cd ..
