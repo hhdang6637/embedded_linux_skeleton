@@ -276,6 +276,40 @@ static bool openvpn_gen_ta(const char* ta_key)
     return false;
 }
 
+static bool openvpn_get_client_info(std::list<app::openvpn_cert_client_t> &clients)
+{
+    // DB format
+    // E|R|V<tab>Expiry<tab>[RevocationDate]<tab>Serial<tab>unknown<tab>SubjectDN
+    app::openvpn_cert_client_t client;
+    char line[256];
+    char cmd[256];
+
+    snprintf(cmd, sizeof(cmd), "cat %s | awk -F \"/\" '{print $1, $2, $5}' | awk -F \" \" '{print $1, $2, $5, $6}'",
+             OPENVPN_INDEX_TXT);
+
+    FILE *f = popen(cmd, "r");
+    if (f == NULL) {
+        syslog(LOG_ERR, "cannot run command : %s", cmd);
+        return false;
+    }
+
+    char expire_date[16];
+    while (fgets(line, sizeof(line), f) > 0) {
+        // V 710101000045Z CN=example.com emailAddress=client@example.com
+        sscanf(line, "%*s %s %s %*[^>]", expire_date, client.name);
+        if (strcmp(client.name, "server") == 0) {
+            continue;
+        }
+
+        // TODO: parse the expire_date & email
+
+        client.expire_days = DAYS_EXPIRE;
+        clients.push_back(client);
+    }
+
+    return true;
+}
+
 static bool openvpn_gen_client(const char *name)
 {
     if (!openVpnManager_rsa_key_is_ok()) {
@@ -289,8 +323,9 @@ static bool openvpn_gen_client(const char *name)
     }
 
     char subject[256];
-    snprintf(subject, sizeof(subject), "%s",
-             "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=example.com/emailAddress=client@example.com");
+    snprintf(subject, sizeof(subject),
+             "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=%s/emailAddress=%s@example.com",
+             name, name);
 
     char key[256], req[256], cert[256];
 
@@ -314,6 +349,8 @@ err:
     return false;
 }
 
+
+
 static bool init_rsa_database()
 {
     if (openssl_ca_init(OPENVPN_DB_PATH) == false) {
@@ -330,7 +367,7 @@ static bool init_rsa_database()
     // Request and sign cert for Server
     char subject[256];
     snprintf(subject, sizeof(subject), "%s",
-             "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=example.com/emailAddress=server@gmail.com");
+             "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=Server/emailAddress=server@gmail.com");
     if (openssl_req(OPENVPN_SERVER_KEY, OPENVPN_SERVER_REQ, DAYS_EXPIRE, BITS_SIZE_SERVER, subject) == false) {
         syslog(LOG_ERR, "can NOT gen REQ for %s\n", OPENVPN_SERVER_REQ);
         goto err;
@@ -445,8 +482,14 @@ static bool openvpn_client_certs_handler(int socket_fd)
     if (msg.deserialize(socket_fd)) {
 
         if (msg.getMsgAction() == app::rpcMessageOpenvpnCertClientActionType::GET_OPENVPN_CLIENT_CERT) {
-            // TODO
-            msg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
+
+            std::list<app::openvpn_cert_client_t> clients;
+            if (openvpn_get_client_info(clients)) {
+                msg.setOpenvpnCertClients(clients);
+                msg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
+            } else {
+                msg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
+            }
 
         } else if (msg.getMsgAction() == app::rpcMessageOpenvpnCertClientActionType::GEN_OPENVPN_CLIENT_CERT) {
 
