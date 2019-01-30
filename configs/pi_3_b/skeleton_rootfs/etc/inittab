@@ -23,8 +23,15 @@
 ::sysinit:/bin/mount -t tmpfs tmpfs /tmp -o size=64m
 ::sysinit:/bin/mkdir /tmp/root
 # load modules
+::sysinit:/sbin/modprobe rfkill
+::sysinit:/sbin/modprobe cfg80211
+::sysinit:/sbin/modprobe brcmutil
 ::sysinit:/sbin/modprobe brcmfmac
+::sysinit:/sbin/modprobe ipv6
+::sysinit:/sbin/modprobe llc
+::sysinit:/sbin/modprobe stp
 ::sysinit:/sbin/modprobe bridge
+::sysinit:/sbin/modprobe x_tables
 #::sysinit:/bin/mount -a
 ::sysinit:/bin/hostname -F /etc/hostname
 # now run any rc scripts

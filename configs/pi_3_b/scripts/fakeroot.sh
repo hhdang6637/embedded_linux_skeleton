@@ -50,6 +50,8 @@ $CROSS_COMPILE_STRIP -s ./bin/*
 $CROSS_COMPILE_STRIP -s ./usr/sbin/*
 $CROSS_COMPILE_STRIP -s ./usr/bin/*
 
+tree . > ../rootfs.txt
+
 find . -print | cpio -o -H newc > ../rootfs.cpio
 cd ..
 rm -rf rootfs_tmp
