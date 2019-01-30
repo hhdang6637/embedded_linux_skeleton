@@ -139,25 +139,62 @@ std::string json_handle_openvpn_client_cert(FCGX_Request *request)
 
     if (method && (strcmp(method, "GET") == 0)) {
         std::ostringstream ss_json;
+        std::list<app::openvpn_cert_client_t> clients;
+        size_t counter = 0;
 
-        ss_json << "{\"json_client_cert\": [{";
+        app::rpcMessageOpenvpnCertClients::rpcGetOpenvpnCertClients(*app::rpcUnixClient::getInstance(), clients);
 
-        ss_json << "\"name\": ";
-        ss_json << "\"";
-        ss_json << "pqtri";
-        ss_json << "\", ";
+        ss_json << "{\"json_client_cert\": [";
 
-        ss_json << "\"expire\": ";
-        ss_json << "365";
+        for (auto const &client : clients) {
 
-        ss_json << "}]}";
+            ss_json << "{\"name\": ";
+            ss_json << "\"";
+            ss_json << client.name;
+            ss_json << "\", ";
+
+            ss_json << "\"expire\": ";
+            ss_json << client.expire_days;
+            ss_json << "}";
+
+            if (++counter < clients.size()) {
+                ss_json << ",";
+            }
+        }
+
+        ss_json << "]}";
 
         return ss_json.str();
 
     } else if (method && (strcmp(method, "POST") == 0) && contentType) {
+        std::string data;
 
-        status = "succeeded";
-        return build_openvpn_rsp_json(status, "success");
+        if (get_post_data(request, data)) {
+            try {
+                MPFD::Parser POSTParser;
+
+                POSTParser.SetContentType(contentType);
+                POSTParser.AcceptSomeData(data.c_str(), data.size());
+
+                app::openvpn_cert_client_t client = app::openvpn_cert_client_t();
+                string_copy(client.name, POSTParser.GetFieldText("name_cert"), sizeof(client.name));
+
+                if (app::rpcMessageOpenvpnCertClients::rpcGenOpevpnCertClient(
+                        *app::rpcUnixClient::getInstance(), client)) {
+                    status = "succeeded";
+                }
+
+                return build_openvpn_rsp_json(status, "success");
+
+            } catch (MPFD::Exception &e) {
+                syslog(LOG_ERR, "%s\n", e.GetError().c_str());
+                return build_openvpn_rsp_json(status, e.GetError().c_str());
+            }
+
+        } else {
+            syslog(LOG_ERR, "Failed to get data from browser\n");
+            return build_openvpn_rsp_json(status, "Failed to get data from browser");
+        }
     }
 
     return build_openvpn_rsp_json(status, "failed");
