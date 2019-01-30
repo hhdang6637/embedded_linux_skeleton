@@ -139,25 +139,25 @@ std::string json_handle_openvpn_client_cert(FCGX_Request *request)
 
     if (method && (strcmp(method, "GET") == 0)) {
         std::ostringstream ss_json;
-        std::list<app::openvpn_cert_client_t> clients;
+        std::list<app::openvpn_client_cert_t> certs;
         size_t counter = 0;
 
-        app::rpcMessageOpenvpnCertClients::rpcGetOpenvpnCertClients(*app::rpcUnixClient::getInstance(), clients);
+        app::rpcMessageOpenvpnClientCerts::rpcGetOpenvpnClientCerts(*app::rpcUnixClient::getInstance(), certs);
 
         ss_json << "{\"json_client_cert\": [";
 
-        for (auto const &client : clients) {
+        for (auto const &cert : certs) {
 
             ss_json << "{\"name\": ";
             ss_json << "\"";
-            ss_json << client.name;
+            ss_json << cert.common_name;
             ss_json << "\", ";
 
             ss_json << "\"expire\": ";
-            ss_json << client.expire_days;
+            ss_json << cert.expire_days;
             ss_json << "}";
 
-            if (++counter < clients.size()) {
+            if (++counter < certs.size()) {
                 ss_json << ",";
             }
         }
@@ -176,11 +176,11 @@ std::string json_handle_openvpn_client_cert(FCGX_Request *request)
                 POSTParser.SetContentType(contentType);
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
-                app::openvpn_cert_client_t client = app::openvpn_cert_client_t();
-                string_copy(client.name, POSTParser.GetFieldText("name_cert"), sizeof(client.name));
+                app::openvpn_client_cert_t cert = app::openvpn_client_cert_t();
+                string_copy(cert.common_name, POSTParser.GetFieldText("common_name"), sizeof(cert.common_name));
 
-                if (app::rpcMessageOpenvpnCertClients::rpcGenOpevpnCertClient(
-                        *app::rpcUnixClient::getInstance(), client)) {
+                if (app::rpcMessageOpenvpnClientCerts::rpcGenOpevpnClientCert(
+                        *app::rpcUnixClient::getInstance(), cert)) {
                     status = "succeeded";
                 }
 

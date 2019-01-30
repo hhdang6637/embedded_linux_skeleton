@@ -91,45 +91,45 @@ namespace app
 
     };
 
-    enum rpcMessageOpenvpnCertClientActionType: int16_t {
+    enum rpcMessageOpenvpnClientCertActionType: int16_t {
         GET_OPENVPN_CLIENT_CERT,
         GEN_OPENVPN_CLIENT_CERT
     };
 
     typedef struct  {
-        char name[32];
+        char common_name[32];
         int  expire_days;
-    } openvpn_cert_client_t;
+    } openvpn_client_cert_t;
 
-    class rpcMessageOpenvpnCertClients : public rpcMessage
+    class rpcMessageOpenvpnClientCerts : public rpcMessage
     {
         private:
             app::rpcMessageOpenvpnResultType                  msgResult;
-            app::rpcMessageOpenvpnCertClientActionType        msgAction;
-            std::list<app::openvpn_cert_client_t>             openvpn_clients;
+            app::rpcMessageOpenvpnClientCertActionType        msgAction;
+            std::list<app::openvpn_client_cert_t>             client_certs;
 
         public:
-                                                rpcMessageOpenvpnCertClients(/* args */);
-            virtual                             ~rpcMessageOpenvpnCertClients();
+                                                rpcMessageOpenvpnClientCerts(/* args */);
+            virtual                             ~rpcMessageOpenvpnClientCerts();
             virtual bool                        serialize(int fd);
             virtual bool                        deserialize(int);
 
-            app::rpcMessageOpenvpnCertClientActionType getMsgAction() const;
-            void                                setMsgAction(const rpcMessageOpenvpnCertClientActionType action);
+            app::rpcMessageOpenvpnClientCertActionType getMsgAction() const;
+            void                                setMsgAction(const rpcMessageOpenvpnClientCertActionType action);
 
             app::rpcMessageOpenvpnResultType    getMsgResult() const;
             void                                setMsgResult(const rpcMessageOpenvpnResultType result);
 
-            const std::list<app::openvpn_cert_client_t>& getOpenvpnCertClients();
-            void                                         setOpenvpnCertClients(const std::list<app::openvpn_cert_client_t> &openvpn_clients);
-            const openvpn_cert_client_t&                 getOpenvpnCertClient();
-            void                                         setOpenvpnCertClient(const openvpn_cert_client_t &openvpn_client);
+            const std::list<app::openvpn_client_cert_t>& getOpenvpnClientCerts();
+            void                                         setOpenvpnClientCerts(const std::list<app::openvpn_client_cert_t> &client_certs);
+            const openvpn_client_cert_t&                 getOpenvpnClientCert();
+            void                                         setOpenvpnClientCert(const openvpn_client_cert_t &client_cert);
 
-            static bool                         rpcGetOpenvpnCertClients(app::rpcUnixClient &rpcClient,
-                                                                         std::list<app::openvpn_cert_client_t> &openvpn_clients);
+            static bool                         rpcGetOpenvpnClientCerts(app::rpcUnixClient &rpcClient,
+                                                                         std::list<app::openvpn_client_cert_t> &client_certs);
 
-            static bool                         rpcGenOpevpnCertClient(app::rpcUnixClient &rpcClient,
-                                                                       const app::openvpn_cert_client_t &client);
+            static bool                         rpcGenOpevpnClientCert(app::rpcUnixClient &rpcClient,
+                                                                       const app::openvpn_client_cert_t &client_cert);
 
     };
 }

@@ -276,11 +276,11 @@ static bool openvpn_gen_ta(const char* ta_key)
     return false;
 }
 
-static bool openvpn_get_client_info(std::list<app::openvpn_cert_client_t> &clients)
+static bool openvpn_get_client_info(std::list<app::openvpn_client_cert_t> &certs)
 {
     // DB format
     // E|R|V<tab>Expiry<tab>[RevocationDate]<tab>Serial<tab>unknown<tab>SubjectDN
-    app::openvpn_cert_client_t client;
+    app::openvpn_client_cert_t cert;
     char line[256];
     char cmd[256];
 
@@ -296,15 +296,15 @@ static bool openvpn_get_client_info(std::list<app::openvpn_cert_client_t> &clien
     char expire_date[16];
     while (fgets(line, sizeof(line), f) > 0) {
         // V 710101000045Z CN=example.com emailAddress=client@example.com
-        sscanf(line, "%*s %s %s %*[^>]", expire_date, client.name);
-        if (strcmp(client.name, "server") == 0) {
+        sscanf(line, "%*s %s %s %*[^>]", expire_date, cert.common_name);
+        if (strcmp(cert.common_name, "server") == 0) {
             continue;
         }
 
         // TODO: parse the expire_date & email
 
-        client.expire_days = DAYS_EXPIRE;
-        clients.push_back(client);
+        cert.expire_days = DAYS_EXPIRE;
+        certs.push_back(cert);
     }
 
     return true;
@@ -477,23 +477,23 @@ static bool openvpn_rsa_info_handler(int socket_fd)
 
 static bool openvpn_client_certs_handler(int socket_fd)
 {
-    app::rpcMessageOpenvpnCertClients msg;
+    app::rpcMessageOpenvpnClientCerts msg;
 
     if (msg.deserialize(socket_fd)) {
 
-        if (msg.getMsgAction() == app::rpcMessageOpenvpnCertClientActionType::GET_OPENVPN_CLIENT_CERT) {
+        if (msg.getMsgAction() == app::rpcMessageOpenvpnClientCertActionType::GET_OPENVPN_CLIENT_CERT) {
 
-            std::list<app::openvpn_cert_client_t> clients;
-            if (openvpn_get_client_info(clients)) {
-                msg.setOpenvpnCertClients(clients);
+            std::list<app::openvpn_client_cert_t> certs;
+            if (openvpn_get_client_info(certs)) {
+                msg.setOpenvpnClientCerts(certs);
                 msg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
             } else {
                 msg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
             }
 
-        } else if (msg.getMsgAction() == app::rpcMessageOpenvpnCertClientActionType::GEN_OPENVPN_CLIENT_CERT) {
+        } else if (msg.getMsgAction() == app::rpcMessageOpenvpnClientCertActionType::GEN_OPENVPN_CLIENT_CERT) {
 
-            if (!openvpn_gen_client(msg.getOpenvpnCertClient().name)) {
+            if (!openvpn_gen_client(msg.getOpenvpnClientCert().common_name)) {
                 msg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
             } else {
                 msg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);

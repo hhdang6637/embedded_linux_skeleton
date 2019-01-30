@@ -95,7 +95,7 @@
             <table id='table' class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Client Name</th>
+                        <th>Common Name</th>
                         <th>Expire (day)</th>
                         <th class="text-center">Action</th>
                     </tr>
@@ -105,7 +105,7 @@
             </table>
             <div class="btn-toolbar d-flex justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
                 <div class="btn-group mr-2" role="group" aria-label="First group">
-                    <button type="button" onclick="gen_config()" class="btn btn-primary btn-lg">Generate Config</button>
+                    <button type="button" onclick="gen_client_cert()" class="btn btn-primary btn-lg">Generate Cert</button>
                 </div>
             </div>
         </div>
@@ -226,14 +226,14 @@ function post_form_data($, id, onSuccess) {
     });
 }
 
-function gen_config()
+function gen_client_cert()
 {
-    var name_cert = prompt("Please enter the certificate name?", "pqtri");
+    var common_name = prompt("Please enter the certificate common name:", "");
 
     var formData = new FormData();
 
-    if (name_cert != null) {
-        formData.append('name_cert', name_cert);
+    if (common_name != null) {
+        formData.append('common_name', common_name);
 
         $.ajax({
             type: "POST",

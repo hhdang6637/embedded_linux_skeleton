@@ -355,21 +355,21 @@ namespace app{
 
     //rpcMessageOpenvpnCertClients
 
-    rpcMessageOpenvpnCertClients::rpcMessageOpenvpnCertClients() :
+    rpcMessageOpenvpnClientCerts::rpcMessageOpenvpnClientCerts() :
             rpcMessage(rpcMessageType::handle_openvpn_cert_clients, rpcMessageAddr::system_manager_addr_t),
             msgResult(app::rpcMessageOpenvpnResultType::UNKNOW),
-            msgAction(app::rpcMessageOpenvpnCertClientActionType::GET_OPENVPN_CLIENT_CERT),
-            openvpn_clients()
+            msgAction(app::rpcMessageOpenvpnClientCertActionType::GET_OPENVPN_CLIENT_CERT),
+            client_certs()
     {
         //TO-DO
     }
 
-    rpcMessageOpenvpnCertClients::~rpcMessageOpenvpnCertClients()
+    rpcMessageOpenvpnClientCerts::~rpcMessageOpenvpnClientCerts()
     {
         //TO-DO
     }
 
-    bool rpcMessageOpenvpnCertClients::serialize(int fd)
+    bool rpcMessageOpenvpnClientCerts::serialize(int fd)
     {
         int buff_len;
         int offset;
@@ -385,17 +385,17 @@ namespace app{
 
         switch (this->msgAction)
         {
-            case app::rpcMessageOpenvpnCertClientActionType::GEN_OPENVPN_CLIENT_CERT:
-            case app::rpcMessageOpenvpnCertClientActionType::GET_OPENVPN_CLIENT_CERT:
+            case app::rpcMessageOpenvpnClientCertActionType::GEN_OPENVPN_CLIENT_CERT:
+            case app::rpcMessageOpenvpnClientCertActionType::GET_OPENVPN_CLIENT_CERT:
             {
                 buff_len += sizeof(app::rpcMessageOpenvpnResultType);
                 buff_len += sizeof(uint16_t); // list size
-                buff_len += this->openvpn_clients.size() * sizeof(app::openvpn_cert_client_t);
+                buff_len += this->client_certs.size() * sizeof(app::openvpn_client_cert_t);
 
                 std::unique_ptr<char> buff_ptr(new char[buff_len]());
 
                 offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, (uint16_t) this->msgResult);
-                offset += rpcMessage::bufferAppendList(buff_ptr.get() + offset, this->openvpn_clients);
+                offset += rpcMessage::bufferAppendList(buff_ptr.get() + offset, this->client_certs);
 
                 if (buff_len != offset) {
                     syslog(LOG_ERR, "%s-%u something wrong happened", __FUNCTION__, __LINE__);
@@ -416,19 +416,19 @@ namespace app{
         return true;
     }
 
-    bool rpcMessageOpenvpnCertClients::deserialize(int fd)
+    bool rpcMessageOpenvpnClientCerts::deserialize(int fd)
     {
         uint16_t tmpValue;
         if (rpcMessage::recvInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
             return false;
         }
 
-        this->msgAction = app::rpcMessageOpenvpnCertClientActionType(tmpValue);
+        this->msgAction = app::rpcMessageOpenvpnClientCertActionType(tmpValue);
 
         switch (this->msgAction)
         {
-            case app::rpcMessageOpenvpnCertClientActionType::GEN_OPENVPN_CLIENT_CERT:
-            case app::rpcMessageOpenvpnCertClientActionType::GET_OPENVPN_CLIENT_CERT:
+            case app::rpcMessageOpenvpnClientCertActionType::GEN_OPENVPN_CLIENT_CERT:
+            case app::rpcMessageOpenvpnClientCertActionType::GET_OPENVPN_CLIENT_CERT:
             {
                 uint16_t list_size;
                 if (rpcMessage::recvInterruptRetry(fd, &this->msgResult, sizeof(this->msgResult)) != true) {
@@ -440,13 +440,13 @@ namespace app{
                 }
 
                 if (list_size > 0) {
-                    std::unique_ptr<char> buff_ptr(new char[list_size * sizeof(app::openvpn_cert_client_t)]);
+                    std::unique_ptr<char> buff_ptr(new char[list_size * sizeof(app::openvpn_client_cert_t)]);
 
-                    if (rpcMessage::recvInterruptRetry(fd, buff_ptr.get(), list_size * sizeof(app::openvpn_cert_client_t)) != true) {
+                    if (rpcMessage::recvInterruptRetry(fd, buff_ptr.get(), list_size * sizeof(app::openvpn_client_cert_t)) != true) {
                         return false;
                     }
 
-                    rpcMessage::ListFromBuff((app::openvpn_cert_client_t*) buff_ptr.get(), this->openvpn_clients, list_size);
+                    rpcMessage::ListFromBuff((app::openvpn_client_cert_t*) buff_ptr.get(), this->client_certs, list_size);
                 }
 
                 break;
@@ -458,52 +458,52 @@ namespace app{
         return true;
     }
 
-    app::rpcMessageOpenvpnCertClientActionType rpcMessageOpenvpnCertClients::getMsgAction() const
+    app::rpcMessageOpenvpnClientCertActionType rpcMessageOpenvpnClientCerts::getMsgAction() const
     {
         return this->msgAction;
     }
 
-    void rpcMessageOpenvpnCertClients::setMsgAction(const rpcMessageOpenvpnCertClientActionType action)
+    void rpcMessageOpenvpnClientCerts::setMsgAction(const rpcMessageOpenvpnClientCertActionType action)
     {
         this->msgAction = action;
     }
 
-    app::rpcMessageOpenvpnResultType rpcMessageOpenvpnCertClients::getMsgResult() const
+    app::rpcMessageOpenvpnResultType rpcMessageOpenvpnClientCerts::getMsgResult() const
     {
         return this->msgResult;
     }
 
-    void rpcMessageOpenvpnCertClients::setMsgResult(const rpcMessageOpenvpnResultType result)
+    void rpcMessageOpenvpnClientCerts::setMsgResult(const rpcMessageOpenvpnResultType result)
     {
         this->msgResult = result;
     }
 
-    const std::list<app::openvpn_cert_client_t>& rpcMessageOpenvpnCertClients::getOpenvpnCertClients()
+    const std::list<app::openvpn_client_cert_t>& rpcMessageOpenvpnClientCerts::getOpenvpnClientCerts()
     {
-        return this->openvpn_clients;
+        return this->client_certs;
     }
-    void rpcMessageOpenvpnCertClients::setOpenvpnCertClients(const std::list<app::openvpn_cert_client_t> &openvpn_clients)
+    void rpcMessageOpenvpnClientCerts::setOpenvpnClientCerts(const std::list<app::openvpn_client_cert_t> &client_certs)
     {
-        this->openvpn_clients = openvpn_clients;
-    }
-
-    const openvpn_cert_client_t& rpcMessageOpenvpnCertClients::getOpenvpnCertClient()
-    {
-        return this->openvpn_clients.front();
+        this->client_certs = client_certs;
     }
 
-    void rpcMessageOpenvpnCertClients::setOpenvpnCertClient(const openvpn_cert_client_t &openvpn_client)
+    const openvpn_client_cert_t& rpcMessageOpenvpnClientCerts::getOpenvpnClientCert()
     {
-        this->openvpn_clients.clear();
-        this->openvpn_clients.push_back(openvpn_client);
+        return this->client_certs.front();
     }
 
-    bool rpcMessageOpenvpnCertClients::rpcGetOpenvpnCertClients(app::rpcUnixClient &rpcClient,
-                                                                std::list<app::openvpn_cert_client_t> &openvpn_clients)
+    void rpcMessageOpenvpnClientCerts::setOpenvpnClientCert(const openvpn_client_cert_t &client_cert)
     {
-        app::rpcMessageOpenvpnCertClients msg;
+        this->client_certs.clear();
+        this->client_certs.push_back(client_cert);
+    }
 
-        msg.setMsgAction(app::rpcMessageOpenvpnCertClientActionType::GET_OPENVPN_CLIENT_CERT);
+    bool rpcMessageOpenvpnClientCerts::rpcGetOpenvpnClientCerts(app::rpcUnixClient &rpcClient,
+                                                                std::list<app::openvpn_client_cert_t> &client_certs)
+    {
+        app::rpcMessageOpenvpnClientCerts msg;
+
+        msg.setMsgAction(app::rpcMessageOpenvpnClientCertActionType::GET_OPENVPN_CLIENT_CERT);
 
         if (rpcClient.doRpc(&msg) == false ||
                 msg.getMsgResult() != app::rpcMessageOpenvpnResultType::SUCCESS) {
@@ -511,17 +511,17 @@ namespace app{
             return false;
         }
 
-        openvpn_clients = msg.getOpenvpnCertClients();
+        client_certs = msg.getOpenvpnClientCerts();
 
         return true;
     }
 
-    bool rpcMessageOpenvpnCertClients::rpcGenOpevpnCertClient(app::rpcUnixClient &rpcClient, const openvpn_cert_client_t &client)
+    bool rpcMessageOpenvpnClientCerts::rpcGenOpevpnClientCert(app::rpcUnixClient &rpcClient, const openvpn_client_cert_t &client_cert)
     {
-        app::rpcMessageOpenvpnCertClients msg;
+        app::rpcMessageOpenvpnClientCerts msg;
 
-        msg.setMsgAction(app::rpcMessageOpenvpnCertClientActionType::GEN_OPENVPN_CLIENT_CERT);
-        msg.setOpenvpnCertClient(client);
+        msg.setMsgAction(app::rpcMessageOpenvpnClientCertActionType::GEN_OPENVPN_CLIENT_CERT);
+        msg.setOpenvpnClientCert(client_cert);
 
         if (rpcClient.doRpc(&msg) == false ||
                 msg.getMsgResult() != app::rpcMessageOpenvpnResultType::SUCCESS) {
