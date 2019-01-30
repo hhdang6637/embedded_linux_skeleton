@@ -144,8 +144,8 @@ out:
     return addr;
 }
 
-void string_copy(char *dst, std::string &src)
+void string_copy(char *dst, const std::string &src, size_t len)
 {
-    strncpy(dst, src.c_str(), src.length());
-    dst[src.length()] = '\0';
+    strncpy(dst, src.c_str(), len);
+    dst[len] = '\0';
 }
