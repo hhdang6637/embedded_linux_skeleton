@@ -1,0 +1,15 @@
+os: linux
+dist: trusty
+language: c
+cache:
+  ccache: true
+  directories:
+    - ~/.ccache
+before_script:
+  - sudo apt-get install u-boot-tools device-tree-compiler mtools
+script:
+  - du --block-size=M --max-depth=1 ~
+  - du --block-size=M --max-depth=1 .
+  - while sleep 10; do tail -n 5 build/arm_vexpress_a9/current.log; done &
+  - MODEL=arm_vexpress_a9 make
+  - kill %1
