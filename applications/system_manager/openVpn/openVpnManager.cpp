@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 #include "ini.h"
 #include "openVpnManager.h"
@@ -18,18 +19,28 @@
 #include "utilities.h"
 
 #define OPENVPN_DB_PATH "/data/openvpndb/"
+
 #define OPENVPN_DB_PATH_KEY OPENVPN_DB_PATH "keys/"
 #define OPENVPN_DB_PATH_CERTS OPENVPN_DB_PATH "certs/"
 #define OPENVPN_DB_PATH_REQS OPENVPN_DB_PATH "reqs/"
+
 #define OPENVPN_CA_KEY OPENVPN_DB_PATH_KEY "ca.key"
 #define OPENVPN_SERVER_KEY OPENVPN_DB_PATH_KEY "server.key"
+
 #define OPENVPN_CA_CRT OPENVPN_DB_PATH_CERTS "ca.crt"
 #define OPENVPN_SEREVR_CERT OPENVPN_DB_PATH_CERTS "server.crt"
+
 #define OPENVPN_SERVER_REQ OPENVPN_DB_PATH_REQS "server.csr"
+
 #define OPENVPN_TLS_AUTH_PEM OPENVPN_DB_PATH "ta.key"
 #define OPENVPN_DH_PEM OPENVPN_DB_PATH "dh.pem"
 #define OPENVPN_INDEX_TXT OPENVPN_DB_PATH "index.txt"
 #define OPENVPN_SERIAL OPENVPN_DB_PATH "serial"
+
+#define OPENVPN_DB_PATH_CLIENTS OPENVPN_DB_PATH "clients/"
+#define OPENVPN_DB_PATH_CLIENT_KEYS OPENVPN_DB_PATH_CLIENTS "keys/"
+#define OPENVPN_DB_PATH_CLIENT_CERTS OPENVPN_DB_PATH_CLIENTS "certs/"
+#define OPENVPN_DB_PATH_CLIENT_REQS OPENVPN_DB_PATH_CLIENTS "reqs/"
 
 #define DAYS_EXPIRE 365
 #define BITS_SIZE_CA 2048
@@ -309,6 +320,88 @@ static bool openvpn_gen_ta(const char* ta_key)
     return false;
 }
 
+static bool openvpn_get_client_info(std::list<app::openvpn_client_cert_t> &certs)
+{
+    // DB format
+    // E|R|V<tab>Expiry<tab>[RevocationDate]<tab>Serial<tab>unknown<tab>SubjectDN
+    app::openvpn_client_cert_t cert;
+    char line[256];
+    char cmd[256];
+    char subject[512];
+
+    FILE *f = fopen(OPENVPN_INDEX_TXT, "r");
+    if (f == NULL) {
+        syslog(LOG_ERR, "cannot run command : %s", cmd);
+        return false;
+    }
+
+    while (fgets(line, sizeof(line), f) > 0) {
+        cert = app::openvpn_client_cert_t();
+        // V   710101000331Z           03      unknown /CN=Hien Nguyen/ST=HCM/C=VN/emailAddress=nmhien@gmail.com/O=Example Security/OU=IT Department
+        if (sscanf(line, "%c %s %*s %*s /%[^\n]", &cert.state, cert.expire_date, subject) != 3) {
+            return false;
+        }
+
+        openssl_subject_t subs = openssl_subject_parser(subject);
+        string_copy(cert.common_name, subs["CN"], sizeof(cert.common_name));
+        string_copy(cert.email, subs["emailAddress"], sizeof(cert.email));
+
+        // skip the Server certificate
+        if (strcmp(cert.common_name, "Server") == 0) {
+            continue;
+        }
+
+        certs.push_back(cert);
+    }
+
+    return true;
+}
+
+static bool openvpn_gen_client(const app::openvpn_client_cert_t &client_cert)
+{
+    std::string fileName(client_cert.common_name);
+    char key[256], req[256], cert[256];
+    char subject[256];
+
+    if (!openVpnManager_rsa_key_is_ok()) {
+        syslog(LOG_ERR, "RSA Key Management is not ready for Gen client");
+        goto err;
+    }
+
+    if (!openssl_client_init(OPENVPN_DB_PATH_CLIENTS)) {
+        syslog(LOG_ERR, OPENVPN_DB_PATH_CLIENTS " not found");
+        goto err;
+    }
+
+    snprintf(subject, sizeof(subject),
+             "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=%s/emailAddress=%s",
+             client_cert.common_name, client_cert.email);
+
+    fileName.erase(std::remove_if(fileName.begin(), fileName.end(), [](unsigned char x) {return std::isspace(x);}),
+                   fileName.end());
+
+    snprintf(key, sizeof(key), OPENVPN_DB_PATH_CLIENT_KEYS "%s.key", fileName.c_str());
+    snprintf(req, sizeof(req), OPENVPN_DB_PATH_CLIENT_REQS "%s.csr", fileName.c_str());
+    snprintf(cert, sizeof(cert), OPENVPN_DB_PATH_CLIENT_CERTS "%s.crt", fileName.c_str());
+
+    if (openssl_req(key, req, DAYS_EXPIRE, BITS_SIZE_SERVER, subject) == false) {
+        syslog(LOG_ERR, "can NOT gen REQ for %s\n", req);
+        goto err;
+    }
+
+    if (openssl_sign(OPENVPN_DB_PATH, req, cert, DAYS_EXPIRE) == false) {
+        syslog(LOG_ERR, "can NOT SIGN req for %s\n", req);
+        goto err;
+    }
+
+    return true;
+
+err:
+    return false;
+}
+
+
+
 static bool init_rsa_database()
 {
     if (openssl_ca_init(OPENVPN_DB_PATH) == false) {
@@ -325,7 +418,7 @@ static bool init_rsa_database()
     // Request and sign cert for Server
     char subject[256];
     snprintf(subject, sizeof(subject), "%s",
-             "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=example.com/emailAddress=server@gmail.com");
+             "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=Server/emailAddress=server@gmail.com");
     if (openssl_req(OPENVPN_SERVER_KEY, OPENVPN_SERVER_REQ, DAYS_EXPIRE, BITS_SIZE_SERVER, subject) == false) {
         syslog(LOG_ERR, "can NOT gen REQ for %s\n", OPENVPN_SERVER_REQ);
         goto err;
@@ -433,6 +526,39 @@ static bool openvpn_rsa_info_handler(int socket_fd)
     return false;
 }
 
+static bool openvpn_client_certs_handler(int socket_fd)
+{
+    app::rpcMessageOpenvpnClientCerts msg;
+
+    if (msg.deserialize(socket_fd)) {
+
+        if (msg.getMsgAction() == app::rpcMessageOpenvpnClientCertActionType::GET_OPENVPN_CLIENT_CERT) {
+
+            std::list<app::openvpn_client_cert_t> certs;
+            if (openvpn_get_client_info(certs)) {
+                msg.setOpenvpnClientCerts(certs);
+                msg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
+            } else {
+                msg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
+            }
+
+        } else if (msg.getMsgAction() == app::rpcMessageOpenvpnClientCertActionType::GEN_OPENVPN_CLIENT_CERT) {
+
+            if (!openvpn_gen_client(msg.getOpenvpnClientCert())) {
+                msg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
+            } else {
+                msg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
+            }
+        } else {
+            msg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
+        }
+
+        return msg.serialize(socket_fd);
+    }
+
+    return false;
+}
+
 void openVpnManager_init(app::rpcUnixServer &rpcServer)
 {
     ca_subjects_load();
@@ -451,6 +577,7 @@ void openVpnManager_init(app::rpcUnixServer &rpcServer)
     }
     rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_openvpn_cfg, openvpn_cfg_handler);
     rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_openvpn_rsa_info, openvpn_rsa_info_handler);
+    rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_openvpn_cert_clients, openvpn_client_certs_handler);
 }
 
 bool openVpnManager_openvpnCfg_get(app::openvpnCfg_t *openvpnCfg_ptr)

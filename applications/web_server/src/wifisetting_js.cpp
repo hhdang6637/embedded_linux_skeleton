@@ -81,11 +81,9 @@ std::string json_handle_wifisetting(FCGX_Request *request)
 
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
-                std::string tmpStr = POSTParser.GetField("preshared_key")->GetTextTypeContent();
-                ::string_copy(msgData.presharedKey, tmpStr);
+                ::string_copy(msgData.presharedKey, POSTParser.GetFieldText("preshared_key"), sizeof(msgData.presharedKey));
 
-                tmpStr = POSTParser.GetField("ssid")->GetTextTypeContent();
-                ::string_copy(msgData.ssid, tmpStr);
+                ::string_copy(msgData.ssid, POSTParser.GetFieldText("ssid"), sizeof(msgData.ssid));
 
                 msgData.accessPoint = std::stoi(POSTParser.GetField("access_point")->GetTextTypeContent());
                 msgData.securityType = std::stoi(POSTParser.GetField("security_type")->GetTextTypeContent());

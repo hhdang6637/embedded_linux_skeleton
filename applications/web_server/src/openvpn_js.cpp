@@ -12,6 +12,7 @@
 #include "fcgi.h"
 #include "openvpn_js.h"
 #include "rpcMessageOpenvpn.h"
+#include "conversion.h"
 
 static inline std::string build_openvpn_rsp_json(std::string status, std::string message = "")
 {
@@ -126,6 +127,89 @@ std::string json_handle_openvpn_rsa(FCGX_Request *request)
 
         return build_openvpn_rsp_json(status, "success");
 
+    }
+
+    return build_openvpn_rsp_json(status, "failed");
+}
+
+std::string json_handle_openvpn_client_cert(FCGX_Request *request)
+{
+    const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
+    const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
+    std::string status      = "failed";
+
+    if (method && (strcmp(method, "GET") == 0)) {
+        std::ostringstream ss_json;
+        std::list<app::openvpn_client_cert_t> certs;
+        size_t counter = 0;
+
+        app::rpcMessageOpenvpnClientCerts::rpcGetOpenvpnClientCerts(*app::rpcUnixClient::getInstance(), certs);
+
+        ss_json << "{\"json_client_cert\": [";
+
+        for (auto const &cert : certs) {
+
+            ss_json << "{";
+            ss_json << "\"name\": ";
+            ss_json << "\"";
+            ss_json << cert.common_name;
+            ss_json << "\", ";
+
+            ss_json << "\"email\": ";
+            ss_json << "\"";
+            ss_json << cert.email;
+            ss_json << "\", ";
+
+            ss_json << "\"state\": ";
+            ss_json << "\"";
+            ss_json << app::rpcMessageOpenvpnClientCerts::openVpnClientCertStateChar2Str(cert.state);
+            ss_json << "\", ";
+
+            ss_json << "\"expire\": ";
+            ss_json << "\"";
+            ss_json << ASN1_to_string(cert.expire_date);
+            ss_json << "\"";
+            ss_json << "}";
+
+            if (++counter < certs.size()) {
+                ss_json << ",";
+            }
+        }
+
+        ss_json << "]}";
+
+        return ss_json.str();
+
+    } else if (method && (strcmp(method, "POST") == 0) && contentType) {
+        std::string data;
+
+        if (get_post_data(request, data)) {
+            try {
+                MPFD::Parser POSTParser;
+
+                POSTParser.SetContentType(contentType);
+                POSTParser.AcceptSomeData(data.c_str(), data.size());
+
+                app::openvpn_client_cert_t cert = app::openvpn_client_cert_t();
+                string_copy(cert.common_name, POSTParser.GetFieldText("common_name"), sizeof(cert.common_name));
+                string_copy(cert.email, POSTParser.GetFieldText("email"), sizeof(cert.email));
+
+                if (app::rpcMessageOpenvpnClientCerts::rpcGenOpevpnClientCert(
+                        *app::rpcUnixClient::getInstance(), cert)) {
+                    status = "succeeded";
+                }
+
+                return build_openvpn_rsp_json(status, "success");
+
+            } catch (MPFD::Exception &e) {
+                syslog(LOG_ERR, "%s\n", e.GetError().c_str());
+                return build_openvpn_rsp_json(status, e.GetError().c_str());
+            }
+
+        } else {
+            syslog(LOG_ERR, "Failed to get data from browser\n");
+            return build_openvpn_rsp_json(status, "Failed to get data from browser");
+        }
     }
 
     return build_openvpn_rsp_json(status, "failed");

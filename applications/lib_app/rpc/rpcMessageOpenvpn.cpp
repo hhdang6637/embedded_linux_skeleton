@@ -352,4 +352,196 @@ namespace app{
         return true;
     }
 
+
+    //rpcMessageOpenvpnCertClients
+
+    rpcMessageOpenvpnClientCerts::rpcMessageOpenvpnClientCerts() :
+            rpcMessage(rpcMessageType::handle_openvpn_cert_clients, rpcMessageAddr::system_manager_addr_t),
+            msgResult(app::rpcMessageOpenvpnResultType::UNKNOW),
+            msgAction(app::rpcMessageOpenvpnClientCertActionType::GET_OPENVPN_CLIENT_CERT),
+            client_certs()
+    {
+        //TO-DO
+    }
+
+    rpcMessageOpenvpnClientCerts::~rpcMessageOpenvpnClientCerts()
+    {
+        //TO-DO
+    }
+
+    bool rpcMessageOpenvpnClientCerts::serialize(int fd)
+    {
+        int buff_len;
+        int offset;
+        uint16_t tmpValue;
+
+        buff_len = 0;
+        offset = 0;
+
+        tmpValue = (uint16_t) this->msgAction;
+        if (rpcMessage::sendInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+            return false;
+        }
+
+        switch (this->msgAction)
+        {
+            case app::rpcMessageOpenvpnClientCertActionType::GEN_OPENVPN_CLIENT_CERT:
+            case app::rpcMessageOpenvpnClientCertActionType::GET_OPENVPN_CLIENT_CERT:
+            {
+                buff_len += sizeof(app::rpcMessageOpenvpnResultType);
+                buff_len += sizeof(uint16_t); // list size
+                buff_len += this->client_certs.size() * sizeof(app::openvpn_client_cert_t);
+
+                std::unique_ptr<char> buff_ptr(new char[buff_len]());
+
+                offset += rpcMessage::bufferAppendU16(buff_ptr.get() + offset, (uint16_t) this->msgResult);
+                offset += rpcMessage::bufferAppendList(buff_ptr.get() + offset, this->client_certs);
+
+                if (buff_len != offset) {
+                    syslog(LOG_ERR, "%s-%u something wrong happened", __FUNCTION__, __LINE__);
+                    return false;
+                }
+
+                if (rpcMessage::sendInterruptRetry(fd, buff_ptr.get(), offset) != true) {
+                    return false;
+                }
+
+                break;
+            }
+
+            default:
+                break;
+        }
+
+        return true;
+    }
+
+    bool rpcMessageOpenvpnClientCerts::deserialize(int fd)
+    {
+        uint16_t tmpValue;
+        if (rpcMessage::recvInterruptRetry(fd, &tmpValue, sizeof(tmpValue)) != true) {
+            return false;
+        }
+
+        this->msgAction = app::rpcMessageOpenvpnClientCertActionType(tmpValue);
+
+        switch (this->msgAction)
+        {
+            case app::rpcMessageOpenvpnClientCertActionType::GEN_OPENVPN_CLIENT_CERT:
+            case app::rpcMessageOpenvpnClientCertActionType::GET_OPENVPN_CLIENT_CERT:
+            {
+                uint16_t list_size;
+                if (rpcMessage::recvInterruptRetry(fd, &this->msgResult, sizeof(this->msgResult)) != true) {
+                    return false;
+                }
+
+                if (rpcMessage::recvInterruptRetry(fd, &list_size, sizeof(list_size)) != true) {
+                    return false;
+                }
+
+                if (list_size > 0) {
+                    std::unique_ptr<char> buff_ptr(new char[list_size * sizeof(app::openvpn_client_cert_t)]);
+
+                    if (rpcMessage::recvInterruptRetry(fd, buff_ptr.get(), list_size * sizeof(app::openvpn_client_cert_t)) != true) {
+                        return false;
+                    }
+
+                    rpcMessage::ListFromBuff((app::openvpn_client_cert_t*) buff_ptr.get(), this->client_certs, list_size);
+                }
+
+                break;
+            }
+            default:
+                break;
+        }
+
+        return true;
+    }
+
+    app::rpcMessageOpenvpnClientCertActionType rpcMessageOpenvpnClientCerts::getMsgAction() const
+    {
+        return this->msgAction;
+    }
+
+    void rpcMessageOpenvpnClientCerts::setMsgAction(const rpcMessageOpenvpnClientCertActionType action)
+    {
+        this->msgAction = action;
+    }
+
+    app::rpcMessageOpenvpnResultType rpcMessageOpenvpnClientCerts::getMsgResult() const
+    {
+        return this->msgResult;
+    }
+
+    void rpcMessageOpenvpnClientCerts::setMsgResult(const rpcMessageOpenvpnResultType result)
+    {
+        this->msgResult = result;
+    }
+
+    const std::list<app::openvpn_client_cert_t>& rpcMessageOpenvpnClientCerts::getOpenvpnClientCerts()
+    {
+        return this->client_certs;
+    }
+    void rpcMessageOpenvpnClientCerts::setOpenvpnClientCerts(const std::list<app::openvpn_client_cert_t> &client_certs)
+    {
+        this->client_certs = client_certs;
+    }
+
+    const openvpn_client_cert_t& rpcMessageOpenvpnClientCerts::getOpenvpnClientCert()
+    {
+        return this->client_certs.front();
+    }
+
+    void rpcMessageOpenvpnClientCerts::setOpenvpnClientCert(const openvpn_client_cert_t &client_cert)
+    {
+        this->client_certs.clear();
+        this->client_certs.push_back(client_cert);
+    }
+
+    bool rpcMessageOpenvpnClientCerts::rpcGetOpenvpnClientCerts(app::rpcUnixClient &rpcClient,
+                                                                std::list<app::openvpn_client_cert_t> &client_certs)
+    {
+        app::rpcMessageOpenvpnClientCerts msg;
+
+        msg.setMsgAction(app::rpcMessageOpenvpnClientCertActionType::GET_OPENVPN_CLIENT_CERT);
+
+        if (rpcClient.doRpc(&msg) == false ||
+                msg.getMsgResult() != app::rpcMessageOpenvpnResultType::SUCCESS) {
+            syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+            return false;
+        }
+
+        client_certs = msg.getOpenvpnClientCerts();
+
+        return true;
+    }
+
+    bool rpcMessageOpenvpnClientCerts::rpcGenOpevpnClientCert(app::rpcUnixClient &rpcClient, const openvpn_client_cert_t &client_cert)
+    {
+        app::rpcMessageOpenvpnClientCerts msg;
+
+        msg.setMsgAction(app::rpcMessageOpenvpnClientCertActionType::GEN_OPENVPN_CLIENT_CERT);
+        msg.setOpenvpnClientCert(client_cert);
+
+        if (rpcClient.doRpc(&msg) == false ||
+                msg.getMsgResult() != app::rpcMessageOpenvpnResultType::SUCCESS) {
+            syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+            return false;
+        }
+
+        return true;
+    }
+
+    std::string rpcMessageOpenvpnClientCerts::openVpnClientCertStateChar2Str(const char state)
+    {
+        if (state == 'V') {
+            return "Valid";
+        } else if (state == 'R') {
+            return "Revoked";
+        } else if (state == 'E') {
+            return "Expired";
+        } else {
+            return "Unknown";
+        }
+    }
 }

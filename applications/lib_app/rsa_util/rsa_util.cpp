@@ -129,6 +129,39 @@ bool openssl_ca_init(const char* openssl_ca_dir)
     return true;
 }
 
+bool openssl_client_init(const char* openssl_client_dir)
+{
+    char tmp_path[256];
+
+    struct stat st;
+    if (lstat(openssl_client_dir, &st) == -1) {
+        mkdir(openssl_client_dir, 0755);
+    } else if (!S_ISDIR(st.st_mode)) {
+        syslog(LOG_ERR, "openssl_client_init: %s is not a directory", openssl_client_dir);
+        return false;
+    }
+
+    // make keys dir
+    snprintf(tmp_path, sizeof(tmp_path), "%s/keys", openssl_client_dir);
+    if (mkdir(tmp_path, 0755) != 0) {
+        syslog(LOG_ERR, "cannot create the dir %s", tmp_path);
+    }
+
+    // make cert dir
+    snprintf(tmp_path, sizeof(tmp_path), "%s/certs", openssl_client_dir);
+    if (mkdir(tmp_path, 0755) != 0) {
+        syslog(LOG_ERR, "cannot create the dir %s", tmp_path);
+    }
+
+    // make reqs dir
+    snprintf(tmp_path, sizeof(tmp_path), "%s/reqs", openssl_client_dir);
+    if (mkdir(tmp_path, 0755) != 0) {
+        syslog(LOG_ERR, "cannot create the dir %s", tmp_path);
+    }
+
+    return true;
+}
+
 bool openssl_req(const char *dst_key, const char* dst_csr, int days, int bitSize, char* subject)
 {
     // ex: openssl req -nodes -newkey rsa:1024 -keyout /tmp/myCA/keys/server.pem -days 365 -keyform PEM -out /tmp/myCA/reqs/server.pem -outform PEM
@@ -280,4 +313,24 @@ bool openssl_get_subject_crt(const char *server_crt_path, char *server_subject, 
     pclose(f);
 
     return true;
+}
+
+openssl_subject_t openssl_subject_parser(const char *subject)
+{
+    openssl_subject_t subs;
+    std::string s = std::string(subject) + "/";
+    std::string delimiter = "/";
+
+    size_t pos = 0;
+    std::string token;
+    char attr[32], value[256];
+
+    while ((pos = s.find(delimiter)) != std::string::npos) {
+        token = s.substr(0, pos);
+        sscanf(token.c_str(), "%[^=]=%[^/]", attr, value);
+        subs.insert(std::pair<std::string, std::string>(attr, value));
+        s.erase(0, pos + delimiter.length());
+    }
+
+    return subs;
 }
