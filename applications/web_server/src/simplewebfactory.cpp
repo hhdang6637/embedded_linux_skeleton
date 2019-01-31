@@ -12,6 +12,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <sys/sysinfo.h>
 #include "MPFDParser/Parser.h"
 #include "MPFDParser/Field.h"
 #include "MPFDParser/Exception.h"
@@ -168,6 +169,7 @@ static bool session_valid(FCGX_Request *request)
     char *session_text;
     long int session_id = 0;
     int i;
+    struct sysinfo system_info;
 
     cookie = FCGX_GetParam("HTTP_COOKIE", request->envp);
 
@@ -183,9 +185,11 @@ static bool session_valid(FCGX_Request *request)
         }
 
         if (session_id > 0) {
+            sysinfo(&system_info);
             for (i = 0; i < 10; i++) {
-                if (session_entries[i].session_id == session_id && (time(NULL) - session_entries[i].timeline) < TIME_OUT) {
-                    session_entries[i].timeline = time(NULL);
+                if (session_entries[i].session_id == session_id &&
+                        (system_info.uptime - session_entries[i].timeline) < TIME_OUT) {
+                    session_entries[i].timeline = (time_t)system_info.uptime;
                     return true;
                 }
             }
