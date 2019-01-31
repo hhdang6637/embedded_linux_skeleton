@@ -314,3 +314,23 @@ bool openssl_get_subject_crt(const char *server_crt_path, char *server_subject, 
 
     return true;
 }
+
+openssl_subject_t openssl_subject_parser(const char *subject)
+{
+    openssl_subject_t subs;
+    std::string s = std::string(subject) + "/";
+    std::string delimiter = "/";
+
+    size_t pos = 0;
+    std::string token;
+    char attr[32], value[256];
+
+    while ((pos = s.find(delimiter)) != std::string::npos) {
+        token = s.substr(0, pos);
+        sscanf(token.c_str(), "%[^=]=%[^/]", attr, value);
+        subs.insert(std::pair<std::string, std::string>(attr, value));
+        s.erase(0, pos + delimiter.length());
+    }
+
+    return subs;
+}

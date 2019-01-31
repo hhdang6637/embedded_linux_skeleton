@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <string>
 #include "rsa_util.h"
+#include "utilities.h"
 
 #define OPENVPN_DB_PATH "/data/openvpndb/"
 
@@ -284,22 +285,23 @@ static bool openvpn_get_client_info(std::list<app::openvpn_client_cert_t> &certs
     app::openvpn_client_cert_t cert;
     char line[256];
     char cmd[256];
+    char subject[512];
 
-    snprintf(cmd, sizeof(cmd), "cat %s | awk -F \"/\" '{print $1, $2, $5}' | awk -F \" \" '{print $1, $2, $5, $6}'",
-             OPENVPN_INDEX_TXT);
-
-    FILE *f = popen(cmd, "r");
+    FILE *f = fopen(OPENVPN_INDEX_TXT, "r");
     if (f == NULL) {
         syslog(LOG_ERR, "cannot run command : %s", cmd);
         return false;
     }
 
     while (fgets(line, sizeof(line), f) > 0) {
-        // V 710101000045Z CN=example.com emailAddress=client@example.com
-        if (sscanf(line, "%c %s CN=%s emailAddress=%s",
-                   &cert.state, cert.expire_date, cert.common_name, cert.email) != 4) {
+        // V   710101000331Z           03      unknown /CN=Hien Nguyen/ST=HCM/C=VN/emailAddress=nmhien@gmail.com/O=Example Security/OU=IT Department
+        if (sscanf(line, "%c %s %*s %*s /%[^\n]", &cert.state, cert.expire_date, subject) != 3) {
             return false;
         }
+
+        openssl_subject_t subs = openssl_subject_parser(subject);
+        string_copy(cert.common_name,subs["CN"], sizeof(cert.common_name));
+        string_copy(cert.email, subs["emailAddress"], sizeof(cert.email));
 
         // skip the Server certificate
         if (strcmp(cert.common_name, "Server") == 0) {
