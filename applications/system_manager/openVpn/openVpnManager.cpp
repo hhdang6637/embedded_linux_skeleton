@@ -293,24 +293,25 @@ static bool openvpn_get_client_info(std::list<app::openvpn_client_cert_t> &certs
         return false;
     }
 
-    char expire_date[16];
     while (fgets(line, sizeof(line), f) > 0) {
         // V 710101000045Z CN=example.com emailAddress=client@example.com
-        sscanf(line, "%*s %s %s %*[^>]", expire_date, cert.common_name);
+        if (sscanf(line, "%c %s CN=%s emailAddress=%s",
+                   &cert.state, cert.expire_date, cert.common_name, cert.email) != 4) {
+            return false;
+        }
+
+        // skip the Server certificate
         if (strcmp(cert.common_name, "server") == 0) {
             continue;
         }
 
-        // TODO: parse the expire_date & email
-
-        cert.expire_days = DAYS_EXPIRE;
         certs.push_back(cert);
     }
 
     return true;
 }
 
-static bool openvpn_gen_client(const char *name)
+static bool openvpn_gen_client(const app::openvpn_client_cert_t &client_cert)
 {
     if (!openVpnManager_rsa_key_is_ok()) {
         syslog(LOG_ERR, "RSA Key Management is not ready for Gen client");
@@ -324,14 +325,14 @@ static bool openvpn_gen_client(const char *name)
 
     char subject[256];
     snprintf(subject, sizeof(subject),
-             "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=%s/emailAddress=%s@example.com",
-             name, name);
+             "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=%s/emailAddress=%s",
+             client_cert.common_name, client_cert.email);
 
     char key[256], req[256], cert[256];
 
-    snprintf(key, sizeof(key), OPENVPN_DB_PATH_CLIENT_KEYS "%s.key", name);
-    snprintf(req, sizeof(req), OPENVPN_DB_PATH_CLIENT_REQS "%s.csr", name);
-    snprintf(cert, sizeof(cert), OPENVPN_DB_PATH_CLIENT_CERTS "%s.crt", name);
+    snprintf(key, sizeof(key), OPENVPN_DB_PATH_CLIENT_KEYS "%s.key", client_cert.common_name);
+    snprintf(req, sizeof(req), OPENVPN_DB_PATH_CLIENT_REQS "%s.csr", client_cert.common_name);
+    snprintf(cert, sizeof(cert), OPENVPN_DB_PATH_CLIENT_CERTS "%s.crt", client_cert.common_name);
 
     if (openssl_req(key, req, DAYS_EXPIRE, BITS_SIZE_SERVER, subject) == false) {
         syslog(LOG_ERR, "can NOT gen REQ for %s\n", req);
@@ -493,7 +494,7 @@ static bool openvpn_client_certs_handler(int socket_fd)
 
         } else if (msg.getMsgAction() == app::rpcMessageOpenvpnClientCertActionType::GEN_OPENVPN_CLIENT_CERT) {
 
-            if (!openvpn_gen_client(msg.getOpenvpnClientCert().common_name)) {
+            if (!openvpn_gen_client(msg.getOpenvpnClientCert())) {
                 msg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
             } else {
                 msg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);

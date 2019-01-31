@@ -95,8 +95,10 @@
             <table id='table' class="table table-hover">
                 <thead>
                     <tr>
+                        <th>Email</th>
                         <th>Common Name</th>
-                        <th>Expire (day)</th>
+                        <th>Expire date</th>
+                        <th>State</th>
                         <th class="text-center">Action</th>
                     </tr>
                 </thead>
@@ -193,7 +195,7 @@ $(function () {
             for (var i = 0; i < jsClient_Cert.length; i++) {
                 var client = jsClient_Cert[i];
 
-                html += "<tr><td>" + client.name + "</td><td>" + client.expire + "</td><td class=\"text-center\"><button type=\"button\"  onclick=\"downLoad('" + client.name + "')\"" + "class=\"btn btn-primary btn-lg\">" + "Download" + "</button></td></tr>";
+                html += "<tr><td>" + client.email + "</td><td>" + client.name + "</td><td>" + client.expire + "</td><td>" + client.state + "</td><td class=\"text-center\"><button type=\"button\" onclick=\"downLoad('" + client.name + "')\"" + "class=\"btn btn-primary\">" + "Download" + "</button><button type=\"button\" class=\"btn btn-danger\">" + "Revoke" + "</button></td></tr>";
             }
             $('#table > tbody:last-child').append(html);
         });
@@ -228,11 +230,13 @@ function post_form_data($, id, onSuccess) {
 
 function gen_client_cert()
 {
+    var email = prompt("Please enter the certificate email:", "");
     var common_name = prompt("Please enter the certificate common name:", "");
 
     var formData = new FormData();
 
-    if (common_name != null) {
+    if (email != null && common_name != null) {
+        formData.append('email', email);
         formData.append('common_name', common_name);
 
         $.ajax({

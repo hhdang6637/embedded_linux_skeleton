@@ -97,8 +97,10 @@ namespace app
     };
 
     typedef struct  {
+        char state;
         char common_name[32];
-        int  expire_days;
+        char email[256];
+        char expire_date[16];
     } openvpn_client_cert_t;
 
     class rpcMessageOpenvpnClientCerts : public rpcMessage
@@ -130,6 +132,8 @@ namespace app
 
             static bool                         rpcGenOpevpnClientCert(app::rpcUnixClient &rpcClient,
                                                                        const app::openvpn_client_cert_t &client_cert);
+
+            static std::string openVpnClientCertStateChar2Str(const char state);
 
     };
 }

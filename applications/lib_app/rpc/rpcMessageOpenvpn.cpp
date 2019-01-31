@@ -531,4 +531,17 @@ namespace app{
 
         return true;
     }
+
+    std::string rpcMessageOpenvpnClientCerts::openVpnClientCertStateChar2Str(const char state)
+    {
+        if (state == 'V') {
+            return "Valid";
+        } else if (state == 'R') {
+            return "Revoked";
+        } else if (state == 'E') {
+            return "Expired";
+        } else {
+            return "Unknown";
+        }
+    }
 }
