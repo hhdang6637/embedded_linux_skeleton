@@ -12,6 +12,7 @@
 #include "fcgi.h"
 #include "openvpn_js.h"
 #include "rpcMessageOpenvpn.h"
+#include "conversion.h"
 
 static inline std::string build_openvpn_rsp_json(std::string status, std::string message = "")
 {
