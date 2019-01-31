@@ -294,13 +294,14 @@ static bool openvpn_get_client_info(std::list<app::openvpn_client_cert_t> &certs
     }
 
     while (fgets(line, sizeof(line), f) > 0) {
+        cert = app::openvpn_client_cert_t();
         // V   710101000331Z           03      unknown /CN=Hien Nguyen/ST=HCM/C=VN/emailAddress=nmhien@gmail.com/O=Example Security/OU=IT Department
         if (sscanf(line, "%c %s %*s %*s /%[^\n]", &cert.state, cert.expire_date, subject) != 3) {
             return false;
         }
 
         openssl_subject_t subs = openssl_subject_parser(subject);
-        string_copy(cert.common_name,subs["CN"], sizeof(cert.common_name));
+        string_copy(cert.common_name, subs["CN"], sizeof(cert.common_name));
         string_copy(cert.email, subs["emailAddress"], sizeof(cert.email));
 
         // skip the Server certificate

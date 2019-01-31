@@ -147,5 +147,5 @@ out:
 void string_copy(char *dst, const std::string &src, size_t len)
 {
     strncpy(dst, src.c_str(), len);
-    dst[len] = '\0';
+    dst[len-1] = '\0';
 }

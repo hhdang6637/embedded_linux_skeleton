@@ -96,7 +96,7 @@ namespace app
         GEN_OPENVPN_CLIENT_CERT
     };
 
-    typedef struct  {
+    typedef struct {
         char state;
         char common_name[32];
         char email[256];
