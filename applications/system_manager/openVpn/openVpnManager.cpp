@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 #include "openVpnManager.h"
 #include <sys/stat.h>
@@ -301,7 +302,7 @@ static bool openvpn_get_client_info(std::list<app::openvpn_client_cert_t> &certs
         }
 
         // skip the Server certificate
-        if (strcmp(cert.common_name, "server") == 0) {
+        if (strcmp(cert.common_name, "Server") == 0) {
             continue;
         }
 
@@ -313,6 +314,10 @@ static bool openvpn_get_client_info(std::list<app::openvpn_client_cert_t> &certs
 
 static bool openvpn_gen_client(const app::openvpn_client_cert_t &client_cert)
 {
+    std::string fileName(client_cert.common_name);
+    char key[256], req[256], cert[256];
+    char subject[256];
+
     if (!openVpnManager_rsa_key_is_ok()) {
         syslog(LOG_ERR, "RSA Key Management is not ready for Gen client");
         goto err;
@@ -323,16 +328,16 @@ static bool openvpn_gen_client(const app::openvpn_client_cert_t &client_cert)
         goto err;
     }
 
-    char subject[256];
     snprintf(subject, sizeof(subject),
              "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=%s/emailAddress=%s",
              client_cert.common_name, client_cert.email);
 
-    char key[256], req[256], cert[256];
+    fileName.erase(std::remove_if(fileName.begin(), fileName.end(), [](unsigned char x) {return std::isspace(x);}),
+                   fileName.end());
 
-    snprintf(key, sizeof(key), OPENVPN_DB_PATH_CLIENT_KEYS "%s.key", client_cert.common_name);
-    snprintf(req, sizeof(req), OPENVPN_DB_PATH_CLIENT_REQS "%s.csr", client_cert.common_name);
-    snprintf(cert, sizeof(cert), OPENVPN_DB_PATH_CLIENT_CERTS "%s.crt", client_cert.common_name);
+    snprintf(key, sizeof(key), OPENVPN_DB_PATH_CLIENT_KEYS "%s.key", fileName.c_str());
+    snprintf(req, sizeof(req), OPENVPN_DB_PATH_CLIENT_REQS "%s.csr", fileName.c_str());
+    snprintf(cert, sizeof(cert), OPENVPN_DB_PATH_CLIENT_CERTS "%s.crt", fileName.c_str());
 
     if (openssl_req(key, req, DAYS_EXPIRE, BITS_SIZE_SERVER, subject) == false) {
         syslog(LOG_ERR, "can NOT gen REQ for %s\n", req);
