@@ -166,7 +166,7 @@ std::string json_handle_openvpn_client_cert(FCGX_Request *request)
 
             ss_json << "\"expire\": ";
             ss_json << "\"";
-            ss_json << cert.expire_date;
+            ss_json << ASN1_to_string(cert.expire_date);
             ss_json << "\"";
             ss_json << "}";
 

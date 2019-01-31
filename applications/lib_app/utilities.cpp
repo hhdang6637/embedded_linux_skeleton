@@ -15,6 +15,7 @@
 #include <sys/mman.h>
 
 #include "utilities.h"
+#include "conversion.h"
 
 #define BUF_SIZE 1024
 
@@ -148,4 +149,34 @@ void string_copy(char *dst, const std::string &src, size_t len)
 {
     strncpy(dst, src.c_str(), len);
     dst[len-1] = '\0';
+}
+
+inline int makeInt(const char *p, int size)
+{
+    const char *endp;
+    int intval = 0;
+
+    endp = p + size;
+    while (p < endp)
+    {
+        intval = intval * 10 + *p - '0';
+        p++;
+    }
+    return intval;
+}
+
+std::string ASN1_to_string(const char *szYYMMDDHHMMSS)
+{
+    struct tm    Tm;
+
+    memset(&Tm, 0, sizeof(Tm));
+    Tm.tm_year = makeInt(szYYMMDDHHMMSS + 0, 2);
+    Tm.tm_mon  = makeInt(szYYMMDDHHMMSS + 2, 2) - 1;
+    Tm.tm_mday = makeInt(szYYMMDDHHMMSS + 4, 2);
+    Tm.tm_hour = makeInt(szYYMMDDHHMMSS + 6, 2);
+    Tm.tm_min  = makeInt(szYYMMDDHHMMSS + 8, 2);
+    Tm.tm_sec  = makeInt(szYYMMDDHHMMSS + 10, 2);
+
+
+    return time2String(mktime(&Tm));
 }
