@@ -374,7 +374,7 @@ static bool openvpn_gen_client_cfg_file(const char *file_name)
     std::ofstream openvpn_client_cfg(OPENVPN_DB_PATH_CLIENT_CONFIGS + std::string(file_name) + ".ovpn");
 
     if (openvpn_client_cfg.is_open()) {
-        openvpn_client_cfg << "remote 10.230.2.122 " << openvpnCfg.port << "\n" << // TODO: user choose interface
+        openvpn_client_cfg << "remote example.com " << openvpnCfg.port << "\n" <<
                            "proto udp4\n"
                            "dev tun\n"
                            "key-direction 1\n"
