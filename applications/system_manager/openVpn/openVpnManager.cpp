@@ -377,7 +377,7 @@ static bool openvpn_gen_client_cfg_file(const char *file_name)
         openvpn_client_cfg << "remote 10.230.2.122 " << openvpnCfg.port << "\n" << // TODO: user choose interface
                            "proto udp4\n"
                            "dev tun\n"
-                           "key-direction 0\n"
+                           "key-direction 1\n"
                            "cipher AES-128-CBC\n"
                            "auth SHA256\n"
                            "user nobody\n"
