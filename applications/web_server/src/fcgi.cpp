@@ -11,6 +11,8 @@
 #include <fcgiapp.h>
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "simplewebfactory.h"
 #include "fcgi.h"
@@ -123,4 +125,24 @@ bool get_post_data(FCGX_Request *request, std::string &data)
     }
 
     return true;
+}
+
+void web_send_file(FCGX_Request *request, const std::string &fileName, const std::string &filePath)
+{
+    std::ifstream file(filePath);
+
+    if (file.is_open()) {
+        std::stringstream str_stream;
+        str_stream << file.rdbuf();
+
+        FCGX_FPrintF(request->out, "Cache-Control: no-cache\r\n");
+        FCGX_FPrintF(request->out, "Cache-Control: no-store\r\n");
+        FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n");
+        FCGX_FPrintF(request->out, "Content-Disposition: attachment; filename=\"%s\"\r\n\r\n", fileName.c_str());
+        FCGX_FPrintF(request->out, "%s", str_stream.str().c_str());
+
+        file.close();
+    } else {
+        FCGX_FPrintF(request->out, "HTTP/1.1 404 Not Found\r\n\r\n");
+    }
 }
