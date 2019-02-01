@@ -6,5 +6,6 @@
 std::string json_handle_openvpn_cfg(FCGX_Request *request);
 std::string json_handle_openvpn_rsa(FCGX_Request *request);
 std::string json_handle_openvpn_client_cert(FCGX_Request *request);
+void        handle_donwload_openvpn_client_cfg(FCGX_Request *request);
 
 #endif /* _OPENVPN_JS_H_ */

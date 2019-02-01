@@ -41,6 +41,7 @@
 #define OPENVPN_DB_PATH_CLIENT_KEYS OPENVPN_DB_PATH_CLIENTS "keys/"
 #define OPENVPN_DB_PATH_CLIENT_CERTS OPENVPN_DB_PATH_CLIENTS "certs/"
 #define OPENVPN_DB_PATH_CLIENT_REQS OPENVPN_DB_PATH_CLIENTS "reqs/"
+#define OPENVPN_DB_PATH_CLIENT_CONFIGS OPENVPN_DB_PATH_CLIENTS "configs/"
 
 #define DAYS_EXPIRE 365
 #define BITS_SIZE_CA 2048
@@ -179,7 +180,6 @@ err_exit:
 
 static bool load_text_from_file(std::string &str, const char *txtfile)
 {
-
     std::ifstream file(txtfile);
 
     if (file.is_open()) {
@@ -357,6 +357,47 @@ static bool openvpn_get_client_info(std::list<app::openvpn_client_cert_t> &certs
     return true;
 }
 
+static bool openvpn_gen_client_cfg_file(const char *file_name)
+{
+    std::string ca_crt, client_key, tls_auth, client_cert;
+    char key[256], req[256], cert[256];
+
+    snprintf(key, sizeof(key), OPENVPN_DB_PATH_CLIENT_KEYS "%s.key", file_name);
+    snprintf(req, sizeof(req), OPENVPN_DB_PATH_CLIENT_REQS "%s.csr", file_name);
+    snprintf(cert, sizeof(cert), OPENVPN_DB_PATH_CLIENT_CERTS "%s.crt", file_name);
+
+    load_text_from_file(client_key, key);
+    load_text_from_file(client_cert, cert);
+    load_text_from_file(ca_crt, OPENVPN_CA_CRT);
+    load_text_from_file(tls_auth, OPENVPN_TLS_AUTH_PEM);
+
+    std::ofstream openvpn_client_cfg(OPENVPN_DB_PATH_CLIENT_CONFIGS + std::string(file_name) + ".ovpn");
+
+    if (openvpn_client_cfg.is_open()) {
+        openvpn_client_cfg << "remote 10.230.2.122 " << openvpnCfg.port << "\n" << // TODO: user choose interface
+                           "proto udp4\n"
+                           "dev tun\n"
+                           "key-direction 1\n"
+                           "cipher AES-128-CBC\n"
+                           "auth SHA256\n"
+                           "user nobody\n"
+                           "group nogroup\n"
+                           // CA cert
+                           "<ca>\n" << ca_crt << "</ca>\n"
+                           // client cert
+                           "<cert>\n" << client_cert << "</cert>\n"
+                           // client key
+                           "<key>\n" << client_key << "</key>\n"
+                           // tls-auth
+                           "<tls-auth>\n" << tls_auth << "</tls-auth>\n";
+
+        openvpn_client_cfg.close();
+        return true;
+    }
+
+    return false;
+}
+
 static bool openvpn_gen_client(const app::openvpn_client_cert_t &client_cert)
 {
     std::string fileName(client_cert.common_name);
@@ -365,11 +406,6 @@ static bool openvpn_gen_client(const app::openvpn_client_cert_t &client_cert)
 
     if (!openVpnManager_rsa_key_is_ok()) {
         syslog(LOG_ERR, "RSA Key Management is not ready for Gen client");
-        goto err;
-    }
-
-    if (!openssl_client_init(OPENVPN_DB_PATH_CLIENTS)) {
-        syslog(LOG_ERR, OPENVPN_DB_PATH_CLIENTS " not found");
         goto err;
     }
 
@@ -391,6 +427,11 @@ static bool openvpn_gen_client(const app::openvpn_client_cert_t &client_cert)
 
     if (openssl_sign(OPENVPN_DB_PATH, req, cert, DAYS_EXPIRE) == false) {
         syslog(LOG_ERR, "can NOT SIGN req for %s\n", req);
+        goto err;
+    }
+
+    if (openvpn_gen_client_cfg_file(fileName.c_str()) == false) {
+        syslog(LOG_ERR, "can generate the client configuration for %s\n", fileName.c_str());
         goto err;
     }
 
@@ -575,6 +616,11 @@ void openVpnManager_init(app::rpcUnixServer &rpcServer)
             openvpnCfg.state = false;
         }
     }
+
+    if (!openssl_client_init(OPENVPN_DB_PATH_CLIENTS)) {
+        syslog(LOG_ERR, OPENVPN_DB_PATH_CLIENTS " not found");
+    }
+
     rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_openvpn_cfg, openvpn_cfg_handler);
     rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_openvpn_rsa_info, openvpn_rsa_info_handler);
     rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_openvpn_cert_clients, openvpn_client_certs_handler);

@@ -1,5 +1,6 @@
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 #include <fcgiapp.h>
 #include <syslog.h>
@@ -13,6 +14,8 @@
 #include "openvpn_js.h"
 #include "rpcMessageOpenvpn.h"
 #include "conversion.h"
+
+#define OPENVPN_DB_PATH_CLIENTS "/data/openvpndb/clients/configs/"
 
 static inline std::string build_openvpn_rsp_json(std::string status, std::string message = "")
 {
@@ -213,4 +216,37 @@ std::string json_handle_openvpn_client_cert(FCGX_Request *request)
     }
 
     return build_openvpn_rsp_json(status, "failed");
+}
+
+void handle_donwload_openvpn_client_cfg(FCGX_Request *request)
+{
+    const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
+    const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
+
+    if (method && (strcmp(method, "POST") == 0) && contentType) {
+        std::string data;
+
+        if (get_post_data(request, data)) {
+            try {
+                MPFD::Parser POSTParser;
+
+                POSTParser.SetContentType(contentType);
+                POSTParser.AcceptSomeData(data.c_str(), data.size());
+
+                std::string fileName = POSTParser.GetFieldText("common_name");
+                fileName.erase(std::remove_if(fileName.begin(), fileName.end(), [](unsigned char x) {return std::isspace(x);}),
+                               fileName.end());
+
+                fileName += ".ovpn";
+
+                web_send_file(request, fileName, OPENVPN_DB_PATH_CLIENTS + fileName);
+
+            } catch (MPFD::Exception &e) {
+                syslog(LOG_ERR, "%s\n", e.GetError().c_str());
+            }
+
+        } else {
+            syslog(LOG_ERR, "Failed to get data from browser\n");
+        }
+    }
 }

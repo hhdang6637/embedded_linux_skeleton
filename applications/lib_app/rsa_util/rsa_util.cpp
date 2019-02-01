@@ -143,20 +143,38 @@ bool openssl_client_init(const char* openssl_client_dir)
 
     // make keys dir
     snprintf(tmp_path, sizeof(tmp_path), "%s/keys", openssl_client_dir);
-    if (mkdir(tmp_path, 0755) != 0) {
-        syslog(LOG_ERR, "cannot create the dir %s", tmp_path);
+    if (lstat(tmp_path, &st) == -1) {
+        mkdir(tmp_path, 0755);
+    } else if (!S_ISDIR(st.st_mode)) {
+        syslog(LOG_ERR, "openssl_client_init: %s is not a directory", tmp_path);
+        return false;
     }
 
     // make cert dir
     snprintf(tmp_path, sizeof(tmp_path), "%s/certs", openssl_client_dir);
-    if (mkdir(tmp_path, 0755) != 0) {
-        syslog(LOG_ERR, "cannot create the dir %s", tmp_path);
+    if (lstat(tmp_path, &st) == -1) {
+        mkdir(tmp_path, 0755);
+    } else if (!S_ISDIR(st.st_mode)) {
+        syslog(LOG_ERR, "openssl_client_init: %s is not a directory", tmp_path);
+        return false;
     }
 
     // make reqs dir
     snprintf(tmp_path, sizeof(tmp_path), "%s/reqs", openssl_client_dir);
-    if (mkdir(tmp_path, 0755) != 0) {
-        syslog(LOG_ERR, "cannot create the dir %s", tmp_path);
+    if (lstat(tmp_path, &st) == -1) {
+        mkdir(tmp_path, 0755);
+    } else if (!S_ISDIR(st.st_mode)) {
+        syslog(LOG_ERR, "openssl_client_init: %s is not a directory", tmp_path);
+        return false;
+    }
+
+    // make configs dir
+    snprintf(tmp_path, sizeof(tmp_path), "%s/configs", openssl_client_dir);
+    if (lstat(tmp_path, &st) == -1) {
+        mkdir(tmp_path, 0755);
+    } else if (!S_ISDIR(st.st_mode)) {
+        syslog(LOG_ERR, "openssl_client_init: %s is not a directory", tmp_path);
+        return false;
     }
 
     return true;
