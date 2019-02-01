@@ -189,6 +189,7 @@ std::string json_handle_openvpn_client_cert(FCGX_Request *request)
         if (get_post_data(request, data)) {
             try {
                 MPFD::Parser POSTParser;
+                std::string message = "Something went wrong!";
 
                 POSTParser.SetContentType(contentType);
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
@@ -200,9 +201,10 @@ std::string json_handle_openvpn_client_cert(FCGX_Request *request)
                 if (app::rpcMessageOpenvpnClientCerts::rpcGenOpevpnClientCert(
                         *app::rpcUnixClient::getInstance(), cert)) {
                     status = "succeeded";
+                    message = "Success";
                 }
 
-                return build_openvpn_rsp_json(status, "success");
+                return build_openvpn_rsp_json(status, message);
 
             } catch (MPFD::Exception &e) {
                 syslog(LOG_ERR, "%s\n", e.GetError().c_str());

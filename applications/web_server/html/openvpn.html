@@ -46,9 +46,9 @@
 <div class="container">
     <div class="status"></div>
     <div class="tab">
-        <button id="defaultOpen" class="tablinks" onclick="openTab(event, 'VPN_CFG')">VPN Configuration</button>
-        <button class="tablinks" onclick="openTab(event, 'CA_INFO')">CA & Server Information</button>
-        <button class="tablinks" onclick="openTab(event, 'CLIENT_INFO')">Client Information</button>
+        <button id="defaultOpen" class="tablinks" onclick="openTab(event, 'VPN_CFG'); showInfor();">VPN Configuration</button>
+        <button class="tablinks" onclick="openTab(event, 'CA_INFO'); showCert();">CA & Server Information</button>
+        <button class="tablinks" onclick="openTab(event, 'CLIENT_INFO'); showClient_Cert();">Client Information</button>
     </div>
     <!-- Tab content -->
     <div id="VPN_CFG" class="tabcontent card">
@@ -121,61 +121,27 @@ $(function () {
 + function($) {
     'use strict';
 
-    $(document).ready(function(){
-        showInfor();
-        showCert();
-        showClient_Cert()
-    });
-
-    function showInfor()
-    {
-        $.getJSON( "/json/openvpn_cfg", function(data) {
-
-            var infor_conf = data.json_openvpn_config;
-
-            $("#port").val(infor_conf.port);
-
-            if (infor_conf.state == 1) {
-                $("#enable_vpn").prop('checked', true);
-            } else {
-                $("#enable_vpn").prop('checked', false);
-            }
-
-        });
-    }
-
     var openvpn_ConfigForm = document.getElementById('js-openvpn_setting-form');
 
     openvpn_ConfigForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        post_form_data($, 'js-openvpn_setting-form', function(json) {
         $(".status").empty();
+        post_form_data($, 'js-openvpn_setting-form', function(json) {
             if (json.status == "succeeded") {
               $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
             } else {
               $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
-              showInfor();
             }
+            showInfor();
         });
     })
-
-    function showCert()
-    {
-        $.getJSON( "/json/openvpn_rsa", function(data) {
-
-            var cert = data.json_openvpn_rsa;
-
-            $("#ca").val(cert.ca_name);
-            $("#server").val(cert.server_name);
-        });
-    }
 
     var openvpn_RsaForm = document.getElementById('js-openvpn_rsa-form');
     openvpn_RsaForm.addEventListener('submit', function(e) {
         e.preventDefault();
        if (confirm("This action will remove all current client profiles too!!!") == true) {
-            post_form_data($, 'js-openvpn_rsa-form', function(json) {
             $(".status").empty();
+            post_form_data($, 'js-openvpn_rsa-form', function(json) {
                 if (json.status == "succeeded") {
                   $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
                 } else {
@@ -185,22 +151,6 @@ $(function () {
             });
         }
     })
-
-    function showClient_Cert()
-    {
-        $.getJSON( "/json/openvpn_client_cert", function(data) {
-
-            var html = "";
-            var jsClient_Cert = data.json_client_cert;
-            for (var i = 0; i < jsClient_Cert.length; i++) {
-                var client = jsClient_Cert[i];
-
-                html += "<tr><td>" + client.email + "</td><td>" + client.name + "</td><td>" + client.expire + "</td><td>" + client.state + "</td><td class=\"text-center\"><button type=\"button\" onclick=\"downloadVpnClientConfig('" + client.name + "')\"" + "class=\"btn btn-sm btn-primary\">" + "Download" + "</button>&ensp;<button type=\"button\" class=\"btn btn-sm btn-danger\">" + "Revoke" + "</button></td></tr>";
-            }
-            $('#table > tbody:last-child').append(html);
-        });
-    }
-
 }(jQuery);
 
 function post_form_data($, id, onSuccess) {
@@ -228,8 +178,53 @@ function post_form_data($, id, onSuccess) {
     });
 }
 
+function showCert()
+{
+    $.getJSON( "/json/openvpn_rsa", function(data) {
+
+        var cert = data.json_openvpn_rsa;
+
+        $("#ca").val(cert.ca_name);
+        $("#server").val(cert.server_name);
+    });
+}
+
+function showInfor()
+{
+    $.getJSON( "/json/openvpn_cfg", function(data) {
+
+        var infor_conf = data.json_openvpn_config;
+
+        $("#port").val(infor_conf.port);
+
+        if (infor_conf.state == 1) {
+            $("#enable_vpn").prop('checked', true);
+        } else {
+            $("#enable_vpn").prop('checked', false);
+        }
+
+    });
+}
+
+function showClient_Cert()
+{
+    $.getJSON( "/json/openvpn_client_cert", function(data) {
+
+        var html = "";
+        var jsClient_Cert = data.json_client_cert;
+        for (var i = 0; i < jsClient_Cert.length; i++) {
+            var client = jsClient_Cert[i];
+
+            html += "<tr><td>" + client.email + "</td><td>" + client.name + "</td><td>" + client.expire + "</td><td>" + client.state + "</td><td class=\"text-center\"><button type=\"button\" onclick=\"downloadVpnClientConfig('" + client.name + "')\"" + "class=\"btn btn-sm btn-primary\">" + "Download" + "</button>&ensp;<button type=\"button\" class=\"btn btn-sm btn-danger\">" + "Revoke" + "</button></td></tr>";
+        }
+        $('#table > tbody').html(html);
+    });
+}
+
+
 function gen_client_cert()
 {
+    $(".status").empty();
     var email = prompt("Please enter the certificate email:", "");
     var common_name = prompt("Please enter the certificate common name:", "");
 
@@ -254,6 +249,7 @@ function gen_client_cert()
                 } else {
                   $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
                 }
+                showClient_Cert();
             },
         });
     }
@@ -261,7 +257,6 @@ function gen_client_cert()
 
 function downloadVpnClientConfig(name)
 {
-
     var formData = new FormData();
 
     formData.append('common_name', name);
@@ -339,6 +334,8 @@ function openTab(evt, tabName) {
     // Show the current tab, and add an "active" class to the button that opened the tab
     document.getElementById(tabName).style.display = "block";
     evt.currentTarget.className += " active";
+
+    $(".status").empty();
 }
 
 document.getElementById("defaultOpen").click();
