@@ -604,7 +604,7 @@ void openVpnManager_init(app::rpcUnixServer &rpcServer)
 {
     ca_subjects_load();
     openvpnCfg_set_default(&openvpnCfg);
-    if (openVpnManager_load() == true) {
+    if ((openVpnManager_load() == true) && (openvpnCfg.state == 1)) {
         if (!openVpnManager_rsa_key_is_ok()) {
             syslog(LOG_ERR, "RSA Key Management is not ready for OpenVPN staring");
         }
