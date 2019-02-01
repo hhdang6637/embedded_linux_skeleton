@@ -36,7 +36,8 @@ public:
         handle_wifi_setting,
         handle_openvpn_cfg,
         handle_openvpn_rsa_info,
-        handle_openvpn_cert_clients
+        handle_openvpn_cert_clients,
+        handle_time_cfg
     };
 protected:
     rpcMessageType  msgType;
@@ -53,6 +54,12 @@ public:
     bool receive(int fd);
 
     static int bufferAppendU16(void*dst, uint16_t t)
+    {
+        memcpy(dst, &t, sizeof(t));
+        return sizeof(t);
+    }
+
+    template<typename T> static int bufferAppend(void*dst, T const &t)
     {
         memcpy(dst, &t, sizeof(t));
         return sizeof(t);

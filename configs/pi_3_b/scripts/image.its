@@ -20,7 +20,7 @@
         };
         fdt@0 {
             description = "Flattened Device Tree blob - bcm2835";
-            data = /incbin/("./bcm2837-rpi-3-b.dtb");
+            data = /incbin/("./bcm2710-rpi-3-b.dtb");
             type = "flat_dt";
             arch = "arm";
             compression = "none";

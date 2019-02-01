@@ -1,2 +1,27 @@
-#DTB_FILE=bcm2835-rpi-b-plus.dtb
-DTB_FILE=bcm2837-rpi-3-b.dtb
+export LINUX_KERNEL_DIR=4.14.79-v7
+export LINUX_KERNEL_MODS= lib/modules/$(LINUX_KERNEL_DIR)/modules.alias \
+lib/modules/$(LINUX_KERNEL_DIR)/modules.alias.bin \
+lib/modules/$(LINUX_KERNEL_DIR)/modules.builtin \
+lib/modules/$(LINUX_KERNEL_DIR)/modules.builtin.bin \
+lib/modules/$(LINUX_KERNEL_DIR)/modules.dep \
+lib/modules/$(LINUX_KERNEL_DIR)/modules.dep.bin \
+lib/modules/$(LINUX_KERNEL_DIR)/modules.devname \
+lib/modules/$(LINUX_KERNEL_DIR)/modules.order \
+lib/modules/$(LINUX_KERNEL_DIR)/modules.softdep \
+lib/modules/$(LINUX_KERNEL_DIR)/modules.symbols \
+lib/modules/$(LINUX_KERNEL_DIR)/modules.symbols.bin \
+lib/modules/$(LINUX_KERNEL_DIR)/kernel/drivers/net/tun.ko \
+lib/modules/$(LINUX_KERNEL_DIR)/kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko \
+lib/modules/$(LINUX_KERNEL_DIR)/kernel/drivers/net/wireless/broadcom/brcm80211/brcmutil/brcmutil.ko \
+lib/modules/$(LINUX_KERNEL_DIR)/kernel/net/wireless/cfg80211.ko \
+lib/modules/$(LINUX_KERNEL_DIR)/kernel/net/rfkill/rfkill.ko \
+lib/modules/$(LINUX_KERNEL_DIR)/kernel/net/ipv4/netfilter/ip_tables.ko \
+lib/modules/$(LINUX_KERNEL_DIR)/kernel/net/netfilter/x_tables.ko \
+lib/modules/$(LINUX_KERNEL_DIR)/kernel/net/netfilter/nf_nat.ko \
+lib/modules/$(LINUX_KERNEL_DIR)/kernel/net/bridge/bridge.ko \
+lib/modules/$(LINUX_KERNEL_DIR)/kernel/net/802/stp.ko \
+lib/modules/$(LINUX_KERNEL_DIR)/kernel/net/ipv6/ipv6.ko \
+lib/modules/$(LINUX_KERNEL_DIR)/kernel/net/llc/llc.ko
+
+
+DTB_FILE=bcm2710-rpi-3-b.dtb

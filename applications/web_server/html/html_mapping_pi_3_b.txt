@@ -11,3 +11,4 @@
 /pages/openvpn,openvpn.html
 /pages/waiting,waiting.html
 /pages/wifisetting,wifisetting.html
+/pages/time_ntp,time_ntp.html

@@ -11,6 +11,7 @@ SRCS += libfdt/fdt_ro.o backtrace_signal.o netlink_socket.o conversion.o
 SRCS += ini.o user.o
 SRCS += rpc/rpcMessageOpenvpn.o
 SRCS += rsa_util/rsa_util.o
+SRCS += rpc/rpcMessageTime.o
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@

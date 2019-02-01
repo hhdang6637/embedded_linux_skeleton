@@ -23,6 +23,7 @@ include $(CONFIGS_DIR)/Makefile.variable
 export PATH := $(BUILDROOT_BUILD_DIR)/host/usr/bin:$(PATH)
 #export LD_LIBRARY_PATH := $(LD_LIBRARY_PATH):$(BUILDROOT_BUILD_DIR)/host/usr/lib
 export CROSS_COMPILE=ccache arm-linux-
+export CROSS_COMPILE_STRIP=arm-linux-strip
 export CROSS_COMPILE_PATH=$(BUILDROOT_BUILD_DIR)/host/usr
 export BISON_PKGDATADIR=$(BUILDROOT_BUILD_DIR)/host/usr/share/bison
 export M4=$(BUILDROOT_BUILD_DIR)/host/usr/bin/m4
@@ -31,7 +32,7 @@ export ARCH=arm
 
 NUM_OF_CPU := $(nproc)
 
-all: compile_buildroot compile_uboot compile_linux_kernel make_disk
+all: compile_buildroot compile_linux_kernel make_firmware
 
 clean: clean_buildroot clean_linux_kernel clean_uboot clean_apps
 	rm -rf $(BUILD_DIR)
@@ -59,15 +60,10 @@ clean_buildroot:
 compile_linux_kernel: $(BIN_BUILD_DIR)
 	@echo "**********compile_linux_kernel**********"
 	@cp $(CONFIGS_DIR)/linux/config $(LINUX_BUILD_DIR)/.config
-	@if  ! $(CACHE_DIR)/get_linux_$(MODEL)_cache.sh > $(CURRENT_LOG) 2>&1 ; then \
-		if [ $(MODEL) = "orange_pi_zero" ] ; then \
-			$(MAKE) -j3 -C linux/linux-4.14.67 O=$(LINUX_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ; \
-			$(MAKE) -j3 -C linux/linux-4.14.67 O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install >> $(BUILD_DIR)/linux_kernel.log 2>&1 ; \
-		else \
-			$(MAKE) -j3 -C linux/linux-4.14.22 O=$(LINUX_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ; \
-			$(MAKE) -j3 -C linux/linux-4.14.22 O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install >> $(BUILD_DIR)/linux_kernel.log 2>&1 ; \
-		fi \
-	fi
+
+	@$(MAKE) -j3 -C linux/$(LINUX_KERNEL_DIR) O=$(LINUX_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
+	@$(MAKE) -j3 -C linux/$(LINUX_KERNEL_DIR) O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_MOD_BUILD_DIR) modules_install >> $(BUILD_DIR)/linux_kernel.log 2>&1
+
 	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/zImage                      $(BIN_BUILD_DIR)
 	@cp $(LINUX_BUILD_DIR)/arch/arm/boot/dts/*.dtb  $(BIN_BUILD_DIR)
 	@echo "**********done**********"
@@ -77,11 +73,10 @@ clean_linux_kernel:
 
 compile_uboot: $(BIN_BUILD_DIR)
 	@echo "**********compile_uboot**********"
-	@if  ! $(CACHE_DIR)/get_uboot_$(MODEL)_cache.sh > $(CURRENT_LOG) 2>&1 ; then \
-		cp $(CONFIGS_DIR)/uboot/config $(UBOOT_BUILD_DIR)/.config ; \
-		$(MAKE) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG) ; \
-	fi
+	cp $(CONFIGS_DIR)/uboot/config $(UBOOT_BUILD_DIR)/.config
+	$(MAKE) -C u-boot_v2018.05-rc1 O=$(UBOOT_BUILD_DIR) > $(CURRENT_LOG) 2>&1 && cat $(CURRENT_LOG) >> $(ALL_LOG)
 	@cp $(UBOOT_BUILD_DIR)/u-boot $(UBOOT_BUILD_DIR)/u-boot.bin $(BIN_BUILD_DIR)
+	@mkimage -C none -A arm -T script -d $(SCRIPT_BUILD_DIR)/boot.cmd  $(BUILD_DIR)/boot.scr
 	@echo "**********done**********"
 
 compile_apps: $(BIN_BUILD_DIR)
@@ -99,20 +94,13 @@ clean_apps:
 clean_uboot:
 	@rm -rf $(UBOOT_BUILD_DIR)
 
-make_disk: compile_apps
-	@echo "**********make_disk**********"
-	@rm -rf $(BUILD_DIR)/sdcard_boot
-	@mkdir $(BUILD_DIR)/sdcard_boot
-
-	@cp $(BIN_BUILD_DIR)/$(DTB_FILE)              $(BUILD_DIR)/sdcard_boot
-
-	@mkimage -C none -A arm -T script -d $(SCRIPT_BUILD_DIR)/boot.cmd  $(BUILD_DIR)/sdcard_boot/boot.scr
-	@cp $(UBOOT_BUILD_DIR)/u-boot.bin    $(BUILD_DIR)/sdcard_boot/kernel.img
-	@cp $(BIN_BUILD_DIR)/zImage          $(BUILD_DIR)/sdcard_boot
-	@mkimage -A arm -T ramdisk -C none -n uInitrd -d $(BIN_BUILD_DIR)/rootfs.cpio $(BUILD_DIR)/sdcard_boot/uInitrd
-
+make_firmware: compile_apps
+	@echo "**********make_firmware**********"
+	@cp $(BIN_BUILD_DIR)/$(DTB_FILE)       $(BUILD_DIR)
+	@cp $(BIN_BUILD_DIR)/zImage            $(BUILD_DIR)
+	@cp $(SCRIPT_BUILD_DIR)/image.its      $(BUILD_DIR)
+	@mkimage -A arm -T ramdisk -C none -n uInitrd -d $(BIN_BUILD_DIR)/rootfs.cpio $(BUILD_DIR)/uInitrd
 	@fakeroot $(SCRIPT_BUILD_DIR)/fakeroot.sh
 
-	@cp $(SCRIPT_BUILD_DIR)/image.its $(BUILD_DIR)/sdcard_boot/
-	@mkimage -f $(BUILD_DIR)/sdcard_boot/image.its $(BUILD_DIR)/sdcard_boot/firmware
+	@mkimage -f $(BUILD_DIR)/image.its $(BUILD_DIR)/firmware
 	@echo "**********done**********"

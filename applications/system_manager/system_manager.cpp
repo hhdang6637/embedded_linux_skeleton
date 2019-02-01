@@ -12,7 +12,6 @@
 
 #include "utilities.h"
 #include "serviceHiawatha.h"
-#include "serviceNtp.h"
 #include "userManager.h"
 #include "simpleTimerSync.h"
 #include "firmwareManager.h"
@@ -23,6 +22,7 @@
 #include "rpcMessageAuthentication.h"
 
 #include "openVpnManager.h"
+#include "timeManager.h"
 
 #define CONFIG_DIR "/tmp/configs"
 
@@ -70,8 +70,6 @@ void system_manager_init()
     // start web server
     app::serviceHiawatha::getInstance()->init();
     app::serviceHiawatha::getInstance()->start();
-    app::serviceNtp::getInstance()->init();
-    app::serviceNtp::getInstance()->start();
 
     system("web_handler");
 
@@ -217,6 +215,7 @@ void system_manager_service_loop()
     rpcServer->registerMessageHandler(app::rpcMessage::rpcMessageType::handle_users_login, users_login_handler);
 
     openVpnManager_init(*rpcServer);
+    timeManager_init(*rpcServer);
 
     std::list<int> listReadFd;
     listReadFd.push_back(server_socket);

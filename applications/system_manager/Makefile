@@ -1,6 +1,7 @@
 BIN=system_manager_daemon
-SRCS=main.o system_manager.o serviceHiawatha.o firmwareManager.o userManager.o serviceNtp.o
-SRCS+=openVpn/openVpnManager.o
+
+SRCS=main.o system_manager.o serviceHiawatha.o firmwareManager.o userManager.o
+SRCS+=openVpn/openVpnManager.o timeManager.o
 
 CXXFLAGS +=-I. -I openVpn
 
