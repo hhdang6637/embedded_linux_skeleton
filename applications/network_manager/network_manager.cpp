@@ -86,7 +86,11 @@ void network_manager_init()
         system("echo 1 > /proc/sys/net/ipv4/ip_forward");
         // FIXME - hardcode ip and interface
         setenv("XTABLES_LIBDIR", "/usr/lib", 1);
+#if defined (orange_pi_zero)
+        system("iptables -t nat -I POSTROUTING -o br0 -s 10.0.0.0/24 -j MASQUERADE");
+#else
         system("iptables -t nat -I POSTROUTING -o eth0 -s 10.0.0.0/24 -j MASQUERADE");
+#endif
     }
     if (access("/data/no-ip2.conf", F_OK) != -1) {
         system("noip2 -c /data/no-ip2.conf");
