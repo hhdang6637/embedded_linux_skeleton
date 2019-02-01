@@ -441,7 +441,56 @@ err:
     return false;
 }
 
+static bool openvpn_client_init(const char* openssl_client_dir)
+{
+    char tmp_path[256];
 
+    struct stat st;
+    if (lstat(openssl_client_dir, &st) == -1) {
+        mkdir(openssl_client_dir, 0755);
+    } else if (!S_ISDIR(st.st_mode)) {
+        syslog(LOG_ERR, "openvpn_client_init: %s is not a directory", openssl_client_dir);
+        return false;
+    }
+
+    // make keys dir
+    snprintf(tmp_path, sizeof(tmp_path), "%s/keys", openssl_client_dir);
+    if (lstat(tmp_path, &st) == -1) {
+        mkdir(tmp_path, 0755);
+    } else if (!S_ISDIR(st.st_mode)) {
+        syslog(LOG_ERR, "openvpn_client_init: %s is not a directory", tmp_path);
+        return false;
+    }
+
+    // make cert dir
+    snprintf(tmp_path, sizeof(tmp_path), "%s/certs", openssl_client_dir);
+    if (lstat(tmp_path, &st) == -1) {
+        mkdir(tmp_path, 0755);
+    } else if (!S_ISDIR(st.st_mode)) {
+        syslog(LOG_ERR, "openvpn_client_init: %s is not a directory", tmp_path);
+        return false;
+    }
+
+    // make reqs dir
+    snprintf(tmp_path, sizeof(tmp_path), "%s/reqs", openssl_client_dir);
+    if (lstat(tmp_path, &st) == -1) {
+        mkdir(tmp_path, 0755);
+    } else if (!S_ISDIR(st.st_mode)) {
+        syslog(LOG_ERR, "openvpn_client_init: %s is not a directory", tmp_path);
+        return false;
+    }
+
+    // make configs dir
+    snprintf(tmp_path, sizeof(tmp_path), "%s/configs", openssl_client_dir);
+    if (lstat(tmp_path, &st) == -1) {
+        mkdir(tmp_path, 0755);
+    } else if (!S_ISDIR(st.st_mode)) {
+        syslog(LOG_ERR, "openvpn_client_init: %s is not a directory", tmp_path);
+        return false;
+    }
+
+    return true;
+}
 
 static bool init_rsa_database()
 {
@@ -479,6 +528,11 @@ static bool init_rsa_database()
     //Gen ta key
     if (openvpn_gen_ta(OPENVPN_TLS_AUTH_PEM) == false) {
         syslog(LOG_ERR, "can NOT gen TA key\n");
+        goto err;
+    }
+
+    if (!openvpn_client_init(OPENVPN_DB_PATH_CLIENTS)) {
+        syslog(LOG_ERR, OPENVPN_DB_PATH_CLIENTS " not found");
         goto err;
     }
 
@@ -615,10 +669,6 @@ void openVpnManager_init(app::rpcUnixServer &rpcServer)
             syslog(LOG_ERR, "Cannot start openvpn service");
             openvpnCfg.state = false;
         }
-    }
-
-    if (!openssl_client_init(OPENVPN_DB_PATH_CLIENTS)) {
-        syslog(LOG_ERR, OPENVPN_DB_PATH_CLIENTS " not found");
     }
 
     rpcServer.registerMessageHandler(app::rpcMessage::rpcMessageType::handle_openvpn_cfg, openvpn_cfg_handler);
