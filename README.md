@@ -11,10 +11,13 @@ You'll need the following programs installed on your machine
 - [python and python-dev](https://www.python.org/)
 - [swig](http://www.swig.org/index.php): Generate scripting interfaces to C/C++ code
 - [ccache](https://ccache.samba.org/): caches the output of C/C++ compilation so that the next time
+- [dh-autoreconf](https://packages.ubuntu.com/trusty/dh-autoreconf): debhelper add-on to call autoreconf and clean up after the build
+- [net-tools](https://packages.ubuntu.com/xenial/net-tools): NET-3 networking toolkit, required for building OpenVPN
+- [cmake](https://cmake.org/overview/): for building some opensoucre apps
 
 In ubuntu, run the following command to install all of them:
 ```
-sudo apt-get install -y build-essential python python-dev swig ccache
+sudo apt-get install -y build-essential python python-dev swig ccache net-tools dh-autoreconf
 ```
 
 ## Get the source code
