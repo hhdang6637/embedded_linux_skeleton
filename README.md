@@ -17,7 +17,7 @@ You'll need the following programs installed on your machine
 
 In ubuntu, run the following command to install all of them:
 ```
-sudo apt-get install -y build-essential python python-dev swig ccache net-tools dh-autoreconf
+sudo apt-get install -y build-essential python python-dev swig ccache net-tools dh-autoreconf cmake
 ```
 
 ## Get the source code
