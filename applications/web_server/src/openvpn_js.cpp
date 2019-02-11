@@ -1,6 +1,5 @@
 #include <string>
 #include <sstream>
-#include <algorithm>
 
 #include <fcgiapp.h>
 #include <syslog.h>
@@ -226,10 +225,7 @@ static void openvpn_send_client_config(FCGX_Request *request, const app::openvpn
 
     if (!config.config_str.empty()) {
         std::string fileName(config.common_name);
-
-        fileName.erase(std::remove_if(fileName.begin(), fileName.end(), [](unsigned char x) {return std::isspace(x);}),
-                       fileName.end());
-
+        string_remove_spaces(fileName);
         fileName += ".ovpn";
 
         FCGX_FPrintF(request->out, "Cache-Control: no-cache\r\n");

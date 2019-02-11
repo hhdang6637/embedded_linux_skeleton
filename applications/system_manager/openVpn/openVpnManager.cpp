@@ -9,7 +9,6 @@
 #include <sys/types.h>
 #include <fstream>
 #include <sstream>
-#include <algorithm>
 
 #include "ini.h"
 #include "openVpnManager.h"
@@ -363,8 +362,7 @@ static bool openvpn_gen_client_config(app::openvpn_client_config_t &client_confi
 
     std::string fileName(client_config.common_name);
 
-    fileName.erase(std::remove_if(fileName.begin(), fileName.end(), [](unsigned char x) {return std::isspace(x);}),
-                   fileName.end());
+    string_remove_spaces(fileName);
 
     snprintf(key, sizeof(key), OPENVPN_DB_PATH_CLIENT_KEYS "%s.key", fileName.c_str());
     snprintf(req, sizeof(req), OPENVPN_DB_PATH_CLIENT_REQS "%s.csr", fileName.c_str());
@@ -415,8 +413,7 @@ static bool openvpn_gen_client(const app::openvpn_client_cert_t &client_cert)
              "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=%s/emailAddress=%s",
              client_cert.common_name, client_cert.email);
 
-    fileName.erase(std::remove_if(fileName.begin(), fileName.end(), [](unsigned char x) {return std::isspace(x);}),
-                   fileName.end());
+    string_remove_spaces(fileName);
 
     snprintf(key, sizeof(key), OPENVPN_DB_PATH_CLIENT_KEYS "%s.key", fileName.c_str());
     snprintf(req, sizeof(req), OPENVPN_DB_PATH_CLIENT_REQS "%s.csr", fileName.c_str());
