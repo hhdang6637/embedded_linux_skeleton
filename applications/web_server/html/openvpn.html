@@ -36,6 +36,11 @@
     animation: fadeEffect 1s; /* Fading effect takes 1 second */
 }
 
+.validateTips {
+    border: 1px solid transparent;
+    padding: 0.3em;
+}
+
 /* Go from zero to full opacity */
 @keyframes fadeEffect {
     from {opacity: 0;}
@@ -115,6 +120,7 @@
                             <h4 class="modal-title">Generate Client Certificate</h4>
                         </div>
                         <div class="modal-body">
+                            <p class="validateTips">All form fields are required.</p>
                             <form>
                                 <div class="form-group">
                                     <label for="email">Email address:</label>
@@ -251,33 +257,73 @@ function showClient_Cert()
     });
 }
 
+// From http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#e-mail-state-%28type=email%29
+emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+email = $( "#email" ),
+common_name = $( "#common_name" ),
+tips = $( ".validateTips" );
+
+function updateTips(t) {
+    tips.text(t).addClass("alert alert-warning");
+    setTimeout(function() {
+        tips.removeClass("alert alert-warning", 1500);
+    }, 1500 );
+}
+
+function checkRegexp( o, regexp, n ) {
+    if (!(regexp.test(o.val()))) {
+        o.addClass("alert alert-danger");
+        updateTips(n);
+        return false;
+    } else {
+        return true;
+    }
+}
+
+function checkLength(o, n, min, max) {
+    if (o.val().length > max || o.val().length < min) {
+        o.addClass("alert alert-danger");
+        updateTips("Length of " + n + " must be between " + min + " and " + max + ".");
+        return false;
+    } else {
+        return true;
+    }
+}
+
 $(function () {
     $('body').on('click', '.odom-submit', function (e) {
-        $(".status").empty();
-        var formData = new FormData();
-        formData.append('email', $('#email').val());
-        formData.append('common_name', $('#common_name').val());
+        var valid = true;
+        valid = valid && checkLength(common_name, "Common Name", 3, 32);
+        valid = valid && checkRegexp(common_name, /^[a-z]([0-9a-z_\s])+$/i, "Common name may consist of a-z, 0-9, underscores, spaces and must begin with a letter.");
+        valid = valid && checkRegexp(email, emailRegex, "Invalid email address, eg. abc@example.com");
 
-        $.ajax({
-            type: "POST",
-            url: "/json/openvpn_client_cert",
-            data: formData,
-            enctype: 'multipart/form-data',
-            processData: false,
-            contentType: false,
-            cache: false,
+        if (valid) {
+            $(".status").empty();
+            var formData = new FormData();
+            formData.append('email', email.val());
+            formData.append('common_name', common_name.val());
 
-            success: function(json) {
-                if (json.status == "succeeded") {
-                  $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
-                } else {
-                  $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
-                }
-                showClient_Cert();
-            },
-        });
+            $.ajax({
+                type: "POST",
+                url: "/json/openvpn_client_cert",
+                data: formData,
+                enctype: 'multipart/form-data',
+                processData: false,
+                contentType: false,
+                cache: false,
 
-        $('#clientCertModal').modal('hide');
+                success: function(json) {
+                    if (json.status == "succeeded") {
+                      $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+                    } else {
+                      $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+                    }
+                    showClient_Cert();
+                },
+            });
+
+            $('#clientCertModal').modal('hide');
+        }
     });
 });
 
