@@ -124,12 +124,13 @@ std::string json_handle_openvpn_rsa(FCGX_Request *request)
 
     } else if (method && (strcmp(method, "POST") == 0) && contentType) {
 
+        std::string message = "Something went wrong!";
         if (app::rpcMessageOpenvpnRsaInfo::rpcReGenOpevpnRsaInfo(*app::rpcUnixClient::getInstance())) {
             status = "succeeded";
+            message = "success";
         }
 
-        return build_openvpn_rsp_json(status, "success");
-
+        return build_openvpn_rsp_json(status, message);
     }
 
     return build_openvpn_rsp_json(status, "failed");
@@ -220,6 +221,28 @@ std::string json_handle_openvpn_client_cert(FCGX_Request *request)
     return build_openvpn_rsp_json(status, "failed");
 }
 
+static void openvpn_send_client_config(FCGX_Request *request, const app::openvpn_client_config_t &config)
+{
+
+    if (!config.config_str.empty()) {
+        std::string fileName(config.common_name);
+
+        fileName.erase(std::remove_if(fileName.begin(), fileName.end(), [](unsigned char x) {return std::isspace(x);}),
+                       fileName.end());
+
+        fileName += ".ovpn";
+
+        FCGX_FPrintF(request->out, "Cache-Control: no-cache\r\n");
+        FCGX_FPrintF(request->out, "Cache-Control: no-store\r\n");
+        FCGX_FPrintF(request->out, "Content-Type: text/html; charset=utf-8\r\n");
+        FCGX_FPrintF(request->out, "Content-Disposition: attachment; filename=\"%s\"\r\n\r\n", fileName.c_str());
+        FCGX_FPrintF(request->out, "%s", config.config_str.c_str());
+
+    } else {
+        FCGX_FPrintF(request->out, "HTTP/1.1 404 Not Found\r\n\r\n");
+    }
+}
+
 void handle_donwload_openvpn_client_cfg(FCGX_Request *request)
 {
     const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
@@ -235,13 +258,15 @@ void handle_donwload_openvpn_client_cfg(FCGX_Request *request)
                 POSTParser.SetContentType(contentType);
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
-                std::string fileName = POSTParser.GetFieldText("common_name");
-                fileName.erase(std::remove_if(fileName.begin(), fileName.end(), [](unsigned char x) {return std::isspace(x);}),
-                               fileName.end());
+                app::openvpn_client_config_t cfg = app::openvpn_client_config_t();
+                string_copy(cfg.common_name, POSTParser.GetFieldText("common_name"), sizeof(cfg.common_name));
 
-                fileName += ".ovpn";
+                if (app::rpcMessageOpenvpnClientCerts::rpcGenOpevpnClientConfig(
+                        *app::rpcUnixClient::getInstance(), cfg) == false) {
+                    syslog(LOG_ERR, "Something went wrong\n");
+                }
 
-                web_send_file(request, fileName, OPENVPN_DB_PATH_CLIENTS + fileName);
+                openvpn_send_client_config(request, cfg);
 
             } catch (MPFD::Exception &e) {
                 syslog(LOG_ERR, "%s\n", e.GetError().c_str());

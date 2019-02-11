@@ -326,12 +326,11 @@ static bool openvpn_get_client_info(std::list<app::openvpn_client_cert_t> &certs
     // E|R|V<tab>Expiry<tab>[RevocationDate]<tab>Serial<tab>unknown<tab>SubjectDN
     app::openvpn_client_cert_t cert;
     char line[256];
-    char cmd[256];
     char subject[512];
 
     FILE *f = fopen(OPENVPN_INDEX_TXT, "r");
     if (f == NULL) {
-        syslog(LOG_ERR, "cannot run command : %s", cmd);
+        syslog(LOG_ERR, "cannot open: %s", OPENVPN_INDEX_TXT);
         return false;
     }
 
@@ -357,46 +356,48 @@ static bool openvpn_get_client_info(std::list<app::openvpn_client_cert_t> &certs
     return true;
 }
 
-static bool openvpn_gen_client_cfg_file(const char *file_name)
+static bool openvpn_gen_client_config(app::openvpn_client_config_t &client_config)
 {
     std::string ca_crt, client_key, tls_auth, client_cert;
     char key[256], req[256], cert[256];
 
-    snprintf(key, sizeof(key), OPENVPN_DB_PATH_CLIENT_KEYS "%s.key", file_name);
-    snprintf(req, sizeof(req), OPENVPN_DB_PATH_CLIENT_REQS "%s.csr", file_name);
-    snprintf(cert, sizeof(cert), OPENVPN_DB_PATH_CLIENT_CERTS "%s.crt", file_name);
+    std::string fileName(client_config.common_name);
+
+    fileName.erase(std::remove_if(fileName.begin(), fileName.end(), [](unsigned char x) {return std::isspace(x);}),
+                   fileName.end());
+
+    snprintf(key, sizeof(key), OPENVPN_DB_PATH_CLIENT_KEYS "%s.key", fileName.c_str());
+    snprintf(req, sizeof(req), OPENVPN_DB_PATH_CLIENT_REQS "%s.csr", fileName.c_str());
+    snprintf(cert, sizeof(cert), OPENVPN_DB_PATH_CLIENT_CERTS "%s.crt", fileName.c_str());
 
     load_text_from_file(client_key, key);
     load_text_from_file(client_cert, cert);
     load_text_from_file(ca_crt, OPENVPN_CA_CRT);
     load_text_from_file(tls_auth, OPENVPN_TLS_AUTH_PEM);
 
-    std::ofstream openvpn_client_cfg(OPENVPN_DB_PATH_CLIENT_CONFIGS + std::string(file_name) + ".ovpn");
+    std::stringstream openvpn_client_cfg;
 
-    if (openvpn_client_cfg.is_open()) {
-        openvpn_client_cfg << "client\n"
-                           "remote example.com " << openvpnCfg.port << "\n" <<
-                           "proto udp4\n"
-                           "dev tun\n"
-                           "key-direction 1\n"
-                           "cipher AES-128-CBC\n"
-                           "auth SHA256\n"
-                           "user nobody\n"
-                           "group nogroup\n"
-                           // CA cert
-                           "<ca>\n" << ca_crt << "</ca>\n"
-                           // client cert
-                           "<cert>\n" << client_cert << "</cert>\n"
-                           // client key
-                           "<key>\n" << client_key << "</key>\n"
-                           // tls-auth
-                           "<tls-auth>\n" << tls_auth << "</tls-auth>\n";
+    openvpn_client_cfg << "client\n"
+                       "remote example.com " << openvpnCfg.port << "\n"
+                       << "proto udp4\n"
+                       "dev tun\n"
+                       "key-direction 1\n"
+                       "cipher AES-128-CBC\n"
+                       "auth SHA256\n"
+                       "user nobody\n"
+                       "group nogroup\n"
+                       // CA cert
+                       "<ca>\n" << ca_crt << "</ca>\n"
+                       // client cert
+                       "<cert>\n" << client_cert << "</cert>\n"
+                       // client key
+                       "<key>\n" << client_key << "</key>\n"
+                       // tls-auth
+                       "<tls-auth>\n" << tls_auth << "</tls-auth>\n";
 
-        openvpn_client_cfg.close();
-        return true;
-    }
+    client_config.config_str = openvpn_client_cfg.str();
 
-    return false;
+    return true;
 }
 
 static bool openvpn_gen_client(const app::openvpn_client_cert_t &client_cert)
@@ -428,11 +429,6 @@ static bool openvpn_gen_client(const app::openvpn_client_cert_t &client_cert)
 
     if (openssl_sign(OPENVPN_DB_PATH, req, cert, DAYS_EXPIRE) == false) {
         syslog(LOG_ERR, "can NOT SIGN req for %s\n", req);
-        goto err;
-    }
-
-    if (openvpn_gen_client_cfg_file(fileName.c_str()) == false) {
-        syslog(LOG_ERR, "can generate the client configuration for %s\n", fileName.c_str());
         goto err;
     }
 
@@ -643,6 +639,14 @@ static bool openvpn_client_certs_handler(int socket_fd)
             if (!openvpn_gen_client(msg.getOpenvpnClientCert())) {
                 msg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
             } else {
+                msg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
+            }
+        } else if (msg.getMsgAction() == app::rpcMessageOpenvpnClientCertActionType::GEN_OPENVPN_CLIENT_CONFIG) {
+            app::openvpn_client_config_t cfg = msg.getOpenvpnClientConfig();
+            if (openvpn_gen_client_config(cfg) == false) {
+                msg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
+            } else {
+                msg.setOpenvpnClientConfig(cfg);
                 msg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
             }
         } else {

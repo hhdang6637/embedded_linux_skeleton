@@ -93,7 +93,8 @@ namespace app
 
     enum rpcMessageOpenvpnClientCertActionType: int16_t {
         GET_OPENVPN_CLIENT_CERT,
-        GEN_OPENVPN_CLIENT_CERT
+        GEN_OPENVPN_CLIENT_CERT,
+        GEN_OPENVPN_CLIENT_CONFIG
     };
 
     typedef struct {
@@ -103,12 +104,18 @@ namespace app
         char expire_date[16];
     } openvpn_client_cert_t;
 
+    typedef struct {
+        char common_name[32];
+        std::string config_str;
+    } openvpn_client_config_t;
+
     class rpcMessageOpenvpnClientCerts : public rpcMessage
     {
         private:
             app::rpcMessageOpenvpnResultType                  msgResult;
             app::rpcMessageOpenvpnClientCertActionType        msgAction;
             std::list<app::openvpn_client_cert_t>             client_certs;
+            openvpn_client_config_t                           client_config;
 
         public:
                                                 rpcMessageOpenvpnClientCerts(/* args */);
@@ -126,12 +133,17 @@ namespace app
             void                                         setOpenvpnClientCerts(const std::list<app::openvpn_client_cert_t> &client_certs);
             const openvpn_client_cert_t&                 getOpenvpnClientCert();
             void                                         setOpenvpnClientCert(const openvpn_client_cert_t &client_cert);
+            const openvpn_client_config_t&               getOpenvpnClientConfig();
+            void                                         setOpenvpnClientConfig(const openvpn_client_config_t &config);
 
             static bool                         rpcGetOpenvpnClientCerts(app::rpcUnixClient &rpcClient,
                                                                          std::list<app::openvpn_client_cert_t> &client_certs);
 
             static bool                         rpcGenOpevpnClientCert(app::rpcUnixClient &rpcClient,
                                                                        const app::openvpn_client_cert_t &client_cert);
+
+            static bool                         rpcGenOpevpnClientConfig(app::rpcUnixClient &rpcClient,
+                                                                         openvpn_client_config_t &config);
 
             static std::string openVpnClientCertStateChar2Str(const char state);
 
