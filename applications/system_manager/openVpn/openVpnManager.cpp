@@ -337,7 +337,7 @@ static bool openvpn_get_client_info(std::list<app::openvpn_client_cert_t> &certs
         cert = app::openvpn_client_cert_t();
         // V   710101000331Z           03      unknown /CN=Hien Nguyen/ST=HCM/C=VN/emailAddress=nmhien@gmail.com/O=Example Security/OU=IT Department
         if (sscanf(line, "%c %s %*s %*s /%[^\n]", &cert.state, cert.expire_date, subject) != 3) {
-            return false;
+            continue; //  skip revoked certificates
         }
 
         openssl_subject_t subs = openssl_subject_parser(subject);
