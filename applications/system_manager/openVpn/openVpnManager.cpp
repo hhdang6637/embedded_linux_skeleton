@@ -352,6 +352,7 @@ static bool openvpn_get_client_info(std::list<app::openvpn_client_cert_t> &certs
         certs.push_back(cert);
     }
 
+    fclose(f);
     return true;
 }
 
