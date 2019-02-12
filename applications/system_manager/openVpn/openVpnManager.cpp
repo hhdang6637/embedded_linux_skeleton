@@ -435,6 +435,39 @@ err:
     return false;
 }
 
+static bool openvpn_revoke_client(const app::openvpn_client_cert_t &client_cert)
+{
+    char state;
+    char serial[16];
+    char line[256];
+    char cmd_str[256];
+
+    snprintf(cmd_str, sizeof(cmd_str), "cat %s | grep emailAddress=%s/O", OPENVPN_INDEX_TXT,
+             client_cert.email);
+
+    FILE *f = popen(cmd_str, "r");
+    if (f == NULL) {
+        syslog(LOG_ERR, "cannot run command : %s", cmd_str);
+        return false;
+    }
+
+    while (fgets(line, sizeof(line), f) > 0) {
+        // V   710101000331Z           03      unknown subjects
+        if ((sscanf(line, "%c %*s %s %*s", &state, serial) != 2) && (state != 'V')) {
+            continue;
+        }
+
+        if (openssl_revoke_ca(OPENVPN_DB_PATH, OPENVPN_DB_PATH_CERTS, serial) == true) {
+            pclose(f);
+            return true;
+        }
+    }
+
+    syslog(LOG_INFO, "openvpn_revoke_client: cannot revoke certificate\n");
+    pclose(f);
+    return false;
+}
+
 static bool openvpn_client_init(const char* openssl_client_dir)
 {
     char tmp_path[256];
@@ -638,7 +671,17 @@ static bool openvpn_client_certs_handler(int socket_fd)
             } else {
                 msg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
             }
+
+        } else if (msg.getMsgAction() == app::rpcMessageOpenvpnClientCertActionType::REVOKE_OPENVPN_CLIENT_CERT) {
+
+            if (!openvpn_revoke_client(msg.getOpenvpnClientCert())) {
+                msg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
+            } else {
+                msg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
+            }
+
         } else if (msg.getMsgAction() == app::rpcMessageOpenvpnClientCertActionType::GEN_OPENVPN_CLIENT_CONFIG) {
+
             app::openvpn_client_config_t cfg = msg.getOpenvpnClientConfig();
             if (openvpn_gen_client_config(cfg) == false) {
                 msg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
@@ -646,6 +689,7 @@ static bool openvpn_client_certs_handler(int socket_fd)
                 msg.setOpenvpnClientConfig(cfg);
                 msg.setMsgResult(app::rpcMessageOpenvpnResultType::SUCCESS);
             }
+
         } else {
             msg.setMsgResult(app::rpcMessageOpenvpnResultType::FAILED);
         }

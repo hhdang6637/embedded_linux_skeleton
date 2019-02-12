@@ -282,6 +282,19 @@ bool openssl_get_subject_crt(const char *server_crt_path, char *server_subject, 
     return true;
 }
 
+bool openssl_revoke_ca(const char *openssl_ca_dir, const char *cert_path, const char *serial)
+{
+    char cmd[256];
+
+    snprintf(cmd, sizeof(cmd), "openssl ca -config %s/%s -revoke %s%s.pem", openssl_ca_dir, OPENSSL_CA_CONFIG, cert_path, serial);
+    if (system(cmd) != 0) {
+        syslog(LOG_INFO, "openssl_revoke_ca: cannot revoke certificate\n");
+        return false;
+    }
+
+    return true;
+}
+
 openssl_subject_t openssl_subject_parser(const char *subject)
 {
     openssl_subject_t subs;

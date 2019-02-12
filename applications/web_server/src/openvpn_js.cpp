@@ -273,3 +273,45 @@ void handle_donwload_openvpn_client_cfg(FCGX_Request *request)
         }
     }
 }
+
+std::string json_handle_revoke_openvpn_client_cert(FCGX_Request *request)
+{
+    const char *method      = FCGX_GetParam("REQUEST_METHOD", request->envp);
+    const char *contentType = FCGX_GetParam("CONTENT_TYPE", request->envp);
+    std::string status      = "failed";
+
+    if (method && (strcmp(method, "POST") == 0) && contentType) {
+        std::string data;
+
+        if (get_post_data(request, data)) {
+            try {
+                MPFD::Parser POSTParser;
+                std::string message = "Something went wrong!";
+
+                POSTParser.SetContentType(contentType);
+                POSTParser.AcceptSomeData(data.c_str(), data.size());
+
+                app::openvpn_client_cert_t cert = app::openvpn_client_cert_t();
+                string_copy(cert.email, POSTParser.GetFieldText("email"), sizeof(cert.email));
+
+                if (app::rpcMessageOpenvpnClientCerts::rpcRevokeOpevpnClientCert(
+                        *app::rpcUnixClient::getInstance(), cert)) {
+                    status = "succeeded";
+                    message = "Success";
+                }
+
+                return build_openvpn_rsp_json(status, message);
+
+            } catch (MPFD::Exception &e) {
+                syslog(LOG_ERR, "%s\n", e.GetError().c_str());
+                return build_openvpn_rsp_json(status, e.GetError().c_str());
+            }
+
+        } else {
+            syslog(LOG_ERR, "Failed to get data from browser\n");
+            return build_openvpn_rsp_json(status, "Failed to get data from browser");
+        }
+    }
+
+    return build_openvpn_rsp_json(status, "failed");
+}

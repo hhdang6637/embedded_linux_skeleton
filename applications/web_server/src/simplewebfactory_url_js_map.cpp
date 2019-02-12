@@ -29,6 +29,7 @@ void simpleWebFactory::init_url_js_map()
     this->url_js_map.insert(std::pair<std::string, jsCallback>("/json/openvpn_cfg", json_handle_openvpn_cfg));
     this->url_js_map.insert(std::pair<std::string, jsCallback>("/json/openvpn_rsa", json_handle_openvpn_rsa));
     this->url_js_map.insert(std::pair<std::string, jsCallback>("/json/openvpn_client_cert", json_handle_openvpn_client_cert));
+    this->url_js_map.insert(std::pair<std::string, jsCallback>("/json/revoke_openvpn_client_cert", json_handle_revoke_openvpn_client_cert));
     this->url_js_map.insert(std::pair<std::string, jsCallback>("/json/time_ntp", json_handle_time_ntp));
 #if defined (pi_3_b) || defined (orange_pi_zero)
     this->url_js_map.insert(std::pair<std::string, jsCallback>("/json/wifisetting", json_handle_wifisetting));

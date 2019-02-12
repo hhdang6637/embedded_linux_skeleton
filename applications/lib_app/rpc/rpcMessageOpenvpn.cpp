@@ -387,6 +387,7 @@ namespace app{
         {
             case app::rpcMessageOpenvpnClientCertActionType::GEN_OPENVPN_CLIENT_CERT:
             case app::rpcMessageOpenvpnClientCertActionType::GET_OPENVPN_CLIENT_CERT:
+            case app::rpcMessageOpenvpnClientCertActionType::REVOKE_OPENVPN_CLIENT_CERT:
             {
                 buff_len += sizeof(app::rpcMessageOpenvpnResultType);
                 buff_len += sizeof(uint16_t); // list size
@@ -454,6 +455,7 @@ namespace app{
         {
             case app::rpcMessageOpenvpnClientCertActionType::GEN_OPENVPN_CLIENT_CERT:
             case app::rpcMessageOpenvpnClientCertActionType::GET_OPENVPN_CLIENT_CERT:
+            case app::rpcMessageOpenvpnClientCertActionType::REVOKE_OPENVPN_CLIENT_CERT:
             {
                 uint16_t list_size;
                 if (rpcMessage::recvInterruptRetry(fd, &this->msgResult, sizeof(this->msgResult)) != true) {
@@ -584,6 +586,22 @@ namespace app{
         app::rpcMessageOpenvpnClientCerts msg;
 
         msg.setMsgAction(app::rpcMessageOpenvpnClientCertActionType::GEN_OPENVPN_CLIENT_CERT);
+        msg.setOpenvpnClientCert(client_cert);
+
+        if (rpcClient.doRpc(&msg) == false ||
+                msg.getMsgResult() != app::rpcMessageOpenvpnResultType::SUCCESS) {
+            syslog(LOG_ERR, "%s:%d - something went wrong: doRpc\n", __FUNCTION__, __LINE__);
+            return false;
+        }
+
+        return true;
+    }
+
+    bool rpcMessageOpenvpnClientCerts::rpcRevokeOpevpnClientCert(app::rpcUnixClient &rpcClient, const openvpn_client_cert_t &client_cert)
+    {
+        app::rpcMessageOpenvpnClientCerts msg;
+
+        msg.setMsgAction(app::rpcMessageOpenvpnClientCertActionType::REVOKE_OPENVPN_CLIENT_CERT);
         msg.setOpenvpnClientCert(client_cert);
 
         if (rpcClient.doRpc(&msg) == false ||

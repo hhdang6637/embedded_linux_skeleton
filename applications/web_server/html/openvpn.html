@@ -251,7 +251,7 @@ function showClient_Cert()
         for (var i = 0; i < jsClient_Cert.length; i++) {
             var client = jsClient_Cert[i];
 
-            html += "<tr><td>" + client.email + "</td><td>" + client.name + "</td><td>" + client.expire + "</td><td>" + client.state + "</td><td class=\"text-center\"><button type=\"button\" onclick=\"downloadVpnClientConfig('" + client.name + "')\"" + "class=\"btn btn-sm btn-primary\">" + "Download" + "</button>&ensp;<button type=\"button\" class=\"btn btn-sm btn-danger\">" + "Revoke" + "</button></td></tr>";
+            html += "<tr><td>" + client.email + "</td><td>" + client.name + "</td><td>" + client.expire + "</td><td>" + client.state + "</td><td class=\"text-center\"><button type=\"button\" onclick=\"downloadVpnClientConfig('" + client.name + "')\"" + "class=\"btn btn-sm btn-primary\">" + "Download" + "</button>&ensp;<button type=\"button\" onclick=\"revokeVpnClientCert('" + client.email + "')\"" + "class=\"btn btn-sm btn-danger\">" + "Revoke" + "</button></td></tr>";
         }
         $('#table > tbody').html(html);
     });
@@ -384,6 +384,31 @@ function downloadVpnClientConfig(name)
         error: function (request, status, error) {
             alert("File not found!");
         }
+    });
+}
+
+function revokeVpnClientCert(client_email)
+{
+    $(".status").empty();
+    var formData = new FormData();
+    formData.append('email', client_email);
+
+    $.ajax({
+        type: "POST",
+        url: "/json/revoke_openvpn_client_cert",
+        data: formData,
+        enctype: 'multipart/form-data',
+        processData: false,
+        contentType: false,
+        cache: false,
+        success: function(json) {
+            if (json.status == "succeeded") {
+              $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+            } else {
+              $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+            }
+            showClient_Cert();
+        },
     });
 }
 

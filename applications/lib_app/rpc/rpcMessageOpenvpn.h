@@ -94,6 +94,7 @@ namespace app
     enum rpcMessageOpenvpnClientCertActionType: int16_t {
         GET_OPENVPN_CLIENT_CERT,
         GEN_OPENVPN_CLIENT_CERT,
+        REVOKE_OPENVPN_CLIENT_CERT,
         GEN_OPENVPN_CLIENT_CONFIG
     };
 
@@ -141,6 +142,9 @@ namespace app
 
             static bool                         rpcGenOpevpnClientCert(app::rpcUnixClient &rpcClient,
                                                                        const app::openvpn_client_cert_t &client_cert);
+
+            static bool                         rpcRevokeOpevpnClientCert(app::rpcUnixClient &rpcClient,
+                                                                          const app::openvpn_client_cert_t &client_cert);
 
             static bool                         rpcGenOpevpnClientConfig(app::rpcUnixClient &rpcClient,
                                                                          openvpn_client_config_t &config);
