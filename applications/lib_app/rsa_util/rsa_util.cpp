@@ -17,6 +17,7 @@
 #include "rsa_util.h"
 
 #define OPENSSL_CA_CONFIG "CA.cnf"
+#define OPENSSL_CRL_FILE "crl.pem"
 
 static int openssl_rsa_system(const char *cmd)
 {
@@ -289,6 +290,13 @@ bool openssl_revoke_ca(const char *openssl_ca_dir, const char *cert_path, const 
     snprintf(cmd, sizeof(cmd), "openssl ca -config %s/%s -revoke %s%s.pem", openssl_ca_dir, OPENSSL_CA_CONFIG, cert_path, serial);
     if (system(cmd) != 0) {
         syslog(LOG_INFO, "openssl_revoke_ca: cannot revoke certificate\n");
+        return false;
+    }
+
+    // Generate the Certificate Revocation List
+    snprintf(cmd, sizeof(cmd), "openssl ca -config %s/%s -gencrl -out  %s/%s", openssl_ca_dir, OPENSSL_CA_CONFIG, openssl_ca_dir, OPENSSL_CRL_FILE);
+    if (system(cmd) != 0) {
+        syslog(LOG_INFO, "openssl_revoke_ca: cannot create the %s\n", OPENSSL_CRL_FILE);
         return false;
     }
 

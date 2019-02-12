@@ -34,6 +34,7 @@
 #define OPENVPN_TLS_AUTH_PEM OPENVPN_DB_PATH "ta.key"
 #define OPENVPN_DH_PEM OPENVPN_DB_PATH "dh.pem"
 #define OPENVPN_INDEX_TXT OPENVPN_DB_PATH "index.txt"
+#define OPENVPN_CRL_PEM OPENVPN_DB_PATH "crl.pem"
 #define OPENVPN_SERIAL OPENVPN_DB_PATH "serial"
 
 #define OPENVPN_DB_PATH_CLIENTS OPENVPN_DB_PATH "clients/"
@@ -216,7 +217,8 @@ static bool openVpnManager_generate_openvpncfg(void)
         openvpn_conf_file <<
                             "port " << openvpnCfg.port << "\n" <<
                             "proto udp4\n"
-                            "dev tun\n"\
+                            "dev tun\n"
+                            "crl-verify " OPENVPN_CRL_PEM "\n"
                             // server key
                             "<key>\n"
                             << server_key <<
