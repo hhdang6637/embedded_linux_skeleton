@@ -42,5 +42,8 @@ std::string ASN1_to_string(const char *szYYMMDDHHMMSS)
 
     Tm.tm_mon -= 1; // Because of tm_mon: 0-11
 
+    // hack, struct tm start 1900
+    Tm.tm_year += 100;
+
     return time2String(mktime(&Tm));
 }
