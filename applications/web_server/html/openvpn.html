@@ -100,10 +100,8 @@
             <table id='table' class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Email</th>
                         <th>Common Name</th>
                         <th>Expire date</th>
-                        <th>State</th>
                         <th class="text-center">Action</th>
                     </tr>
                 </thead>
@@ -121,10 +119,6 @@
                         <div class="modal-body">
                             <p class="validateTips">All form fields are required.</p>
                             <form>
-                                <div class="form-group">
-                                    <label for="email">Email address:</label>
-                                    <input type="email" class="form-control" id="email" placeholder="Email" required>
-                                </div>
                                 <div class="form-group">
                                     <label for="common_name">Common name:</label>
                                     <input type="text" class="form-control" id="common_name" placeholder="Common name" required>
@@ -250,15 +244,15 @@ function showClient_Cert()
         for (var i = 0; i < jsClient_Cert.length; i++) {
             var client = jsClient_Cert[i];
 
-            html += "<tr><td>" + client.email + "</td><td>" + client.name + "</td><td>" + client.expire + "</td><td>" + client.state + "</td><td class=\"text-center\"><button type=\"button\" onclick=\"downloadVpnClientConfig('" + client.name + "')\"" + "class=\"btn btn-sm btn-primary\">" + "Download" + "</button>&ensp;<button type=\"button\" onclick=\"revokeVpnClientCert('" + client.email + "')\"" + "class=\"btn btn-sm btn-danger\">" + "Revoke" + "</button></td></tr>";
+            html += "<tr><td>" + client.name + "</td><td>" + client.expire + "</td><td class=\"text-center\"><button type=\"button\" onclick=\"downloadVpnClientConfig('" + client.name + "')\"" + "class=\"btn btn-sm btn-primary\">" + "Download" + "</button>&ensp;<button type=\"button\" onclick=\"revokeVpnClientCert('" + client.name + "')\"" + "class=\"btn btn-sm btn-danger\">" + "Revoke" + "</button></td></tr>";
         }
         $('#table > tbody').html(html);
     });
 }
 
 // From http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#e-mail-state-%28type=email%29
-emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
-email = $( "#email" ),
+// emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+// email = $( "#email" ),
 common_name = $( "#common_name" ),
 tips = $( ".validateTips" );
 
@@ -294,12 +288,9 @@ $(function () {
         var valid = true;
         valid = valid && checkLength(common_name, "Common Name", 3, 32);
         valid = valid && checkRegexp(common_name, /^[a-z]([0-9a-z_\s])+$/i, "Common name may consist of a-z, 0-9, underscores, spaces and must begin with a letter.");
-        valid = valid && checkRegexp(email, emailRegex, "Invalid email address, eg. abc@example.com");
-
         if (valid) {
             $(".status").empty();
             var formData = new FormData();
-            formData.append('email', email.val());
             formData.append('common_name', common_name.val());
 
             $.ajax({
@@ -386,11 +377,11 @@ function downloadVpnClientConfig(name)
     });
 }
 
-function revokeVpnClientCert(client_email)
+function revokeVpnClientCert(name)
 {
     $(".status").empty();
     var formData = new FormData();
-    formData.append('email', client_email);
+    formData.append('common_name', name);
 
     $.ajax({
         type: "POST",

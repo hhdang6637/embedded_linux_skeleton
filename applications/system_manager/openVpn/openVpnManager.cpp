@@ -338,13 +338,12 @@ static bool openvpn_get_client_info(std::list<app::openvpn_client_cert_t> &certs
     while (fgets(line, sizeof(line), f) > 0) {
         cert = app::openvpn_client_cert_t();
         // V   710101000331Z           03      unknown /CN=Hien Nguyen/ST=HCM/C=VN/emailAddress=nmhien@gmail.com/O=Example Security/OU=IT Department
-        if (sscanf(line, "%c %s %*s %*s /%[^\n]", &cert.state, cert.expire_date, subject) != 3) {
+        if (sscanf(line, "%*c %s %*s %*s /%[^\n]", cert.expire_date, subject) != 2) {
             continue; //  skip revoked certificates
         }
 
         openssl_subject_t subs = openssl_subject_parser(subject);
         string_copy(cert.common_name, subs["CN"], sizeof(cert.common_name));
-        string_copy(cert.email, subs["emailAddress"], sizeof(cert.email));
 
         // skip the Server certificate
         if (strcmp(cert.common_name, "Server") == 0) {
@@ -412,11 +411,11 @@ static bool openvpn_gen_client(const app::openvpn_client_cert_t &client_cert)
         goto err;
     }
 
-    snprintf(subject, sizeof(subject),
-             "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=%s/emailAddress=%s",
-             client_cert.common_name, client_cert.email);
-
     string_remove_spaces(fileName);
+
+    snprintf(subject, sizeof(subject),
+             "/C=VN/ST=HCM/L=HCM/O=Example Security/OU=IT Department/CN=%s/emailAddress=%s@example.com",
+             client_cert.common_name, fileName.c_str());
 
     snprintf(key, sizeof(key), OPENVPN_DB_PATH_CLIENT_KEYS "%s.key", fileName.c_str());
     snprintf(req, sizeof(req), OPENVPN_DB_PATH_CLIENT_REQS "%s.csr", fileName.c_str());
@@ -445,8 +444,8 @@ static bool openvpn_revoke_client(const app::openvpn_client_cert_t &client_cert)
     char line[256];
     char cmd_str[256];
 
-    snprintf(cmd_str, sizeof(cmd_str), "cat %s | grep emailAddress=%s/O", OPENVPN_INDEX_TXT,
-             client_cert.email);
+    snprintf(cmd_str, sizeof(cmd_str), "cat %s | grep CN=%s/ST", OPENVPN_INDEX_TXT,
+             client_cert.common_name);
 
     FILE *f = popen(cmd_str, "r");
     if (f == NULL) {

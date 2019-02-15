@@ -99,9 +99,7 @@ namespace app
     };
 
     typedef struct {
-        char state;
         char common_name[32];
-        char email[256];
         char expire_date[16];
     } openvpn_client_cert_t;
 

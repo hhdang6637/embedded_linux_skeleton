@@ -158,16 +158,6 @@ std::string json_handle_openvpn_client_cert(FCGX_Request *request)
             ss_json << cert.common_name;
             ss_json << "\", ";
 
-            ss_json << "\"email\": ";
-            ss_json << "\"";
-            ss_json << cert.email;
-            ss_json << "\", ";
-
-            ss_json << "\"state\": ";
-            ss_json << "\"";
-            ss_json << app::rpcMessageOpenvpnClientCerts::openVpnClientCertStateChar2Str(cert.state);
-            ss_json << "\", ";
-
             ss_json << "\"expire\": ";
             ss_json << "\"";
             ss_json << ASN1_to_string(cert.expire_date);
@@ -196,7 +186,6 @@ std::string json_handle_openvpn_client_cert(FCGX_Request *request)
 
                 app::openvpn_client_cert_t cert = app::openvpn_client_cert_t();
                 string_copy(cert.common_name, POSTParser.GetFieldText("common_name"), sizeof(cert.common_name));
-                string_copy(cert.email, POSTParser.GetFieldText("email"), sizeof(cert.email));
 
                 if (app::rpcMessageOpenvpnClientCerts::rpcGenOpevpnClientCert(
                         *app::rpcUnixClient::getInstance(), cert)) {
@@ -292,7 +281,7 @@ std::string json_handle_revoke_openvpn_client_cert(FCGX_Request *request)
                 POSTParser.AcceptSomeData(data.c_str(), data.size());
 
                 app::openvpn_client_cert_t cert = app::openvpn_client_cert_t();
-                string_copy(cert.email, POSTParser.GetFieldText("email"), sizeof(cert.email));
+                string_copy(cert.common_name, POSTParser.GetFieldText("common_name"), sizeof(cert.common_name));
 
                 if (app::rpcMessageOpenvpnClientCerts::rpcRevokeOpevpnClientCert(
                         *app::rpcUnixClient::getInstance(), cert)) {
