@@ -162,6 +162,7 @@ $(function () {
               $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
             }
             showInfor();
+            emptyStatusTimer();
         });
     })
 
@@ -177,10 +178,17 @@ $(function () {
                   $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
                 }
                 showCert();
+                emptyStatusTimer();
             });
         }
     })
 }(jQuery);
+
+function emptyStatusTimer() {
+    setTimeout(function() {
+        $(".status").empty();
+    }, 2000 );
+}
 
 function post_form_data($, id, onSuccess) {
 
@@ -309,6 +317,7 @@ $(function () {
                       $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
                     }
                     showClient_Cert();
+                    emptyStatusTimer();
                 },
             });
 
@@ -398,6 +407,7 @@ function revokeVpnClientCert(name)
               $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
             }
             showClient_Cert();
+            emptyStatusTimer();
         },
     });
 }
