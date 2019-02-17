@@ -23,10 +23,10 @@
 #include <linux/of.h>
 
 /* TODO Unify the oops header, mmtoops, ramoops, mmcoops */
-#define MMCOOPS_KERNMSG_HDR    "===="
-#define MMCOOPS_HEADER_SIZE    (5 + sizeof(struct timeval))
+#define MMCOOPS_KERNMSG_HDR    "====MMCOOPS====\n"
+#define MMCOOPS_HEADER_SIZE    (sizeof(MMCOOPS_KERNMSG_HDR) + sizeof(struct timeval))
 
-#define RECORD_SIZE        4096
+#define RECORD_SIZE        128*1024 // 8 KB
 
 static int dump_oops = 1;
 module_param(dump_oops, int, 0600);
@@ -93,9 +93,9 @@ static void mmc_panic_write(struct mmcoops_context *cxt,
    mmc_wait_for_oops_req(host, &mrq);
 
    if (cmd.error)
-       pr_info("%s: cmd error %d\n", __func__, cmd.error);
+       pr_err("%s: cmd error %d\n", __func__, cmd.error);
    if (data.error)
-       pr_info("%s: data error %d\n", __func__, data.error);
+       pr_err("%s: data error %d\n", __func__, data.error);
    /* wait busy */
 
    cxt->count = (cxt->count + 1) % cxt->max_count;
@@ -104,6 +104,7 @@ static void mmc_panic_write(struct mmcoops_context *cxt,
 static void mmcoops_do_dump(struct kmsg_dumper *dumper,
        enum kmsg_dump_reason reason)
 {
+   pr_info("%s:%d\n", __func__, __LINE__);
    struct mmcoops_context *cxt = container_of(dumper,
            struct mmcoops_context, dump);
    struct mmc_card *card = cxt->card;
@@ -126,69 +127,24 @@ static void mmcoops_do_dump(struct kmsg_dumper *dumper,
    kmsg_dump_get_buffer(dumper, true, buf + MMCOOPS_HEADER_SIZE,
            RECORD_SIZE - MMCOOPS_HEADER_SIZE, NULL);
 
-   mmc_panic_write(cxt, buf, cxt->start + (cxt->count * 8), cxt->size);
+   mmc_panic_write(cxt, buf, (cxt->start << 9) + (cxt->count * 8), cxt->size);
 }
 
 int  mmc_oops_card_set(struct mmc_card *card)
 {
    struct mmcoops_context *cxt = &oops_cxt;
 
-   if (!mmc_card_mmc(card) && !mmc_card_sd(card))
-       return -ENODEV;
+   if (!mmc_card_mmc(card) && !mmc_card_sd(card)) {
+      pr_err("%s: No dev\n", __func__);
+      return -ENODEV;
+   }
 
    cxt->card = card;
-   pr_info("%s: %s\n", mmc_hostname(card->host), __func__);
+   pr_info("%s: %s\n", __func__, mmc_hostname(card->host));
 
    return 0;
 }
 EXPORT_SYMBOL(mmc_oops_card_set);
-
-static int mmc_oops_probe(struct mmc_card *card)
-{
-   int ret = 0;
-
-   ret = mmc_oops_card_set(card);
-   if (ret)
-       return ret;
-
-   mmc_claim_host(card->host);
-
-   return 0;
-}
-
-
-static void mmc_oops_remove(struct mmc_card *card)
-{
-   mmc_release_host(card->host);
-}
-
-/*
- * You can always switch between mmc_test and mmc_block by
- * unbinding / binding e.g.
- *
- *
- * # ls -al /sys/bus/mmc/drivers/mmcblk
- * drwxr-xr-x    2 root     0               0 Jan  1 00:00 .
- * drwxr-xr-x    4 root     0               0 Jan  1 00:00 ..
- * --w-------    1 root     0            4096 Jan  1 00:01 bind
- *  lrwxrwxrwx    1 root     0               0 Jan  1 00:01
- *         mmc0:0001 -> ../../../../class/mmc_host/mmc0/mmc0:0001
- *  --w-------    1 root     0            4096 Jan  1 00:01 uevent
- *  --w-------    1 root     0            4096 Jan  1 00:01 unbind
- *
- *  # echo mmc0:0001 > /sys/bus/mmc/drivers/mmcblk/unbind
- *
- *  # echo mmc0:0001 > /sys/bus/mmc/drivers/mmc_oops/bind
- *  [   48.490814] mmc0: mmc_oops_card_set
- */
-
-static struct mmc_driver mmc_driver = {
-    .drv        = {
-        .name   = "mmc_oops",
-    },
-    .probe      = mmc_oops_probe,
-    .remove     = mmc_oops_remove,
-};
 
 /* Parsing dt node */
 static int mmcoops_parse_dt(struct mmcoops_context *cxt)
@@ -199,14 +155,14 @@ static int mmcoops_parse_dt(struct mmcoops_context *cxt)
    int ret = 0;
 
    ret = of_property_read_u32(np, "start-offset", &start_offset);
-   pr_err("%s: Start offset: %d\n", __func__, start_offset);
+   pr_info("%s: Start offset: %d\n", __func__, start_offset);
    if (ret) {
        pr_err("%s: Start offset can't set..\n", __func__);
        return ret;
    }
 
    ret = of_property_read_u32(np, "size", &size);
-   pr_err("%s: Size: %d\n", __func__, size);
+   pr_info("%s: Size: %d\n", __func__, size);
    if (ret) {
        pr_err("%s: Size can't set..\n", __func__);
        return ret;
@@ -223,12 +179,6 @@ static int __init mmcoops_probe(struct platform_device *pdev)
    struct mmcoops_context *cxt = &oops_cxt;
    int err = -EINVAL;
 
-   err = mmc_register_driver(&mmc_driver);
-   if (err) {
-       pr_err("mmcoops: mmc_register_driver failed");
-       return err;
-   }
-
    cxt->card = NULL;
    cxt->count = 0;
    cxt->dev = &pdev->dev;
@@ -238,7 +188,6 @@ static int __init mmcoops_probe(struct platform_device *pdev)
        pr_err("mmcoops: parsing mmcoops property failed");
        return err;
    }
-
 
    cxt->max_count = (cxt->size << 9) / RECORD_SIZE;
 
@@ -260,7 +209,6 @@ static int __init mmcoops_probe(struct platform_device *pdev)
 kmsg_dump_register_failed:
    kfree(cxt->virt_addr);
 kmalloc_failed:
-   mmc_unregister_driver(&mmc_driver);
 
    return err;
 }
@@ -272,7 +220,7 @@ static int mmcoops_remove(struct platform_device *pdev)
    if (kmsg_dump_unregister(&cxt->dump) < 0)
        pr_warn("mmcoops: colud not unregister kmsg dumper");
    kfree(cxt->virt_addr);
-   mmc_unregister_driver(&mmc_driver);
+   // mmc_unregister_driver(&mmc_driver);
 
    return 0;
 }

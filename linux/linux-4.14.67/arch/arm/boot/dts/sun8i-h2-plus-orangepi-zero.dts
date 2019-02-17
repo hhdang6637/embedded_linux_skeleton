@@ -118,7 +118,7 @@
 
 	mmcoops {
 		compatible = "mmcoops";
-		start-offset = <446464>;	/* 446464 * 512B = 218	MB offset */
+		start-offset = <1200>;	/* 1200 * 512 = 600KiB offset, skip the UBOOT image */
 		size = <256>;		/* 256 * 512B = 128KiB */
 	};
 };
