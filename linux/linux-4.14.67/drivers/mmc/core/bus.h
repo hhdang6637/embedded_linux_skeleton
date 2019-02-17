@@ -32,14 +32,4 @@ void mmc_remove_card(struct mmc_card *card);
 int mmc_register_bus(void);
 void mmc_unregister_bus(void);
 
-struct mmc_driver {
-	struct device_driver drv;
-	int (*probe)(struct mmc_card *card);
-	void (*remove)(struct mmc_card *card);
-	void (*shutdown)(struct mmc_card *card);
-};
-
-int mmc_register_driver(struct mmc_driver *drv);
-void mmc_unregister_driver(struct mmc_driver *drv);
-
 #endif

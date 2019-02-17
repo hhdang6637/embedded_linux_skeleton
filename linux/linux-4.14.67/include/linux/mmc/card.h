@@ -315,8 +315,24 @@ static inline bool mmc_large_sector(struct mmc_card *card)
 
 bool mmc_card_is_blockaddr(struct mmc_card *card);
 
+struct mmc_driver {
+	struct device_driver drv;
+	int (*probe)(struct mmc_card *card);
+	void (*remove)(struct mmc_card *card);
+	void (*shutdown)(struct mmc_card *card);
+};
+
+extern int mmc_register_driver(struct mmc_driver *);
+extern void mmc_unregister_driver(struct mmc_driver *);
+
+#define mmc_dev_to_card(d)	container_of(d, struct mmc_card, dev)
+
 #define mmc_card_mmc(c)		((c)->type == MMC_TYPE_MMC)
 #define mmc_card_sd(c)		((c)->type == MMC_TYPE_SD)
 #define mmc_card_sdio(c)	((c)->type == MMC_TYPE_SDIO)
+
+#ifdef CONFIG_MMC_OOPS
+int mmc_oops_card_set(struct mmc_card *card);
+#endif /* CONFIG_MMC_OOPS */
 
 #endif /* LINUX_MMC_CARD_H */

@@ -115,6 +115,12 @@
 		reset-gpios = <&r_pio 0 7 GPIO_ACTIVE_LOW>;
 		post-power-on-delay-ms = <50>;
 	};
+
+	mmcoops {
+		compatible = "mmcoops";
+		start-offset = <446464>;	/* 446464 * 512B = 218	MB offset */
+		size = <256>;		/* 256 * 512B = 128KiB */
+	};
 };
 
 &cpu0 {

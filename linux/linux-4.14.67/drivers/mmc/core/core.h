@@ -128,20 +128,7 @@ int mmc_set_blocklen(struct mmc_card *card, unsigned int blocklen);
 int mmc_set_blockcount(struct mmc_card *card, unsigned int blockcount,
 			bool is_rel_write);
 
-int __mmc_claim_host(struct mmc_host *host, atomic_t *abort);
-void mmc_release_host(struct mmc_host *host);
 void mmc_get_card(struct mmc_card *card);
 void mmc_put_card(struct mmc_card *card);
-
-/**
- *	mmc_claim_host - exclusively claim a host
- *	@host: mmc host to claim
- *
- *	Claim a host for a set of operations.
- */
-static inline void mmc_claim_host(struct mmc_host *host)
-{
-	__mmc_claim_host(host, NULL);
-}
 
 #endif

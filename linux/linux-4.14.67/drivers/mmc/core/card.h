@@ -15,7 +15,6 @@
 
 #define mmc_card_name(c)	((c)->cid.prod_name)
 #define mmc_card_id(c)		(dev_name(&(c)->dev))
-#define mmc_dev_to_card(d)	container_of(d, struct mmc_card, dev)
 
 /* Card states */
 #define MMC_STATE_PRESENT	(1<<0)		/* present in sysfs */
