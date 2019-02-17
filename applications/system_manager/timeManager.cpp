@@ -64,19 +64,19 @@ static bool ntpConfig_initFromFile()
         }
 
         if (ntpConfigIni.get_string(sect, "ntp_server0", value)) {
-            string_copy(ntpCfg.ntp_server0, value);
+            string_copy(ntpCfg.ntp_server0, value, sizeof(ntpCfg.ntp_server0));
         }
 
         if (ntpConfigIni.get_string(sect, "ntp_server1", value)) {
-            string_copy(ntpCfg.ntp_server1, value);
+            string_copy(ntpCfg.ntp_server1, value, sizeof(ntpCfg.ntp_server1));
         }
 
         if (ntpConfigIni.get_string(sect, "ntp_server2", value)) {
-            string_copy(ntpCfg.ntp_server2, value);
+            string_copy(ntpCfg.ntp_server2, value, sizeof(ntpCfg.ntp_server2));
         }
 
         if (ntpConfigIni.get_string(sect, "ntp_server3", value)) {
-            string_copy(ntpCfg.ntp_server3, value);
+            string_copy(ntpCfg.ntp_server3, value, sizeof(ntpCfg.ntp_server3));
         }
 
         return true;
@@ -106,10 +106,10 @@ static bool buildNtpConfigFile()
 static void setNtpCfgDefault()
 {
     ntpCfg.state = app::stateType::DISABLE;
-    string_copy(ntpCfg.ntp_server0, "0.asia.pool.ntp.org");
-    string_copy(ntpCfg.ntp_server1, "1.asia.pool.ntp.org");
-    string_copy(ntpCfg.ntp_server2, "2.asia.pool.ntp.org");
-    string_copy(ntpCfg.ntp_server3, "3.asia.pool.ntp.org");
+    string_copy(ntpCfg.ntp_server0, "0.asia.pool.ntp.org", sizeof(ntpCfg.ntp_server0));
+    string_copy(ntpCfg.ntp_server1, "1.asia.pool.ntp.org", sizeof(ntpCfg.ntp_server1));
+    string_copy(ntpCfg.ntp_server2, "2.asia.pool.ntp.org", sizeof(ntpCfg.ntp_server2));
+    string_copy(ntpCfg.ntp_server3, "3.asia.pool.ntp.org", sizeof(ntpCfg.ntp_server3));
 }
 
 static void stopNtp()

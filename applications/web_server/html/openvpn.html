@@ -1,0 +1,440 @@
+<style>
+
+/* Style the tab */
+.tab {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+}
+/* Style the buttons that are used to open the tab content */
+.tab button {
+    background-color: rgba(0,123,255,.25);
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+}
+/* Change background color of buttons on hover */
+.tab button:hover {
+    background-color: #ddd;
+}
+/* Create an active/current tablink class */
+.tab button.active {
+    background-color: #4d94ff;
+}
+/* Style the tab content */
+.tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+}
+
+.tabcontent {
+    animation: fadeEffect 1s; /* Fading effect takes 1 second */
+}
+
+.validateTips {
+    border: 1px solid transparent;
+    padding: 0.3em;
+}
+
+/* Go from zero to full opacity */
+@keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+</style>
+
+<div class="container">
+    <div class="status"></div>
+    <div class="tab">
+        <button id="defaultOpen" class="tablinks" onclick="openTab(event, 'VPN_CFG'); showInfor();">VPN Configuration</button>
+        <button class="tablinks" onclick="openTab(event, 'CA_INFO'); showCert();">CA & Server Information</button>
+        <button class="tablinks" onclick="openTab(event, 'CLIENT_INFO'); showClient_Cert();">Client Information</button>
+    </div>
+    <!-- Tab content -->
+    <div id="VPN_CFG" class="tabcontent card">
+        <div class="card-body">
+            <h5 class="card-title text-center">VPN Configuration</h5>
+            <form action="/json/openvpn_cfg" method="post" enctype="multipart/form-data" id="js-openvpn_setting-form">
+                <div class="form-group">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="enable_vpn" name="enable_vpn">
+                        <label class="form-check-label" for="enable_vpn">Enable VPN Server</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="port">Port:</label>
+                    <input type="text" class="form-control" id="port" name="port" placeholder="Port">
+                </div>
+                <div class="row justify-content-md-center">
+                    <button type="submit" class="btn btn-primary">Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="CA_INFO" class="tabcontent card">
+        <div class="cardcurrentTarget-body">
+            <h5 class="card-title text-center">CA and Server Certificate</h5>
+            <form action="/json/openvpn_rsa" method="post" enctype="multipart/form-data" id="js-openvpn_rsa-form">
+                <div class="form-group">
+                    <label for="ca">CA:</label>
+                    <input type="text" class="form-control" id="ca" name="ca" placeholder="CA name">
+                </div>
+                <div class="form-group">
+                    <label for="server">Server:</label>
+                    <input type="text" class="form-control" id="server" name="server" placeholder="Server name">
+                </div>
+                <div class="row justify-content-md-center">
+                    <button type="submit" class="btn btn-primary">Generate RSA suite</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="CLIENT_INFO" class="tabcontent card">
+        <div class="card-body">
+            <h5 class="card-title text-center">Client Certificates</h5>
+            <table id='table' class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Common Name</th>
+                        <th>Expire date</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <!-- Modal -->
+            <div class="modal fade" id="clientCertModal" role="dialog">
+                <div class="modal-dialog">
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header justify-content-center">
+                            <h4 class="modal-title">Generate Client Certificate</h4>
+                        </div>
+                        <div class="modal-body">
+                            <p class="validateTips">All form fields are required.</p>
+                            <form>
+                                <div class="form-group">
+                                    <label for="common_name">Common name:</label>
+                                    <input type="text" class="form-control" id="common_name" placeholder="Common name" required>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer justify-content-center">
+                            <button class="btn btn-primary odom-submit">Generate Cert</button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-toolbar d-flex justify-content-center" role="toolbar" aria-label="Toolbar with button groups">
+                <div class="btn-group mr-2" role="group" aria-label="First group">
+                    <!-- Trigger the modal with a button -->
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#clientCertModal">Generate Cert</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+$(function () {
+    $("#myTopnav").find("a[href='/pages/openvpn']").addClass("active")
+});
+
++ function($) {
+    'use strict';
+
+    var openvpn_ConfigForm = document.getElementById('js-openvpn_setting-form');
+
+    openvpn_ConfigForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        $(".status").empty();
+        post_form_data($, 'js-openvpn_setting-form', function(json) {
+            if (json.status == "succeeded") {
+              $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+            } else {
+              $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+            }
+            showInfor();
+            emptyStatusTimer();
+        });
+    })
+
+    var openvpn_RsaForm = document.getElementById('js-openvpn_rsa-form');
+    openvpn_RsaForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+       if (confirm("This action will remove all current client profiles too!!!") == true) {
+            $(".status").empty();
+            post_form_data($, 'js-openvpn_rsa-form', function(json) {
+                if (json.status == "succeeded") {
+                  $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+                } else {
+                  $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+                }
+                showCert();
+                emptyStatusTimer();
+            });
+        }
+    })
+}(jQuery);
+
+function emptyStatusTimer() {
+    setTimeout(function() {
+        $(".status").empty();
+    }, 2000 );
+}
+
+function post_form_data($, id, onSuccess) {
+
+    var formData = new FormData();
+    $.each($('#' + id +' [name]'), function(i, elem) {
+        if ($(elem).attr('type') == 'checkbox')
+        {
+            formData.append($(elem).attr('name'), $(elem).prop('checked'));
+        } else {
+            formData.append($(elem).attr('name'), $(elem).val());
+        }
+    });
+
+    $.ajax({
+        type: "POST",
+        url: $('#' + id).attr('action'),
+        data: formData,
+        enctype: 'multipart/form-data',
+        processData: false,
+        contentType: false,
+        cache: false,
+
+        success: onSuccess,
+    });
+}
+
+function showCert()
+{
+    $.getJSON( "/json/openvpn_rsa", function(data) {
+
+        var cert = data.json_openvpn_rsa;
+
+        $("#ca").val(cert.ca_name);
+        $("#server").val(cert.server_name);
+    });
+}
+
+function showInfor()
+{
+    $.getJSON( "/json/openvpn_cfg", function(data) {
+
+        var infor_conf = data.json_openvpn_config;
+
+        $("#port").val(infor_conf.port);
+
+        if (infor_conf.state == 1) {
+            $("#enable_vpn").prop('checked', true);
+        } else {
+            $("#enable_vpn").prop('checked', false);
+        }
+
+    });
+}
+
+function showClient_Cert()
+{
+    $.getJSON( "/json/openvpn_client_cert", function(data) {
+
+        var html = "";
+        var jsClient_Cert = data.json_client_cert;
+        for (var i = 0; i < jsClient_Cert.length; i++) {
+            var client = jsClient_Cert[i];
+
+            html += "<tr><td>" + client.name + "</td><td>" + client.expire + "</td><td class=\"text-center\"><button type=\"button\" onclick=\"downloadVpnClientConfig('" + client.name + "')\"" + "class=\"btn btn-sm btn-primary\">" + "Download" + "</button>&ensp;<button type=\"button\" onclick=\"revokeVpnClientCert('" + client.name + "')\"" + "class=\"btn btn-sm btn-danger\">" + "Revoke" + "</button></td></tr>";
+        }
+        $('#table > tbody').html(html);
+    });
+}
+
+// From http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#e-mail-state-%28type=email%29
+// emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+// email = $( "#email" ),
+common_name = $( "#common_name" ),
+tips = $( ".validateTips" );
+
+function updateTips(t) {
+    tips.text(t).addClass("alert alert-warning");
+    setTimeout(function() {
+        tips.removeClass("alert alert-warning", 1500);
+    }, 1500 );
+}
+
+function checkRegexp( o, regexp, n ) {
+    if (!(regexp.test(o.val()))) {
+        o.addClass("alert alert-danger");
+        updateTips(n);
+        return false;
+    } else {
+        return true;
+    }
+}
+
+function checkLength(o, n, min, max) {
+    if (o.val().length > max || o.val().length < min) {
+        o.addClass("alert alert-danger");
+        updateTips("Length of " + n + " must be between " + min + " and " + max + ".");
+        return false;
+    } else {
+        return true;
+    }
+}
+
+$(function () {
+    $('body').on('click', '.odom-submit', function (e) {
+        var valid = true;
+        valid = valid && checkLength(common_name, "Common Name", 3, 32);
+        valid = valid && checkRegexp(common_name, /^[a-z]([0-9a-z_\s])+$/i, "Common name may consist of a-z, 0-9, underscores, spaces and must begin with a letter.");
+        if (valid) {
+            $(".status").empty();
+            var formData = new FormData();
+            formData.append('common_name', common_name.val());
+
+            $.ajax({
+                type: "POST",
+                url: "/json/openvpn_client_cert",
+                data: formData,
+                enctype: 'multipart/form-data',
+                processData: false,
+                contentType: false,
+                cache: false,
+
+                success: function(json) {
+                    if (json.status == "succeeded") {
+                      $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+                    } else {
+                      $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+                    }
+                    showClient_Cert();
+                    emptyStatusTimer();
+                },
+            });
+
+            $('#clientCertModal').modal('hide');
+        }
+    });
+});
+
+function downloadVpnClientConfig(name)
+{
+    var formData = new FormData();
+
+    formData.append('common_name', name);
+
+    $.ajax({
+        type: "POST",
+        url: "/openvpn_download_client_cfg",
+        data: formData,
+        enctype: 'multipart/form-data',
+        processData: false,
+        contentType: false,
+        cache: false,
+        success: function(response, status, xhr) {
+            // check for a filename
+            var filename = "";
+            var disposition = xhr.getResponseHeader('Content-Disposition');
+            if (disposition && disposition.indexOf('attachment') !== -1) {
+                var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                var matches = filenameRegex.exec(disposition);
+                if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+            }
+
+            var type = xhr.getResponseHeader('Content-Type');
+            var blob = new Blob([response], { type: type });
+
+            if (typeof window.navigator.msSaveBlob !== 'undefined') {
+                // IE workaround for "HTML7007: One or more blob URLs were revoked by closing the blob for which they were created. These URLs will no longer resolve as the data backing the URL has been freed."
+                window.navigator.msSaveBlob(blob, filename);
+            } else {
+                var URL = window.URL || window.webkitURL;
+                var downloadUrl = URL.createObjectURL(blob);
+
+                if (filename) {
+                    // use HTML5 a[download] attribute to specify filename
+                    var a = document.createElement("a");
+                    // safari doesn't support this yet
+                    if (typeof a.download === 'undefined') {
+                        window.location = downloadUrl;
+                    } else {
+                        a.href = downloadUrl;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                    }
+                } else {
+                    window.location = downloadUrl;
+                }
+
+                setTimeout(function () { URL.revokeObjectURL(downloadUrl); }, 100); // cleanup
+            }
+        },
+
+        error: function (request, status, error) {
+            alert("File not found!");
+        }
+    });
+}
+
+function revokeVpnClientCert(name)
+{
+    $(".status").empty();
+    var formData = new FormData();
+    formData.append('common_name', name);
+
+    $.ajax({
+        type: "POST",
+        url: "/json/revoke_openvpn_client_cert",
+        data: formData,
+        enctype: 'multipart/form-data',
+        processData: false,
+        contentType: false,
+        cache: false,
+        success: function(json) {
+            if (json.status == "succeeded") {
+              $(".status").append("<div class=\"alert alert-success\"> <strong>Success!</strong></div>");
+            } else {
+              $(".status").append("<div class=\"alert alert-danger\"> <strong>Error!</strong> " + json.message + "</div>");
+            }
+            showClient_Cert();
+            emptyStatusTimer();
+        },
+    });
+}
+
+function openTab(evt, tabName) {
+    // Declare all variables
+    var i, tabcontent, tablinks;
+
+    // Get all elements with class="tabcontent" and hide them
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+
+    // Get all elements with class="tablinks" and remove the class "active"
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+
+    // Show the current tab, and add an "active" class to the button that opened the tab
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+
+    $(".status").empty();
+}
+
+document.getElementById("defaultOpen").click();
+
+</script>

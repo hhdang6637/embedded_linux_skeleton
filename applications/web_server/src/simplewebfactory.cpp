@@ -22,6 +22,7 @@
 #include "rpcMessageAuthentication.h"
 
 #include "firmware_manager_js.h"
+#include "openvpn_js.h"
 
 #define TIME_OUT 60*10
 
@@ -399,6 +400,8 @@ void simpleWebFactory::handle_request(FCGX_Request *request)
             FCGX_FPrintF(request->out, "Content-Type: application/json; charset=utf-8\r\n\r\n");
             FCGX_FPrintF(request->out, "%s", response_content);
 
+        } else if (strcmp(script, "/openvpn_download_client_cfg") == 0) {
+            handle_donwload_openvpn_client_cfg(request);
         } else {
             FCGX_FPrintF(request->out, "HTTP/1.1 404 Not Found\r\n\r\n");
         }

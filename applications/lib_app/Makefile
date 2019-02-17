@@ -9,6 +9,8 @@ SRCS += rpc/rpcMessageResourceHistory.o rpc/rpcMessageFirmware.o rpc/rpcMessageU
 SRCS += rpc/rpcMessageEvents.o rpc/rpcMessageAuthentication.o
 SRCS += libfdt/fdt_ro.o backtrace_signal.o netlink_socket.o conversion.o
 SRCS += ini.o user.o
+SRCS += rpc/rpcMessageOpenvpn.o
+SRCS += rsa_util/rsa_util.o
 SRCS += rpc/rpcMessageTime.o
 
 %.o : %.cpp
@@ -25,6 +27,7 @@ clean:
 install:
 	cp *.h       $(ROOTFS_DIR)/usr/include
 	cp rpc/*.h       $(ROOTFS_DIR)/usr/include
+	cp rsa_util/*.h       $(ROOTFS_DIR)/usr/include
 	cp libfdt/*.h       $(ROOTFS_DIR)/usr/include
 	cp $(SHARED) $(ROOTFS_DIR)/usr/lib
 

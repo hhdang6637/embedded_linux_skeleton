@@ -21,6 +21,7 @@ pid_t get_pid_from_pidfile(const char *pidfile);
 int build_fd_sets(fd_set *read_fds, std::list<int> &fds);
 bool copy_file(const char *src, const char*dst);
 void *file_to_addr(const char*file_name, long int *outsize);
-void string_copy(char *dst, const std::string &src);
+void string_copy(char *dst, const std::string &src, size_t len);
+void string_remove_spaces(std::string &str);
 
 #endif /* APPLICATIONS_LIB_APP_UTILITIES_H_ */

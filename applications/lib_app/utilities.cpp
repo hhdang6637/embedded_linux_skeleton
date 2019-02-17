@@ -14,6 +14,8 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
+#include <algorithm>
+
 #include "utilities.h"
 
 #define BUF_SIZE 1024
@@ -144,8 +146,14 @@ out:
     return addr;
 }
 
-void string_copy(char *dst, const std::string &src)
+void string_copy(char *dst, const std::string &src, size_t len)
 {
-    strncpy(dst, src.c_str(), src.length());
-    dst[src.length()] = '\0';
+    strncpy(dst, src.c_str(), len);
+    dst[len-1] = '\0';
+}
+
+void string_remove_spaces(std::string &str)
+{
+    str.erase(std::remove_if(str.begin(), str.end(), [](unsigned char x) {return std::isspace(x);}),
+              str.end());
 }

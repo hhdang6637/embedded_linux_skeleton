@@ -11,6 +11,7 @@
 #include "rpcMessageUsers.h"
 
 int main(void) {
+    /*
     app::rpcUnixClient* rpcClient = app::rpcUnixClient::getInstance();
     app::rpcMessageUsers msgUser;
 
@@ -26,6 +27,8 @@ int main(void) {
     for(auto &u : users) {
         std::cout << u.getName() << "\n";
     }
+
+    */
 
     return EXIT_SUCCESS;
 }

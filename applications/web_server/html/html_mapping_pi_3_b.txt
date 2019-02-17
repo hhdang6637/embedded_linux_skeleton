@@ -8,6 +8,7 @@
 /pages/adduser,adduser.html
 /pages/edituser,edituser.html
 /pages/syslog,syslog.html
+/pages/openvpn,openvpn.html
 /pages/waiting,waiting.html
 /pages/wifisetting,wifisetting.html
 /pages/time_ntp,time_ntp.html

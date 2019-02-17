@@ -16,5 +16,6 @@
 
 std::list<std::string> event2Strings(const uint16_t events);
 std::string time2String(const time_t &time);
+std::string ASN1_to_string(const char *szYYMMDDHHMMSS);
 
 #endif /* APPLICATIONS_LIB_APP_CONVERSION_H_ */

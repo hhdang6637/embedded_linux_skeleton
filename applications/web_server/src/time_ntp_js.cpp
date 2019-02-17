@@ -52,10 +52,10 @@ std::string json_handle_time_ntp(FCGX_Request *request)
 
                 if(ntpCfg.state == app::stateType::ENABLE)
                 {
-                    string_copy(ntpCfg.ntp_server0, POSTParser.GetFieldText("ntp_server0"));
-                    string_copy(ntpCfg.ntp_server1, POSTParser.GetFieldText("ntp_server1"));
-                    string_copy(ntpCfg.ntp_server2, POSTParser.GetFieldText("ntp_server2"));
-                    string_copy(ntpCfg.ntp_server3, POSTParser.GetFieldText("ntp_server3"));
+                    string_copy(ntpCfg.ntp_server0, POSTParser.GetFieldText("ntp_server0"), sizeof(ntpCfg.ntp_server0));
+                    string_copy(ntpCfg.ntp_server1, POSTParser.GetFieldText("ntp_server1"), sizeof(ntpCfg.ntp_server1));
+                    string_copy(ntpCfg.ntp_server2, POSTParser.GetFieldText("ntp_server2"), sizeof(ntpCfg.ntp_server2));
+                    string_copy(ntpCfg.ntp_server3, POSTParser.GetFieldText("ntp_server3"), sizeof(ntpCfg.ntp_server3));
 
                     result = app::rpcMessageTime::rpcSetNtpCfg(*rpcClient, ntpCfg);
                 }
