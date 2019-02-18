@@ -14,6 +14,8 @@ install:
 	mkdir -p $(ROOTFS_DIR)/usr/bin
 	cp nmap-7.70/nmap $(ROOTFS_DIR)/usr/bin
 	cp nmap-7.70/nmap-services $(ROOTFS_DIR)/usr/share/nmap/nmap-services
+	cp nmap-7.70/nmap-payloads $(ROOTFS_DIR)/usr/share/nmap/nmap-payloads
+	cp nmap-7.70/nmap-mac-prefixes $(ROOTFS_DIR)/usr/share/nmap/nmap-mac-prefixes
 
 all: $(BIN) install
 
