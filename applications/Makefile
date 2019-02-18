@@ -52,6 +52,7 @@ endif
 	@$(MAKE) -C hello_world_app clean all
 	@$(MAKE) -C dropbear/dropbear-2018.76 clean all
 	@$(MAKE) -C busybox clean all
+	@$(MAKE) -C nmap all
 ifeq ($(BUILD_TYPE),DEBUG)
 	@$(MAKE) -C valgrind/valgrind-3.13.0 clean all
 endif
