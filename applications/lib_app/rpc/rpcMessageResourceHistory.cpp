@@ -45,6 +45,8 @@ bool rpcMessageResourceHistory::serialize(int fd)
             buff_len += sizeof(uint16_t) + this->ram_history.size() * sizeof(struct sysinfo);
             buff_len += sizeof(uint16_t) + this->interface_name.length();
             buff_len += sizeof(uint16_t) + this->network_history.size() * sizeof(struct rtnl_link_stats);
+            buff_len += sizeof(uint32_t);   // max_tx
+            buff_len += sizeof(uint32_t);   // max_rx
 
             std::unique_ptr<char> buff_ptr(new char[buff_len]);
 
@@ -53,6 +55,8 @@ bool rpcMessageResourceHistory::serialize(int fd)
             offset += rpcMessage::bufferAppendList(buff_ptr.get() + offset, this->ram_history);
             offset += rpcMessage::bufferAppendStr(buff_ptr.get() + offset, this->interface_name);
             offset += rpcMessage::bufferAppendList(buff_ptr.get() + offset, this->network_history);
+            offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->max_tx);
+            offset += rpcMessage::bufferAppend(buff_ptr.get() + offset, this->max_rx);
 
             if (buff_len != offset) {
                 syslog(LOG_ERR, "%s:%u:%s something wrong happened", __FILE__, __LINE__,__FUNCTION__);
@@ -150,6 +154,18 @@ bool rpcMessageResourceHistory::deserialize(int fd)
 
                 rpcMessage::ListFromBuff((struct rtnl_link_stats*) buff_ptr.get(), this->network_history,
                                          network_history_size);
+            }
+
+            if (rpcMessage::recvInterruptRetry(fd, &this->max_tx,
+                                               sizeof(this->max_tx))
+                != true) {
+                return false;
+            }
+
+            if (rpcMessage::recvInterruptRetry(fd, &this->max_rx,
+                                               sizeof(this->max_rx))
+                != true) {
+                return false;
             }
             break;
         }

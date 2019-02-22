@@ -156,7 +156,12 @@ std::string json_resource_usage_history(FCGX_Request *request)
             }
         }
 
-        ss_json << "]}";
+        ss_json << "]";
+
+        ss_json << ",\"max_tx_bytes\": " << msg.get_max_tx()*8/1000;
+        ss_json << ",\"max_rx_bytes\": " << msg.get_max_rx()*8/1000;
+
+        ss_json << "}";
     }
 
     ss_json << "}";

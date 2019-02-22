@@ -310,6 +310,11 @@ function updateRealTime() {
             window.netRxLine.options.scales.yAxes[0].ticks.max = net_rx_max;
         }
 
+        if (data.json_network_history.max_tx_bytes > 0) {
+            window.netTxLine.options.scales.yAxes[0].ticks.max = data.json_network_history.max_tx_bytes;
+            window.netRxLine.options.scales.yAxes[0].ticks.max = data.json_network_history.max_rx_bytes;
+        }
+
         window.netTxLine.options.scales.yAxes[0].ticks.stepSize = window.netTxLine.options.scales.yAxes[0].ticks.max/5;
         window.netRxLine.options.scales.yAxes[0].ticks.stepSize = window.netRxLine.options.scales.yAxes[0].ticks.max/5;
 

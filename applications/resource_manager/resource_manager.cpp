@@ -41,6 +41,10 @@ static bool get_resource_history_handler(int socker_fd) {
                 msgResourceHistory.set_cpu_history(cpu_history);
                 msgResourceHistory.set_ram_history(ram_history);
                 msgResourceHistory.set_network_history(network_history);
+                msgResourceHistory.set_max_tx(app::resourceCollector::getInstance()
+                        ->get_max_tx(interface_name));
+                msgResourceHistory.set_max_rx(app::resourceCollector::getInstance()
+                        ->get_max_rx(interface_name));
 
                 break;
             }
