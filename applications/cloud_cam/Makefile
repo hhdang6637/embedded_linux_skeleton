@@ -2,7 +2,7 @@ BIN=cloud_cam
 
 SRCS=main.o mqtt_client.o
 
-CXXFLAGS =-Wall -I/home/hhdang/Desktop/embedded_linux_skeleton/build/orange_pi_zero/buildroot/build/opencv-2.4.13/modules/gpu/include
+CXXFLAGS =-Wall -I$(BUILDROOT_BUILD_DIR)/build/opencv-2.4.13/modules/gpu/include
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@
