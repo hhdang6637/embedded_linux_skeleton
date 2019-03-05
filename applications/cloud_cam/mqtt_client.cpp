@@ -9,7 +9,7 @@
 #include "MQTTClient.h"
 #include "opencv2/core/core.hpp" // for uchar
 
-#define ADDRESS     "tcp://127.0.0.1:1883"
+#define ADDRESS     "tcp://192.168.81.31:1883"
 #define CLIENTID    "rtsp2jpg"
 #define PAYLOAD     "Hello World!"
 #define QOS         0
