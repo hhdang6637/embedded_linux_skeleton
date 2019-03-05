@@ -1,6 +1,6 @@
 BIN=cloud_cam
 
-SRCS=main.o mqtt_client.o
+SRCS=main.o mqtt_client.o nmap_scan.o
 
 CXXFLAGS =-Wall -I$(BUILDROOT_BUILD_DIR)/build/opencv-2.4.13/modules/gpu/include
 
