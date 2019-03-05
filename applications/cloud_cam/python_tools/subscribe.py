@@ -2,6 +2,9 @@ import paho.mqtt.client as mqtt
 import base64
 import cv2
 import numpy
+import sys
+
+topic = sys.argv[1]
 
 def convertImageToBase64(filename, b64encode_data):
     with open(filename, "wb") as image_file:
@@ -14,7 +17,7 @@ def on_connect(client, userdata, flags, rc):
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
-    client.subscribe("jpg_171.245.198.163", 0)
+    client.subscribe(topic, 0)
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
