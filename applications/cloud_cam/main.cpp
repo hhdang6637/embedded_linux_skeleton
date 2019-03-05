@@ -153,14 +153,10 @@ void send_rstp_to_jpg_buff(host_info &host) {
 
                 n++;
 
-                cv::Mat dst(100, 100, image.type());
-                image.setTo(0);
-                image.copyTo(dst);
-
                 printf("\rread frame #%05d\t", n);
                 std::vector<uchar> buff;
 
-                if (cv::imencode(".jpg", dst, buff)) {
+                if (cv::imencode(".jpg", image, buff)) {
                     // hangs
                     // Mat im2 = imdecode(buff,CV_LOAD_IMAGE_ANYDEPTH);
                     printf("buff size is %d\t", buff.size());
