@@ -29,6 +29,7 @@ $(ROOTFS_DIR):
 	@mkdir    $(ROOTFS_DIR)/usr/lib
 
 all: $(ROOTFS_DIR)
+	@$(MAKE) -C cloud_cam clean all
 	@$(MAKE) -C noip-2.1.9-1
 	@cp noip-2.1.9-1/noip2 $(ROOTFS_DIR)/bin
 	@$(MAKE) -C iptables clean all

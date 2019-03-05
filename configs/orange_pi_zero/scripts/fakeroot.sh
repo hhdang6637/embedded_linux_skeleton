@@ -36,6 +36,7 @@ $CROSS_COMPILE_STRIP -s ./sbin/*
 $CROSS_COMPILE_STRIP -s ./bin/*
 $CROSS_COMPILE_STRIP -s ./usr/sbin/*
 $CROSS_COMPILE_STRIP -s ./usr/bin/*
+$CROSS_COMPILE_STRIP -s ./usr/lib/*
 
 find . -print | cpio -o -H newc > ../rootfs.cpio
 cd ..
