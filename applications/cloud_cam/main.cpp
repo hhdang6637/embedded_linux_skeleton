@@ -20,6 +20,8 @@ extern void mqtt_init();
 extern void MQTTClient_loop();
 extern void mqtt_publish_topic(const char *topic, unsigned char *buff, size_t size);
 
+#define JPG_STREAM "jpg_stream"
+
 std::list<host_info> list_found_ips;
 std::list<host_info> list_accesable_camera;
 
@@ -39,16 +41,10 @@ int main(int argc, char const *argv[])
 
 void send_rstp_to_jpg_buff(host_info &host) {
     char buff[64];
-    char topic[64];
 
     snprintf(buff, sizeof(buff), "rtsp://%hhu.%hhu.%hhu.%hhu/",
         host.ips[0], host.ips[1], host.ips[2],
         host.ips[3]);
-    snprintf(topic, sizeof(topic), "jpg_%hhu.%hhu.%hhu.%hhu",
-        host.ips[0], host.ips[1], host.ips[2],
-        host.ips[3]);
-
-    printf("mqtt topic is %s\n", topic);
 
     cv::VideoCapture reader(buff);
     cv::Mat image;
@@ -71,7 +67,7 @@ void send_rstp_to_jpg_buff(host_info &host) {
                     // Mat im2 = imdecode(buff,CV_LOAD_IMAGE_ANYDEPTH);
                     printf("buff size is %d\t", buff.size());
                     fflush(stdout);
-                    mqtt_publish_topic(topic, &buff[0], buff.size());
+                    mqtt_publish_topic(JPG_STREAM, &buff[0], buff.size());
                 }
 
             } else {
