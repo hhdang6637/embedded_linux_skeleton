@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Buildroot 2017.02.10-g86c893ce0-dirty Configuration
+# Buildroot 2017.02.10-gc6544fa4e Configuration
 #
 BR2_HAVE_DOT_CONFIG=y
 BR2_HOST_GCC_AT_LEAST_4_5=y
@@ -1709,7 +1709,11 @@ BR2_PACKAGE_NCURSES=y
 # BR2_PACKAGE_NCURSES_WCHAR is not set
 BR2_PACKAGE_NCURSES_TARGET_PROGS=y
 # BR2_PACKAGE_NEWT is not set
-# BR2_PACKAGE_PCRE is not set
+BR2_PACKAGE_PCRE=y
+# BR2_PACKAGE_PCRE_16 is not set
+# BR2_PACKAGE_PCRE_32 is not set
+# BR2_PACKAGE_PCRE_UTF is not set
+# BR2_PACKAGE_PCRE_UCP is not set
 # BR2_PACKAGE_POPT is not set
 # BR2_PACKAGE_READLINE is not set
 # BR2_PACKAGE_SLANG is not set
@@ -1907,7 +1911,7 @@ BR2_PACKAGE_MONGREL2_LIBC_SUPPORTS=y
 # BR2_PACKAGE_POUND is not set
 # BR2_PACKAGE_PPPD is not set
 # BR2_PACKAGE_PPTP_LINUX is not set
-# BR2_PACKAGE_PRIVOXY is not set
+BR2_PACKAGE_PRIVOXY=y
 # BR2_PACKAGE_PROFTPD is not set
 # BR2_PACKAGE_PROXYCHAINS_NG is not set
 # BR2_PACKAGE_PTPD is not set
