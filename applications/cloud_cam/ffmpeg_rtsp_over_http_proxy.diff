@@ -1,0 +1,76 @@
+diff --git a/libavformat/tcp.c b/libavformat/tcp.c
+index 2198e0f..7971df8 100644
+--- a/libavformat/tcp.c
++++ b/libavformat/tcp.c
+@@ -112,6 +112,22 @@ static int tcp_open(URLContext *h, const char *uri, int flags)
+     char portstr[10];
+     s->open_timeout = 5000000;
+ 
++    printf("%s:%d, uri = %s\n", __FUNCTION__, __LINE__, uri);
++
++    const char *proxy_path, proxy_hostname[256];
++    char proxyauth[1024] = "";
++    int use_proxy, proxy_port;
++
++    proxy_path = getenv("http_proxy");
++    printf("%s:%d, proxy_path = %s\n", __FUNCTION__, __LINE__, proxy_path);
++
++    use_proxy  = proxy_path && av_strstart(proxy_path, "http://", NULL);
++
++    if (use_proxy) {
++        av_url_split(NULL, 0, proxyauth, sizeof(proxyauth),
++             proxy_hostname, sizeof(proxy_hostname), &proxy_port, NULL, 0, proxy_path);
++    }
++
+     av_url_split(proto, sizeof(proto), NULL, 0, hostname, sizeof(hostname),
+         &port, path, sizeof(path), uri);
+     if (strcmp(proto, "tcp"))
+@@ -147,8 +163,14 @@ static int tcp_open(URLContext *h, const char *uri, int flags)
+         hints.ai_flags |= AI_PASSIVE;
+     if (!hostname[0])
+         ret = getaddrinfo(NULL, portstr, &hints, &ai);
+-    else
+-        ret = getaddrinfo(hostname, portstr, &hints, &ai);
++    else {
++        if (use_proxy) {
++            snprintf(portstr, sizeof(portstr), "%d", proxy_port);
++            ret = getaddrinfo(proxy_hostname, portstr, &hints, &ai);
++        }
++        else
++            ret = getaddrinfo(hostname, portstr, &hints, &ai);
++    }
+     if (ret) {
+         av_log(h, AV_LOG_ERROR,
+                "Failed to resolve hostname %s: %s\n",
+@@ -198,6 +220,31 @@ static int tcp_open(URLContext *h, const char *uri, int flags)
+         ret = ff_connect_parallel(ai, s->open_timeout / 1000, 3, h, &fd, customize_fd, s);
+         if (ret < 0)
+             goto fail1;
++
++        if (use_proxy) {
++
++            char buffer[1024];
++            const char http_proxy_connect_str[256];
++            const char *http_proxy_ok_str = "HTTP/1.1 200 Connection established\r\n\r\n";
++            int len;
++
++            ret = -1; // fail by default :)
++
++            ff_socket_nonblock(fd, 0);
++
++            snprintf(http_proxy_connect_str, sizeof(http_proxy_connect_str),"CONNECT %s:%d HTTP/1.0\r\n\r\n", hostname, port);
++
++            if (write(fd, http_proxy_connect_str, strlen(http_proxy_connect_str)) != strlen(http_proxy_connect_str))
++                goto fail1;
++
++            len = read(fd, buffer, sizeof(buffer));
++            if (len != strlen(http_proxy_ok_str) || strcmp(http_proxy_ok_str, buffer) != 0) {
++                goto fail1;
++            }
++
++            ff_socket_nonblock(fd, 1);
++            ret = 0; // it's OK now
++        }
+     }
+ 
+     h->is_streamed = 1;
