@@ -1,0 +1,125 @@
+<!--div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2">Firmware</h1>
+</div-->
+<div class="container">
+  <div class="panel panel-default">
+    <div class="panel-body">
+
+      <h3>Imprt VPN profile</h3>
+      <!-- Standar Form -->
+      <h6>Select the VPN profile from your computer</h6>
+      <form action="" method="post" enctype="multipart/form-data" id="js-upload-form">
+        <div class="form-inline">
+          <div class="form-group">
+            <input type="file" name="files[]" id="js-upload-files">
+          </div>
+          <button type="submit" class="btn btn-sm btn-primary" id="js-upload-submit">Import</button>
+        </div>
+        <br/>
+        <div class="checkbox">
+          <label><input type="checkbox" value="" id="enable" checked> Enable VPN Client</label>
+        </div>
+      </form>
+
+      <br/>
+      <div class="status">
+        <div class="alert alert-success" id="import-result-success" style="display:none">
+        </div>
+        <div class="alert alert-danger" id="import-result-fail" style="display:none">
+        </div>
+      </div>
+      <br/>
+      <!-- Progress Bar -->
+      <div class="progress" style="display:none;">
+        <div class="progress-bar" role="progressbar" aria-valuenow="00" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+      </div>
+
+      <h4>VPN log</h4>
+      <div class="alert alert-info">
+        <a id="vpn-log">N/A</a>
+      </div>
+      <br/>
+    </div>
+  </div>
+</div> <!-- /container -->
+<script>
+
+$(function () {
+    $("#myTopnav").find("a[href='/pages/openvpn_client']").addClass("active")
+});
+
++ function($) {
+    'use strict';
+
+    // UPLOAD CLASS DEFINITION
+    // ======================
+
+    $(document).ready(function(){
+        showVPNInfo();
+    });
+
+    function showVPNInfo() {
+
+        $.getJSON( "/json/vpn_log", function(data) {
+            $('#vpn-log').html(data.log);
+        });
+    }
+
+    var uploadForm = document.getElementById('js-upload-form');
+
+    var sendFile = function(file) {
+
+        var formData = new FormData();
+        formData.append('filename', file);
+        formData.append('enable', $('#enable').is(":checked"));
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/json/import_vpn_profile');
+        xhr.onload = function () {
+            //TODO show the progress
+        };
+
+        xhr.onreadystatechange = function () {
+
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                $('#import-result-success').html("<strong>Import succeed!</strong>").css("display", "block");
+                $('#import-result-fail').css("display", "none");
+            } else {
+                $('#import-result-success').css("display", "none");
+                $('#import-result-fail').html("<strong><strong>Import failed!</strong></strong>").css("display", "block");
+            }
+        };
+
+        xhr.upload.onprogress = function (event) {
+
+            if (event.lengthComputable) {
+                var percentComplete = (event.loaded / event.total) * 100;
+                percentComplete = Math.round(percentComplete);
+                $('.progress-bar').attr('aria-valuenow', percentComplete).css('width',percentComplete + '%').text(percentComplete + '%' + " Completed");
+            }
+        };
+
+        xhr.send(formData);
+    }
+
+    var startUpload = function(files) {
+        // reset the process bar
+        $('.progress').css("display", "block");
+        $('.progress-bar').attr('aria-valuenow', 0).css('width',0 + '%');
+
+        var href = "";
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            sendFile(file);
+        }
+    }
+
+    uploadForm.addEventListener('submit', function(e) {
+        var uploadFiles = document.getElementById('js-upload-files').files;
+        e.preventDefault()
+
+        startUpload(uploadFiles)
+    })
+
+}(jQuery);
+</script>
