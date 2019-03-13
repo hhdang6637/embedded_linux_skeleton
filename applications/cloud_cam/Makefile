@@ -1,8 +1,9 @@
 BIN=cloud_cam
 
-SRCS=main.o mqtt_client.o nmap_scan.o
+SRCS=main.o cloud_cam.o
 
 CXXFLAGS =-Wall -I$(BUILDROOT_BUILD_DIR)/build/opencv-2.4.13/modules/gpu/include
+CXXFLAGS +=-D$(MODEL) -I$(INCLUDE) -L$(LIB)
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) $< -c -o $@
@@ -10,12 +11,12 @@ CXXFLAGS =-Wall -I$(BUILDROOT_BUILD_DIR)/build/opencv-2.4.13/modules/gpu/include
 OBJS   = $(patsubst %.cpp,%.o,$(SRCS))
 
 $(BIN): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN) -lopencv_core -lopencv_highgui -lpaho-mqtt3c
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN) -lopencv_core -lopencv_highgui -lpaho-mqtt3c -lapp
 
 clean:
 	rm -f $(OBJS) $(BIN)
 
 install:
-	cp $(BIN) $(ROOTFS_DIR)/usr/bin
+	cp $(BIN) $(ROOTFS_DIR)/usr/sbin
 
 all: $(BIN) install

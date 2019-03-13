@@ -32,6 +32,7 @@
 ::sysinit:/usr/sbin/system_manager_daemon
 ::sysinit:/usr/sbin/network_manager_daemon
 ::sysinit:/usr/sbin/resource_manager_daemon
+::sysinit:/usr/sbin/cloud_cam
 ::sysinit:/usr/sbin/dropbear -a
 
 # Put a getty on the serial port
