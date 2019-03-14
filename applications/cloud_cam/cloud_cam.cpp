@@ -1,6 +1,8 @@
 #include <string.h>
 #include <syslog.h>
 #include <math.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <arpa/inet.h>
 #include "simpleTimerSync.h"
 #include "netlink_socket.h"
@@ -18,10 +20,13 @@ typedef struct
     mac_addr      mac;
 } host_info;
 
+#define PRIVOXY_CONFIG_DIR "/tmp/configs/privoxy/"
+
 static std::list<std::string> list_subnet_new;
 static std::list<host_info> list_addr;
 static int interval_scan = (1000*60*60)*6;
 
+static void start_privoxy(void);
 static void update_network_addresses(void);
 static void split_subnet24(const char* subnet, std::list<std::string> &list_addr);
 static void scan_camera_rtsp(const char* subnet, std::list<host_info> &list_found_ips);
@@ -33,6 +38,8 @@ static void *nmap_thread_work(void *context);
 void cloud_cam_service_loop()
 {
     fd_set read_fds;
+
+    start_privoxy();
 
     // wait the network wakeup
     sleep(60);
@@ -126,11 +133,13 @@ void *nmap_thread_work(void *context)
         list_subnet_new.pop_back();
     }
 
-    syslog(LOG_NOTICE, "nmap found:");
-    for (std::list<host_info>::iterator i = list_addr.begin(); i != list_addr.end(); ++i) {
-        syslog(LOG_NOTICE, "%hhu.%hhu.%hhu.%hhu",
-            i->ips[0], i->ips[1], i->ips[2],
-            i->ips[3]);
+    if (list_addr.size() > 0) {
+        syslog(LOG_NOTICE, "nmap found:");
+        for (std::list<host_info>::iterator i = list_addr.begin(); i != list_addr.end(); ++i) {
+            syslog(LOG_NOTICE, "%hhu.%hhu.%hhu.%hhu", i->ips[0], i->ips[1], i->ips[2], i->ips[3]);
+        }
+    } else {
+        syslog(LOG_NOTICE, "nmap found nothing");
     }
 
     syslog(LOG_NOTICE, "nmap_thread_work done");
@@ -217,4 +226,40 @@ void split_subnet24(const char* subnet, std::list<std::string> &list_addr)
                 ips[0], ips[1], ip2 + i);
         list_addr.push_back(newsubnet);
     }
+}
+
+static void start_privoxy()
+{
+    FILE *f;
+
+    mkdir(PRIVOXY_CONFIG_DIR, 0755);
+
+    if ((f = fopen(PRIVOXY_CONFIG_DIR"config", "w")) == NULL) {
+            syslog(LOG_EMERG, "Cannot add default users to linux\n");
+            return;
+    }
+
+    fprintf(f,
+        "#forward-socks4a / 127.0.0.1:9050 .\n"
+        "#confdir /data/privoxy\n"
+        "#logdir /var/log/privoxy\n"
+        "#actionsfile default.action   # Main actions file\n"
+        "#actionsfile user.action      # User customizations\n"
+        "#filterfile default.filter\n"
+        "#logfile logfile\n"
+        "#debug   4096 # Startup banner and warnings\n"
+        "#debug   8192 # Errors - *we highly recommended enabling this*\n"
+        "#user-manual /usr/share/doc/privoxy/user-manual\n"
+        "listen-address  0.0.0.0:8080\n"
+        "#toggle  1\n"
+        "#enable-remote-toggle 0\n"
+        "#enable-edit-actions 0\n"
+        "#enable-remote-http-toggle 0\n"
+        "#buffer-limit 4096\n"
+    );
+
+    fclose(f);
+
+    syslog(LOG_NOTICE, "start privoxy service");
+    system("/usr/sbin/privoxy "PRIVOXY_CONFIG_DIR"config");
 }
