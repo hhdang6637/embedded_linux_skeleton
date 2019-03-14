@@ -353,6 +353,7 @@ static int init_sigfd()
     sigset_t mask;
     sigemptyset(&mask);
     sigaddset(&mask, SIGUSR1);
+    sigaddset(&mask, SIGCHLD);
     if (sigprocmask(SIG_BLOCK, &mask, NULL) == -1) {
         syslog(LOG_WARNING, "Could not init sigprocmask");
         return -1;
