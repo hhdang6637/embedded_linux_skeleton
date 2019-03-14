@@ -46,6 +46,7 @@ static void *nmap_thread_work_cloud(void *context);
 static int init_sigfd();
 
 bool cloud_request_scan(const char*subnet);
+static void simulate_cloud_request_scan();
 
 void cloud_cam_service_loop()
 {
@@ -105,7 +106,7 @@ void cloud_cam_service_loop()
                 switch(fdsi.ssi_signo) {
                 case SIGUSR1:
                     /* simulate cloud request */
-                    cloud_request_scan("192.168.81.31/24");
+                    simulate_cloud_request_scan();
                     break;
                 default:
                     stop_flag = true;
@@ -259,6 +260,8 @@ static void split_subnet24(const char* subnet, std::list<std::string> &local_add
 {
     unsigned char ips[4];
     int subnet_len;
+    char newsubnet[64];
+    int i;
 
     if (sscanf(subnet, "%hhu.%hhu.%hhu.%hhu/%d", &ips[0], &ips[1], &ips[2], &ips[3], &subnet_len) != 5)
     {
@@ -274,7 +277,9 @@ static void split_subnet24(const char* subnet, std::list<std::string> &local_add
 
     if (subnet_len >= 24)
     {
-        local_addr_found.push_back(subnet);
+        snprintf(newsubnet, sizeof(newsubnet), "%d.%d.%d.%d/%d",
+                ips[0], ips[1], ips[2], ips[3], subnet_len);
+        local_addr_found.push_back(newsubnet);
         return;
     }
 
@@ -282,8 +287,6 @@ static void split_subnet24(const char* subnet, std::list<std::string> &local_add
 
     unsigned char ip2 = (ips[2] >> bits) << bits;
 
-    int i;
-    char newsubnet[64];
     for (i = 0; i < pow(2, bits); ++i) {
         snprintf(newsubnet, sizeof(newsubnet), "%d.%d.%d.0/24",
                 ips[0], ips[1], ip2 + i);
@@ -364,4 +367,39 @@ bool cloud_request_scan(const char*subnet) {
     }
 
     return true;
+}
+
+static void simulate_cloud_request_scan()
+{
+    char line[256];
+    FILE *f;
+
+    if (cloud_subnets_new.size() > 0) {
+        syslog(LOG_INFO, "the cloud list new subnet still available");
+        return;
+    }
+
+    f = fopen("/tmp/cloud_request", "r");
+
+    if (f == NULL) {
+        syslog(LOG_ERR, "cannot open: %s", "/tmp/cloud_request");
+        return;
+    }
+
+    while (fgets(line, sizeof(line), f) > 0) {
+        int len = strlen(line);
+        if (line[len - 1] == '\n') {
+            line[len - 1] = '\0';
+        }
+        split_subnet24(line, cloud_subnets_new);
+    }
+
+    fclose(f);
+
+    if (cloud_subnets_new.size() > 0) {
+        start_nmap_thread(nmap_thread_work_cloud);
+    } else {
+        syslog(LOG_INFO, "Cannot found any ipv4 addresses in cloud request");
+        return;
+    }
 }
