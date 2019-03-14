@@ -20,27 +20,30 @@ typedef struct
 
 static std::list<std::string> list_subnet_new;
 static std::list<host_info> list_addr;
+static int interval_scan = (1000*60*60)*6;
 
 static void update_network_addresses(void);
-static void split_subnet(const char* subnet, std::list<std::string> &list_addr);
+static void split_subnet24(const char* subnet, std::list<std::string> &list_addr);
 static void scan_camera_rtsp(const char* subnet, std::list<host_info> &list_found_ips);
 
 static void start_nmap_thread(void);
 static void *nmap_thread_work(void *context);
 
+
 void cloud_cam_service_loop()
 {
     fd_set read_fds;
 
+    // wait the network wakeup
+    sleep(60);
+
     app::simpleTimerSync *timer = app::simpleTimerSync::getInstance();
     timer->init(1000);
-    timer->addCallback(1000*60*60, update_network_addresses);
+    timer->addCallback(interval_scan, update_network_addresses);
     timer->start();
 
     std::list<int> listReadFd;
     listReadFd.push_back(timer->getTimterFd());
-
-    sleep(60);
 
     update_network_addresses();
 
@@ -89,13 +92,15 @@ static void update_network_addresses()
             if (line[len - 1] == '\n') {
                 line[len - 1] = '\0';
             }
-            split_subnet(line, list_subnet_new);
+            split_subnet24(line, list_subnet_new);
         }
         pclose(f_stream);
     }
 
     if (list_subnet_new.size() > 0) {
         start_nmap_thread();
+    } else {
+        syslog(LOG_INFO, "Cannot found any ipv4 addresses");
     }
 }
 
@@ -178,7 +183,7 @@ void scan_camera_rtsp(const char* subnet, std::list<host_info> &list_found_ips)
     }
 }
 
-void split_subnet(const char* subnet, std::list<std::string> &list_addr)
+void split_subnet24(const char* subnet, std::list<std::string> &list_addr)
 {
     unsigned char ips[4];
     int subnet_len;
