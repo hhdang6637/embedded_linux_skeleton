@@ -22,13 +22,13 @@ typedef struct
 
 #define PRIVOXY_CONFIG_DIR "/tmp/configs/privoxy/"
 
-static std::list<std::string> list_subnet_new;
-static std::list<host_info> list_addr;
+static std::list<std::string> local_subnets_new;
+static std::list<host_info> local_addr_found;
 static int interval_scan = (1000*60*60)*6;
 
 static void start_privoxy(void);
-static void update_network_addresses(void);
-static void split_subnet24(const char* subnet, std::list<std::string> &list_addr);
+static void update_local_subnet_addresses(void);
+static void split_subnet24(const char* subnet, std::list<std::string> &local_addr_found);
 static void scan_camera_rtsp(const char* subnet, std::list<host_info> &list_found_ips);
 
 static void start_nmap_thread(void);
@@ -46,13 +46,13 @@ void cloud_cam_service_loop()
 
     app::simpleTimerSync *timer = app::simpleTimerSync::getInstance();
     timer->init(1000);
-    timer->addCallback(interval_scan, update_network_addresses);
+    timer->addCallback(interval_scan, update_local_subnet_addresses);
     timer->start();
 
     std::list<int> listReadFd;
     listReadFd.push_back(timer->getTimterFd());
 
-    update_network_addresses();
+    update_local_subnet_addresses();
 
     while (1) {
         int maxfd = build_fd_sets(&read_fds, listReadFd);
@@ -80,13 +80,13 @@ void cloud_cam_service_loop()
     }
 }
 
-static void update_network_addresses()
+static void update_local_subnet_addresses()
 {
     FILE* f_stream;
     char line[512];
     int len;
 
-    if (list_subnet_new.size() > 0) {
+    if (local_subnets_new.size() > 0) {
         syslog(LOG_INFO, "the list new subnet still available");
         return;
     }
@@ -99,12 +99,12 @@ static void update_network_addresses()
             if (line[len - 1] == '\n') {
                 line[len - 1] = '\0';
             }
-            split_subnet24(line, list_subnet_new);
+            split_subnet24(line, local_subnets_new);
         }
         pclose(f_stream);
     }
 
-    if (list_subnet_new.size() > 0) {
+    if (local_subnets_new.size() > 0) {
         start_nmap_thread();
     } else {
         syslog(LOG_INFO, "Cannot found any ipv4 addresses");
@@ -124,18 +124,18 @@ void *nmap_thread_work(void *context)
 {
     syslog(LOG_NOTICE, "nmap_thread_work start");
 
-    list_addr.clear();
+    local_addr_found.clear();
 
-    while(list_subnet_new.size() > 0)
+    while(local_subnets_new.size() > 0)
     {
-        std::string subnet = list_subnet_new.back();
-        scan_camera_rtsp(subnet.c_str(), list_addr);
-        list_subnet_new.pop_back();
+        std::string subnet = local_subnets_new.back();
+        scan_camera_rtsp(subnet.c_str(), local_addr_found);
+        local_subnets_new.pop_back();
     }
 
-    if (list_addr.size() > 0) {
+    if (local_addr_found.size() > 0) {
         syslog(LOG_NOTICE, "nmap found:");
-        for (std::list<host_info>::iterator i = list_addr.begin(); i != list_addr.end(); ++i) {
+        for (std::list<host_info>::iterator i = local_addr_found.begin(); i != local_addr_found.end(); ++i) {
             syslog(LOG_NOTICE, "%hhu.%hhu.%hhu.%hhu", i->ips[0], i->ips[1], i->ips[2], i->ips[3]);
         }
     } else {
@@ -192,7 +192,7 @@ void scan_camera_rtsp(const char* subnet, std::list<host_info> &list_found_ips)
     }
 }
 
-void split_subnet24(const char* subnet, std::list<std::string> &list_addr)
+void split_subnet24(const char* subnet, std::list<std::string> &local_addr_found)
 {
     unsigned char ips[4];
     int subnet_len;
@@ -211,7 +211,7 @@ void split_subnet24(const char* subnet, std::list<std::string> &list_addr)
 
     if (subnet_len >= 24)
     {
-        list_addr.push_back(subnet);
+        local_addr_found.push_back(subnet);
         return;
     }
 
@@ -224,7 +224,7 @@ void split_subnet24(const char* subnet, std::list<std::string> &list_addr)
     for (i = 0; i < pow(2, bits); ++i) {
         snprintf(newsubnet, sizeof(newsubnet), "%d.%d.%d.0/24",
                 ips[0], ips[1], ip2 + i);
-        list_addr.push_back(newsubnet);
+        local_addr_found.push_back(newsubnet);
     }
 }
 
