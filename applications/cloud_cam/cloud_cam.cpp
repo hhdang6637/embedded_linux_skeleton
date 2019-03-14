@@ -23,6 +23,8 @@ typedef struct
     mac_addr      mac;
 } host_info;
 
+#define RTSP_PORT 554
+#define RTSP_OK_STR "RTSP/1.0 200 OK"
 #define PRIVOXY_CONFIG_DIR "/tmp/configs/privoxy/"
 
 // LOCAL
@@ -47,6 +49,7 @@ static int init_sigfd();
 
 bool cloud_request_scan(const char*subnet);
 static void simulate_cloud_request_scan();
+static bool validate_rtsp_protocol(const host_info *host);
 
 void cloud_cam_service_loop()
 {
@@ -248,8 +251,10 @@ static void scan_camera_rtsp(const char* subnet, std::list<host_info> &list_foun
         }
 
         if (host.ips[0] != 0) {
-            // store the old host info
-            list_found_ips.push_back(host);
+            // validate & store the old host info
+            if (validate_rtsp_protocol(&host)) {
+                list_found_ips.push_back(host);
+            }
         }
 
         pclose(nmap_out_stream);
@@ -402,4 +407,80 @@ static void simulate_cloud_request_scan()
         syslog(LOG_INFO, "Cannot found any ipv4 addresses in cloud request");
         return;
     }
+}
+
+static bool send_rtsp_describe_pkt(int fd, const char* ip)
+{
+    char buffer[1024] = { 0 };
+    std::string describe_pkt = "DESCRIBE rtsp://" + std::string(ip) + " RTSP/1.0\r\nCSeq: 2\r\n";
+
+    if (send(fd, describe_pkt.c_str(), strlen(describe_pkt.c_str()), 0) == -1) {
+        return false;
+    }
+
+    if (recv(fd, buffer, sizeof(buffer), 0) == -1) {
+        return false;
+    }
+
+    if (strncmp(buffer, RTSP_OK_STR, strlen(RTSP_OK_STR)) == 0) {
+        return true;
+    }
+
+    return false;
+}
+
+static bool send_rtsp_option_pkt(int fd)
+{
+    char buffer[1024] = { 0 };
+    std::string option_pkt = "OPTIONS * RTSP/1.0\r\nCSeq: 1\r\n";
+
+    if (send(fd, option_pkt.c_str(), strlen(option_pkt.c_str()), 0) == -1) {
+        return false;
+    }
+
+    if (recv(fd, buffer, sizeof(buffer), 0) == -1) {
+        return false;
+    }
+
+    if (strncmp(buffer, RTSP_OK_STR, strlen(RTSP_OK_STR)) == 0) {
+        return true;
+    }
+
+    return false;
+}
+
+static bool validate_rtsp_protocol(const host_info *host)
+{
+    int fd;
+    struct sockaddr_in serv_addr = { 0 };
+    char ip[32];
+    bool ret = false;
+
+    snprintf(ip, sizeof(ip), "%hhu.%hhu.%hhu.%hhu", host->ips[0], host->ips[1], host->ips[2], host->ips[3]);
+
+    if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        goto failed;
+    }
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(RTSP_PORT);
+
+    if (inet_pton(AF_INET, ip, &serv_addr.sin_addr) <= 0) {
+        goto failed;
+    }
+
+    if (connect(fd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) == -1) {
+        goto failed;
+    }
+
+    if (send_rtsp_describe_pkt(fd, ip) && send_rtsp_option_pkt(fd)) {
+        ret = true;
+    }
+
+failed:
+    if (fd != -1) {
+        close(fd);
+    }
+
+    return ret;
 }
