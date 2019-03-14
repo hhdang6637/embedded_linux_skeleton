@@ -1,9 +1,12 @@
 #include <string.h>
+#include <stdbool.h>
 #include <syslog.h>
 #include <math.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#include <signal.h>
+#include <sys/signalfd.h>
 #include "simpleTimerSync.h"
 #include "netlink_socket.h"
 #include "utilities.h"
@@ -22,21 +25,31 @@ typedef struct
 
 #define PRIVOXY_CONFIG_DIR "/tmp/configs/privoxy/"
 
+// LOCAL
 static std::list<std::string> local_subnets_new;
 static std::list<host_info> local_addr_found;
 static int interval_scan = (1000*60*60)*6;
+
+// CLOUD request
+static std::list<std::string> cloud_subnets_new;
+static std::list<host_info> cloud_addr_found;
 
 static void start_privoxy(void);
 static void update_local_subnet_addresses(void);
 static void split_subnet24(const char* subnet, std::list<std::string> &local_addr_found);
 static void scan_camera_rtsp(const char* subnet, std::list<host_info> &list_found_ips);
 
-static void start_nmap_thread(void);
-static void *nmap_thread_work(void *context);
+static void start_nmap_thread(void *thread_func(void *context));
+static void *nmap_thread_work_local(void *context);
+static void *nmap_thread_work_cloud(void *context);
 
+static int init_sigfd();
+
+bool cloud_request_scan(const char*subnet);
 
 void cloud_cam_service_loop()
 {
+    bool stop_flag = false;
     fd_set read_fds;
 
     start_privoxy();
@@ -52,9 +65,15 @@ void cloud_cam_service_loop()
     std::list<int> listReadFd;
     listReadFd.push_back(timer->getTimterFd());
 
+    int sigfd = init_sigfd();
+    if (sigfd > 0)
+    {
+        listReadFd.push_back(sigfd);
+    }
+
     update_local_subnet_addresses();
 
-    while (1) {
+    while (!stop_flag) {
         int maxfd = build_fd_sets(&read_fds, listReadFd);
 
         int activity = select(maxfd + 1, &read_fds, NULL, NULL, NULL);
@@ -74,6 +93,24 @@ void cloud_cam_service_loop()
         {
             if (FD_ISSET(timer->getTimterFd(), &read_fds)) {
                 timer->do_schedule();
+            }
+            if (FD_ISSET(sigfd, &read_fds)) {
+                /* signal handling */
+                struct signalfd_siginfo fdsi;
+                ssize_t s = read(sigfd, &fdsi, sizeof(fdsi));
+                if (s != sizeof(fdsi)) {
+                    syslog(LOG_WARNING, "Could not read from signal fd");
+                    continue;
+                }
+                switch(fdsi.ssi_signo) {
+                case SIGUSR1:
+                    /* simulate cloud request */
+                    cloud_request_scan("192.168.81.31/24");
+                    break;
+                default:
+                    stop_flag = true;
+                    break;
+                }
             }
         }
         }
@@ -105,24 +142,24 @@ static void update_local_subnet_addresses()
     }
 
     if (local_subnets_new.size() > 0) {
-        start_nmap_thread();
+        start_nmap_thread(nmap_thread_work_local);
     } else {
         syslog(LOG_INFO, "Cannot found any ipv4 addresses");
     }
 }
 
-void start_nmap_thread(void)
+static void start_nmap_thread(void *thread_func(void *context))
 {
     pthread_t nmapThread;
     pthread_attr_t  thread_attr;
     pthread_attr_init (&thread_attr);
-    pthread_create(&nmapThread, &thread_attr, nmap_thread_work, NULL);
+    pthread_create(&nmapThread, &thread_attr, thread_func, NULL);
     pthread_attr_destroy(&thread_attr);
 }
 
-void *nmap_thread_work(void *context)
+static void *nmap_thread_work_local(void *context)
 {
-    syslog(LOG_NOTICE, "nmap_thread_work start");
+    syslog(LOG_NOTICE, "nmap_thread_work_local start");
 
     local_addr_found.clear();
 
@@ -142,11 +179,37 @@ void *nmap_thread_work(void *context)
         syslog(LOG_NOTICE, "nmap found nothing");
     }
 
-    syslog(LOG_NOTICE, "nmap_thread_work done");
+    syslog(LOG_NOTICE, "nmap_thread_work_local done");
     return NULL;
 }
 
-void scan_camera_rtsp(const char* subnet, std::list<host_info> &list_found_ips)
+static void *nmap_thread_work_cloud(void *context)
+{
+    syslog(LOG_NOTICE, "nmap_thread_work_cloud start");
+
+    cloud_addr_found.clear();
+
+    while(cloud_subnets_new.size() > 0)
+    {
+        std::string subnet = cloud_subnets_new.back();
+        scan_camera_rtsp(subnet.c_str(), cloud_addr_found);
+        cloud_subnets_new.pop_back();
+    }
+
+    if (cloud_addr_found.size() > 0) {
+        syslog(LOG_NOTICE, "nmap found:");
+        for (std::list<host_info>::iterator i = cloud_addr_found.begin(); i != cloud_addr_found.end(); ++i) {
+            syslog(LOG_NOTICE, "%hhu.%hhu.%hhu.%hhu", i->ips[0], i->ips[1], i->ips[2], i->ips[3]);
+        }
+    } else {
+        syslog(LOG_NOTICE, "nmap found nothing");
+    }
+
+    syslog(LOG_NOTICE, "nmap_thread_work_cloud done");
+    return NULL;
+}
+
+static void scan_camera_rtsp(const char* subnet, std::list<host_info> &list_found_ips)
 {
     char nmap_cmd[256];
     char buff[512];
@@ -192,7 +255,7 @@ void scan_camera_rtsp(const char* subnet, std::list<host_info> &list_found_ips)
     }
 }
 
-void split_subnet24(const char* subnet, std::list<std::string> &local_addr_found)
+static void split_subnet24(const char* subnet, std::list<std::string> &local_addr_found)
 {
     unsigned char ips[4];
     int subnet_len;
@@ -261,5 +324,44 @@ static void start_privoxy()
     fclose(f);
 
     syslog(LOG_NOTICE, "start privoxy service");
-    system("/usr/sbin/privoxy "PRIVOXY_CONFIG_DIR"config");
+    system("/usr/sbin/privoxy " PRIVOXY_CONFIG_DIR "config");
+}
+
+static int init_sigfd()
+{
+    int sigfd;
+    sigset_t mask;
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGUSR1);
+    if (sigprocmask(SIG_BLOCK, &mask, NULL) == -1) {
+        syslog(LOG_WARNING, "Could not init sigprocmask");
+        return -1;
+    }
+    sigfd = signalfd(-1, &mask, SFD_CLOEXEC | SFD_NONBLOCK);
+    if (sigfd < 0) {
+        syslog(LOG_WARNING, "Could not init signal handling");
+        return -1;
+    }
+    return sigfd;
+}
+
+// requests from outside
+
+bool cloud_request_scan(const char*subnet) {
+
+    if (cloud_subnets_new.size() > 0) {
+        syslog(LOG_INFO, "the cloud list new subnet still available");
+        return false;
+    }
+
+    split_subnet24(subnet, cloud_subnets_new);
+
+    if (cloud_subnets_new.size() > 0) {
+        start_nmap_thread(nmap_thread_work_cloud);
+    } else {
+        syslog(LOG_INFO, "Cannot found any ipv4 addresses in cloud request");
+        return false;
+    }
+
+    return true;
 }
