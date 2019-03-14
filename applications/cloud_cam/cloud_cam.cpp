@@ -49,7 +49,7 @@ static int init_sigfd();
 
 bool cloud_request_scan(const char*subnet);
 static void simulate_cloud_request_scan();
-static bool validate_rtsp_protocol(const host_info *host);
+static bool valid_rtsp_protocol(const host_info *host);
 
 void cloud_cam_service_loop()
 {
@@ -163,6 +163,7 @@ static void start_nmap_thread(void *thread_func(void *context))
 
 static void *nmap_thread_work_local(void *context)
 {
+    std::list<host_info> tmp_addr_found;
     syslog(LOG_NOTICE, "nmap_thread_work_local start");
 
     local_addr_found.clear();
@@ -170,8 +171,14 @@ static void *nmap_thread_work_local(void *context)
     while(local_subnets_new.size() > 0)
     {
         std::string subnet = local_subnets_new.back();
-        scan_camera_rtsp(subnet.c_str(), local_addr_found);
+        scan_camera_rtsp(subnet.c_str(), tmp_addr_found);
         local_subnets_new.pop_back();
+    }
+
+    for (std::list<host_info>::iterator i = tmp_addr_found.begin(); i != tmp_addr_found.end(); ++i) {
+        if (valid_rtsp_protocol(&*i)) {
+            local_addr_found.push_back(*i);
+        }
     }
 
     if (local_addr_found.size() > 0) {
@@ -189,6 +196,7 @@ static void *nmap_thread_work_local(void *context)
 
 static void *nmap_thread_work_cloud(void *context)
 {
+    std::list<host_info> tmp_addr_found;
     syslog(LOG_NOTICE, "nmap_thread_work_cloud start");
 
     cloud_addr_found.clear();
@@ -196,8 +204,14 @@ static void *nmap_thread_work_cloud(void *context)
     while(cloud_subnets_new.size() > 0)
     {
         std::string subnet = cloud_subnets_new.back();
-        scan_camera_rtsp(subnet.c_str(), cloud_addr_found);
+        scan_camera_rtsp(subnet.c_str(), tmp_addr_found);
         cloud_subnets_new.pop_back();
+    }
+
+    for (std::list<host_info>::iterator i = tmp_addr_found.begin(); i != tmp_addr_found.end(); ++i) {
+        if (valid_rtsp_protocol(&*i)) {
+            cloud_addr_found.push_back(*i);
+        }
     }
 
     if (cloud_addr_found.size() > 0) {
@@ -237,7 +251,7 @@ static void scan_camera_rtsp(const char* subnet, std::list<host_info> &list_foun
             if (sscanf(buff, "Nmap scan report for %hhu.%hhu.%hhu.%hhu", &ips[0], &ips[1], &ips[2], &ips[3]) == 4) {
 
                 if (host.ips[0] != 0) {
-                    // store the old host info
+                    // validate & store the old host info
                     list_found_ips.push_back(host);
                 }
 
@@ -252,9 +266,7 @@ static void scan_camera_rtsp(const char* subnet, std::list<host_info> &list_foun
 
         if (host.ips[0] != 0) {
             // validate & store the old host info
-            if (validate_rtsp_protocol(&host)) {
-                list_found_ips.push_back(host);
-            }
+            list_found_ips.push_back(host);
         }
 
         pclose(nmap_out_stream);
@@ -409,6 +421,8 @@ static void simulate_cloud_request_scan()
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 static bool send_rtsp_describe_pkt(int fd, const char* ip)
 {
     char buffer[1024] = { 0 };
@@ -449,7 +463,7 @@ static bool send_rtsp_option_pkt(int fd)
     return false;
 }
 
-static bool validate_rtsp_protocol(const host_info *host)
+static bool valid_rtsp_protocol(const host_info *host)
 {
     int fd;
     struct sockaddr_in serv_addr = { 0 };
