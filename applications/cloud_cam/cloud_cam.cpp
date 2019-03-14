@@ -111,6 +111,9 @@ void cloud_cam_service_loop()
                     /* simulate cloud request */
                     simulate_cloud_request_scan();
                     break;
+                case SIGCHLD:
+                    syslog(LOG_NOTICE, "recive SIGCHLD ssi_pid = %u", fdsi.ssi_pid);
+                     break;
                 default:
                     stop_flag = true;
                     break;
@@ -467,15 +470,23 @@ static bool send_rtsp_option_pkt(int fd)
 static bool valid_rtsp_protocol(const host_info *host)
 {
     int fd;
+    struct timeval tv;
     struct sockaddr_in serv_addr = { 0 };
     char ip[32];
     bool ret = false;
 
     snprintf(ip, sizeof(ip), "%hhu.%hhu.%hhu.%hhu", host->ips[0], host->ips[1], host->ips[2], host->ips[3]);
 
+    syslog(LOG_NOTICE, "valid_rtsp_protocol(\"%hhu.%hhu.%hhu.%hhu\")",
+        host->ips[0], host->ips[1], host->ips[2], host->ips[3]);
+
     if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         goto failed;
     }
+
+    tv.tv_sec = 10;
+    tv.tv_usec = 0;
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(RTSP_PORT);
