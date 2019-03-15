@@ -29,7 +29,6 @@ $(ROOTFS_DIR):
 	@mkdir    $(ROOTFS_DIR)/usr/lib
 
 all: $(ROOTFS_DIR)
-	@$(MAKE) -C cloud_cam clean all
 	@$(MAKE) -C noip-2.1.9-1
 	@cp noip-2.1.9-1/noip2 $(ROOTFS_DIR)/bin
 	@$(MAKE) -C iptables clean all
@@ -54,6 +53,7 @@ endif
 	@$(MAKE) -C dropbear/dropbear-2018.76 clean all
 	@$(MAKE) -C busybox clean all
 	@$(MAKE) -C nmap all
+	@$(MAKE) -C cloud_cam clean all
 ifeq ($(BUILD_TYPE),DEBUG)
 	@$(MAKE) -C valgrind/valgrind-3.13.0 clean all
 endif
