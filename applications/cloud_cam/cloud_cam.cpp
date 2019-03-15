@@ -211,6 +211,10 @@ static void *nmap_thread_work_cloud(void *context)
         cloud_subnets_new.pop_back();
     }
 
+    if (tmp_addr_found.size() > 0) {
+        syslog(LOG_NOTICE, "nmap found %d ips address, we are going to filter them", tmp_addr_found.size());
+    }
+
     for (std::list<host_info>::iterator i = tmp_addr_found.begin(); i != tmp_addr_found.end(); ++i) {
         if (valid_rtsp_protocol(&*i)) {
             cloud_addr_found.push_back(*i);
@@ -218,7 +222,7 @@ static void *nmap_thread_work_cloud(void *context)
     }
 
     if (cloud_addr_found.size() > 0) {
-        syslog(LOG_NOTICE, "nmap found:");
+        syslog(LOG_NOTICE, "nmap found %d/%d", cloud_subnets_new.size(), tmp_addr_found.size());
         for (std::list<host_info>::iterator i = cloud_addr_found.begin(); i != cloud_addr_found.end(); ++i) {
             syslog(LOG_NOTICE, "%hhu.%hhu.%hhu.%hhu", i->ips[0], i->ips[1], i->ips[2], i->ips[3]);
         }
@@ -484,7 +488,7 @@ static bool valid_rtsp_protocol(const host_info *host)
         goto failed;
     }
 
-    tv.tv_sec = 10;
+    tv.tv_sec = 3;
     tv.tv_usec = 0;
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
 
