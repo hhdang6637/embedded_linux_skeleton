@@ -11,7 +11,7 @@ SRCS=main.o cloud_cam.o
 OBJS   = $(patsubst %.cpp,%.o,$(SRCS))
 
 $(BIN): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN) -lopencv_core -lopencv_highgui -lpaho-mqtt3c -lapp
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $(BIN) -lapp
 
 clean:
 	rm -f $(OBJS) $(BIN)
