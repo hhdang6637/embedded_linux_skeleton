@@ -195,6 +195,49 @@ static void start_nmap_thread(void *thread_func(void *context))
     pthread_attr_destroy(&thread_attr);
 }
 
+// output: "camera_list": ["192.168.2.3", "192.168.2.4", "192.168.3.4"]
+static void camera_list_to_json_array(std::list<host_info> &list, std::string &str)
+{
+    size_t counter = 0;
+    char ip[32];
+
+    syslog(LOG_NOTICE, "nmap camera_list_to_json_array");
+
+    str = "\"camera_list\": [";
+    for (auto const& i : list) {
+        snprintf(ip, sizeof(ip), "\"%hhu.%hhu.%hhu.%hhu\"", i.ips[0], i.ips[1], i.ips[2], i.ips[3]);
+        str += ip;
+
+        if (++counter < list.size()) {
+            str += ",";
+        }
+    }
+    str += "]";
+
+    syslog(LOG_NOTICE, "str: %s", str.c_str());
+}
+
+static void send_camera_list_to_cloud(const std::string &str)
+{
+    std::ostringstream cmd;
+    std::string tun0_addr;
+
+    get_tun0_address(tun0_addr);
+
+    cmd << "curl -H 'Content-type: application/json' -X POST -d '";
+    cmd << "{\"gateway_ip\":\"" << tun0_addr << "\", ";
+    cmd << str;
+    cmd << "}'";
+    cmd << " http://10.8.0.1:5000/gateways";
+
+    if (system(cmd.str().c_str()) != 0) {
+        syslog(LOG_ERR, "Cannot send camera list to cloud!");
+        return;
+    }
+
+    syslog(LOG_NOTICE, "Send camera list to cloud succeed: %s", cmd.str().c_str());
+}
+
 static void *nmap_thread_work_local(void *context)
 {
     std::list<host_info> tmp_addr_found;
@@ -216,10 +259,12 @@ static void *nmap_thread_work_local(void *context)
     }
 
     if (local_addr_found.size() > 0) {
-        syslog(LOG_NOTICE, "nmap found:");
-        for (std::list<host_info>::iterator i = local_addr_found.begin(); i != local_addr_found.end(); ++i) {
-            syslog(LOG_NOTICE, "%hhu.%hhu.%hhu.%hhu", i->ips[0], i->ips[1], i->ips[2], i->ips[3]);
-        }
+        std::string camera_list;
+        camera_list_to_json_array(local_addr_found, camera_list);
+
+        syslog(LOG_NOTICE, "nmap found: %s", camera_list.c_str());
+
+        send_camera_list_to_cloud(camera_list);
     } else {
         syslog(LOG_NOTICE, "nmap found nothing");
     }
@@ -253,10 +298,11 @@ static void *nmap_thread_work_cloud(void *context)
     }
 
     if (cloud_addr_found.size() > 0) {
-        syslog(LOG_NOTICE, "nmap found %d/%d", cloud_subnets_new.size(), tmp_addr_found.size());
-        for (std::list<host_info>::iterator i = cloud_addr_found.begin(); i != cloud_addr_found.end(); ++i) {
-            syslog(LOG_NOTICE, "%hhu.%hhu.%hhu.%hhu", i->ips[0], i->ips[1], i->ips[2], i->ips[3]);
-        }
+        std::string camera_list;
+        camera_list_to_json_array(cloud_addr_found, camera_list);
+
+        syslog(LOG_NOTICE, "nmap found: %s", camera_list.c_str());
+        send_camera_list_to_cloud(camera_list);
     } else {
         syslog(LOG_NOTICE, "nmap found nothing");
     }
