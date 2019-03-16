@@ -7,6 +7,9 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <sys/signalfd.h>
+
+#include <fstream>
+
 #include "simpleTimerSync.h"
 #include "netlink_socket.h"
 #include "utilities.h"
@@ -343,37 +346,49 @@ static void split_subnet24(const char* subnet, std::list<std::string> &local_add
 static void start_privoxy()
 {
     FILE *f;
+    char line[32] = {};
+    unsigned char ips[4] = {};
+    int num;
 
-    if (system("ifconfig tun0 | grep \"inet \"") != 0) {
-        syslog(LOG_ERR, "VPN tunnel has not been established\n");
+    f = popen("ifconfig tun0 | grep \"inet addr:\" | awk -F ':' '{print $2}' | awk '{print $1}'", "r");
+    if (f == NULL) {
+        syslog(LOG_ERR, "start_privoxy(): Cannot run command");
         return;
+    }
+
+    if (fgets(line, sizeof(line), f) > 0) {
+        num = sscanf(line, "%hhu.%hhu.%hhu.%hhu", &ips[0], &ips[1], &ips[2], &ips[3]);
+        if (num != 4 || ips[0] == 0) {
+            syslog(LOG_ERR, "VPN tunnel has not been established\n");
+            return;
+        }
     }
 
     mkdir(PRIVOXY_CONFIG_DIR, 0755);
 
-    if ((f = fopen(PRIVOXY_CONFIG_DIR"config", "w")) == NULL) {
-            syslog(LOG_EMERG, "Cannot add default users to linux\n");
-            return;
-    }
+    std::ofstream privoxy_cfg(PRIVOXY_CONFIG_DIR "config");
 
-    fprintf(f,
-        "#forward-socks4a / 127.0.0.1:9050 .\n"
-        "#confdir /data/privoxy\n"
-        "#logdir /var/log/privoxy\n"
-        "#actionsfile default.action   # Main actions file\n"
-        "#actionsfile user.action      # User customizations\n"
-        "#filterfile default.filter\n"
-        "#logfile logfile\n"
-        "#debug   4096 # Startup banner and warnings\n"
-        "#debug   8192 # Errors - *we highly recommended enabling this*\n"
-        "#user-manual /usr/share/doc/privoxy/user-manual\n"
-        "listen-address  0.0.0.0:8080\n"
-        "#toggle  1\n"
-        "#enable-remote-toggle 0\n"
-        "#enable-edit-actions 0\n"
-        "#enable-remote-http-toggle 0\n"
-        "#buffer-limit 4096\n"
-    );
+    if (privoxy_cfg.is_open()) {
+
+        privoxy_cfg << "#forward-socks4a / 127.0.0.1:9050 .\n"
+                       "#confdir /data/privoxy\n"
+                       "#logdir /var/log/privoxy\n"
+                       "#actionsfile default.action   # Main actions file\n"
+                       "#actionsfile user.action      # User customizations\n"
+                       "#filterfile default.filter\n"
+                       "#logfile logfile\n"
+                       "#debug   4096 # Startup banner and warnings\n"
+                       "#debug   8192 # Errors - *we highly recommended enabling this*\n"
+                       "#user-manual /usr/share/doc/privoxy/user-manual\n"
+                       "listen-address " << ips[0] << "." << ips[1] << "." << ips[2] << "." << ips[3] << "." << ":8080\n"
+                       "#toggle  1\n"
+                       "#enable-remote-toggle 0\n"
+                       "#enable-edit-actions 0\n"
+                       "#enable-remote-http-toggle 0\n"
+                       "#buffer-limit 4096\n";
+
+        privoxy_cfg.close();
+    }
 
     fclose(f);
 
