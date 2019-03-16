@@ -26,6 +26,7 @@ typedef struct
 #define RTSP_PORT 554
 #define RTSP_OK_STR "RTSP/1.0 200 OK"
 #define PRIVOXY_CONFIG_DIR "/tmp/configs/privoxy/"
+#define OVPN_PROFILE "/tmp/openvpn.ovpn"
 
 // LOCAL
 static std::list<std::string> local_subnets_new;
@@ -50,16 +51,22 @@ static int init_sigfd();
 bool cloud_request_scan(const char*subnet);
 static void simulate_cloud_request_scan();
 static bool valid_rtsp_protocol(const host_info *host);
+static void start_openvpn_client();
+
+bool privoxy_running = false;
 
 void cloud_cam_service_loop()
 {
     bool stop_flag = false;
     fd_set read_fds;
-
-    start_privoxy();
+    struct timeval tv;
 
     // wait the network wakeup
     sleep(60);
+
+    start_openvpn_client();
+
+    start_privoxy();
 
     app::simpleTimerSync *timer = app::simpleTimerSync::getInstance();
     timer->init(1000);
@@ -77,10 +84,17 @@ void cloud_cam_service_loop()
 
     update_local_subnet_addresses();
 
+    tv.tv_sec = 60;
+    tv.tv_usec = 0;
+
     while (!stop_flag) {
         int maxfd = build_fd_sets(&read_fds, listReadFd);
 
-        int activity = select(maxfd + 1, &read_fds, NULL, NULL, NULL);
+        int activity = select(maxfd + 1, &read_fds, NULL, NULL, &tv);
+
+        if (!privoxy_running) {
+            start_privoxy();
+        }
 
         switch (activity)
         {
@@ -121,6 +135,14 @@ void cloud_cam_service_loop()
             }
         }
         }
+    }
+}
+
+static void start_openvpn_client()
+{
+    if (system("/usr/sbin/openvpn --config " OVPN_PROFILE " --daemon") != 0) {
+        syslog(LOG_ERR, "cannot start VPN");
+        return;
     }
 }
 
@@ -322,6 +344,11 @@ static void start_privoxy()
 {
     FILE *f;
 
+    if (system("ifconfig tun0 | grep \"inet \"") != 0) {
+        syslog(LOG_ERR, "VPN tunnel has not been established\n");
+        return;
+    }
+
     mkdir(PRIVOXY_CONFIG_DIR, 0755);
 
     if ((f = fopen(PRIVOXY_CONFIG_DIR"config", "w")) == NULL) {
@@ -352,6 +379,8 @@ static void start_privoxy()
 
     syslog(LOG_NOTICE, "start privoxy service");
     system("/usr/sbin/privoxy " PRIVOXY_CONFIG_DIR "config");
+
+    privoxy_running = true;
 }
 
 static int init_sigfd()
