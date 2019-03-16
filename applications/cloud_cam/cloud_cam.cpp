@@ -9,6 +9,7 @@
 #include <sys/signalfd.h>
 
 #include <fstream>
+#include <sstream>
 
 #include "simpleTimerSync.h"
 #include "netlink_socket.h"
@@ -40,7 +41,7 @@ static int interval_scan = (1000*60*60)*6;
 static std::list<std::string> cloud_subnets_new;
 static std::list<host_info> cloud_addr_found;
 
-static void start_privoxy(void);
+static bool start_privoxy(void);
 static void update_local_subnet_addresses(void);
 static void split_subnet24(const char* subnet, std::list<std::string> &local_addr_found);
 static void scan_camera_rtsp(const char* subnet, std::list<host_info> &list_found_ips);
@@ -54,22 +55,21 @@ static int init_sigfd();
 bool cloud_request_scan(const char*subnet);
 static void simulate_cloud_request_scan();
 static bool valid_rtsp_protocol(const host_info *host);
-static void start_openvpn_client();
-
-bool privoxy_running = false;
+static bool start_openvpn_client();
+static void get_tun0_address(std::string &ip);
 
 void cloud_cam_service_loop()
 {
     bool stop_flag = false;
     fd_set read_fds;
     struct timeval tv;
+    bool privoxy_running, ovpn_running;
 
     // wait the network wakeup
     sleep(60);
 
-    start_openvpn_client();
-
-    start_privoxy();
+    ovpn_running = start_openvpn_client();
+    privoxy_running = start_privoxy();
 
     app::simpleTimerSync *timer = app::simpleTimerSync::getInstance();
     timer->init(1000);
@@ -93,11 +93,15 @@ void cloud_cam_service_loop()
     while (!stop_flag) {
         int maxfd = build_fd_sets(&read_fds, listReadFd);
 
-        int activity = select(maxfd + 1, &read_fds, NULL, NULL, &tv);
-
-        if (!privoxy_running) {
-            start_privoxy();
+        if (!ovpn_running) {
+            ovpn_running = start_openvpn_client();
         }
+
+        if (!privoxy_running && ovpn_running) {
+            privoxy_running = start_privoxy();
+        }
+
+        int activity = select(maxfd + 1, &read_fds, NULL, NULL, &tv);
 
         switch (activity)
         {
@@ -141,12 +145,14 @@ void cloud_cam_service_loop()
     }
 }
 
-static void start_openvpn_client()
+static bool start_openvpn_client()
 {
     if (system("/usr/sbin/openvpn --config " OVPN_PROFILE " --daemon") != 0) {
         syslog(LOG_ERR, "cannot start VPN");
-        return;
+        return false;
     }
+
+    return true;
 }
 
 static void update_local_subnet_addresses()
@@ -343,26 +349,28 @@ static void split_subnet24(const char* subnet, std::list<std::string> &local_add
     }
 }
 
-static void start_privoxy()
+static void get_tun0_address(std::string &ip)
 {
-    FILE *f;
-    char line[32] = {};
-    unsigned char ips[4] = {};
-    int num;
+    struct net_interfaces_info info;
 
-    f = popen("ifconfig tun0 | grep \"inet addr:\" | awk -F ':' '{print $2}' | awk '{print $1}'", "r");
-    if (f == NULL) {
-        syslog(LOG_ERR, "start_privoxy(): Cannot run command");
-        return;
-    }
+    get_interfaces_info(info);
 
-    if (fgets(line, sizeof(line), f) > 0) {
-        num = sscanf(line, "%hhu.%hhu.%hhu.%hhu", &ips[0], &ips[1], &ips[2], &ips[3]);
-        if (num != 4 || ips[0] == 0) {
-            fclose(f);
-            syslog(LOG_ERR, "VPN tunnel has not been established\n");
-            return;
+    for (auto &ifo : info.if_addrs) {
+        if (strcmp(ifo.ifa_label, "tun0") == 0) {
+            ip = inet_ntoa(ifo.ifa_local);
         }
+    }
+}
+
+static bool start_privoxy()
+{
+    std::string ip;
+
+    get_tun0_address(ip);
+
+    if (ip.empty()) {
+        syslog(LOG_ERR, "VPN tunnel has not been established");
+        return false;
     }
 
     mkdir(PRIVOXY_CONFIG_DIR, 0755);
@@ -381,7 +389,7 @@ static void start_privoxy()
                        "#debug   4096 # Startup banner and warnings\n"
                        "#debug   8192 # Errors - *we highly recommended enabling this*\n"
                        "#user-manual /usr/share/doc/privoxy/user-manual\n"
-                       "listen-address " << ips[0] << "." << ips[1] << "." << ips[2] << "." << ips[3] << "." << ":8080\n"
+                       "listen-address " << ip << ":8080\n"
                        "#toggle  1\n"
                        "#enable-remote-toggle 0\n"
                        "#enable-edit-actions 0\n"
@@ -391,12 +399,13 @@ static void start_privoxy()
         privoxy_cfg.close();
     }
 
-    fclose(f);
+    if (system("/usr/sbin/privoxy " PRIVOXY_CONFIG_DIR "config") != 0) {
+        syslog(LOG_ERR, "Cannot start privoxy service");
+        return false;
+    }
 
-    syslog(LOG_NOTICE, "start privoxy service");
-    system("/usr/sbin/privoxy " PRIVOXY_CONFIG_DIR "config");
-
-    privoxy_running = true;
+    syslog(LOG_NOTICE, "Started privoxy service");
+    return true;
 }
 
 static int init_sigfd()
