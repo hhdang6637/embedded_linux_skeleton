@@ -359,6 +359,7 @@ static void start_privoxy()
     if (fgets(line, sizeof(line), f) > 0) {
         num = sscanf(line, "%hhu.%hhu.%hhu.%hhu", &ips[0], &ips[1], &ips[2], &ips[3]);
         if (num != 4 || ips[0] == 0) {
+            fclose(f);
             syslog(LOG_ERR, "VPN tunnel has not been established\n");
             return;
         }
