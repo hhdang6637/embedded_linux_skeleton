@@ -216,7 +216,7 @@ static bool openVpnManager_generate_openvpncfg(void)
     {
         openvpn_conf_file <<
                             "port " << openvpnCfg.port << "\n" <<
-                            "proto udp4\n"
+                            "proto tcp4\n"
                             "dev tun\n"
                             "crl-verify " OPENVPN_CRL_PEM "\n"
                             // server key
@@ -242,9 +242,9 @@ static bool openVpnManager_generate_openvpncfg(void)
 
                             "server 10.8.0.0 255.255.255.0\n"
                             "ifconfig-pool-persist ipp.txt\n"
-                            "push \"redirect-gateway def1 bypass-dhcp\"\n"
-                            "push \"dhcp-option DNS 208.67.222.222\"\n"
-                            "push \"dhcp-option DNS 208.67.220.220\"\n"
+                            // "push \"redirect-gateway def1 bypass-dhcp\"\n"
+                            // "push \"dhcp-option DNS 208.67.222.222\"\n"
+                            // "push \"dhcp-option DNS 208.67.220.220\"\n"
                             "keepalive 10 120\n"
                             "key-direction 0\n"
                             "cipher AES-128-CBC\n"
