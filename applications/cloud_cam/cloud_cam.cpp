@@ -87,9 +87,6 @@ void cloud_cam_service_loop()
 
     update_local_subnet_addresses();
 
-    tv.tv_sec = 60;
-    tv.tv_usec = 0;
-
     while (!stop_flag) {
         int maxfd = build_fd_sets(&read_fds, listReadFd);
 
@@ -100,6 +97,9 @@ void cloud_cam_service_loop()
         if (!privoxy_running && ovpn_running) {
             privoxy_running = start_privoxy();
         }
+
+        tv.tv_sec = 60;
+        tv.tv_usec = 0;
 
         int activity = select(maxfd + 1, &read_fds, NULL, NULL, &tv);
 
